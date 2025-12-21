@@ -1,26 +1,79 @@
 "use client";
 
-import ScheduleBar from "@/components/schedule/scheduleBar";
+import React, { useState } from "react";
+import ScheduleBar, { type Game } from "@/components/schedule/scheduleBar";
+import MatchupHeader from "@/components/MatchupHeader";
 
 export default function Home() {
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+
   return (
-    <main style={{ minHeight: "100vh", background: "#070a0f", color: "white" }}>
+    <main style={{ minHeight: "100vh", color: "white" }}>
       <ScheduleBar
         teamAbbrev="TOR"
         onSelectFutureGame={(game) => {
-          // For now just log it.
-          // Later: use this to set opponent + gameId for the comparison page.
-          console.log("Selected future game:", game);
+          setSelectedGame(game);
         }}
       />
 
-      <div style={{ padding: 24 }}>
-        <h1 style={{ fontSize: 24, marginBottom: 12 }}>Leafs Game Viewer</h1>
-        <p style={{ opacity: 0.8 }}>
-          Schedule bar is the only thing implemented right now. Next stage: when you select a future game,
-          we render Leafs vs opponent header + stats below.
-        </p>
-      </div>
+      <MatchupHeader game={selectedGame} teamAbbrev="TOR" />
+
+      <section style={{ padding: 24 }}>
+        <div
+          style={{
+            border: "1px solid rgba(255,255,255,0.10)",
+            background: "rgba(255,255,255,0.03)",
+            borderRadius: 14,
+            overflow: "hidden",
+          }}
+        >
+          <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+            <div style={{ fontWeight: 900, letterSpacing: 0.6 }}>TEAM COMPARISON</div>
+            <div style={{ fontSize: 12, opacity: 0.65, marginTop: 4 }}>
+              We’ll fill this with GF/GA, PP/PK, shots, last-5, etc.
+            </div>
+          </div>
+
+          <div style={{ padding: 16, opacity: 0.75 }}>
+            {/* Placeholder row style — this will become your stat rows */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr auto 1fr",
+                gap: 12,
+                alignItems: "center",
+                padding: "12px 10px",
+                borderRadius: 12,
+                border: "1px solid rgba(255,255,255,0.08)",
+                background: "rgba(0,0,0,0.25)",
+              }}
+            >
+              <div style={{ textAlign: "left", fontWeight: 800 }}>—</div>
+              <div style={{ textAlign: "center", opacity: 0.8 }}>Goals For / Game</div>
+              <div style={{ textAlign: "right", fontWeight: 800 }}>—</div>
+            </div>
+
+            <div style={{ height: 10 }} />
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr auto 1fr",
+                gap: 12,
+                alignItems: "center",
+                padding: "12px 10px",
+                borderRadius: 12,
+                border: "1px solid rgba(255,255,255,0.08)",
+                background: "rgba(0,0,0,0.25)",
+              }}
+            >
+              <div style={{ textAlign: "left", fontWeight: 800 }}>—</div>
+              <div style={{ textAlign: "center", opacity: 0.8 }}>Power Play % (Last 5)</div>
+              <div style={{ textAlign: "right", fontWeight: 800 }}>—</div>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

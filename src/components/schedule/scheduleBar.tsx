@@ -96,16 +96,18 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
       games.find((g) => new Date(g.startTimeUTC).getTime() > now && !isFinished(g.gameState)) ?? null
     );
   }, [games]);
-
-  // Default select next game and scroll it into view
+  
   useEffect(() => {
-    if (!nextGame) return;
+  if (!nextGame) return;
 
-    setSelectedId(nextGame.id);
+  setSelectedId(nextGame.id);
 
-    const el = cardRefs.current.get(nextGame.id);
-    el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  }, [nextGame?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Tell the page what game is selected (so header updates by default)
+  onSelectFutureGame?.(nextGame);
+
+  const el = cardRefs.current.get(nextGame.id);
+  el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+}, [nextGame?.id]); // keep this
 
   function scrollByPx(px: number) {
     scrollerRef.current?.scrollBy({ left: px, behavior: "smooth" });
