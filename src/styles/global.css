@@ -1,0 +1,20 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #070a0f;
+  color: #fff;
+  height: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.scheduleScroller::-webkit-scrollbar {
+  display: none;
+}
+.scheduleScroller {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
