@@ -18,3 +18,9 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+.section-title {
+  text-align: center;
+  margin: 24px 0 12px;
+  letter-spacing: 0.08em;
+}

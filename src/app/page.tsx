@@ -24,42 +24,57 @@ type TeamSummary = {
   points: number | null;
 };
 
+type TeamLast5 = {
+  team: string;
+  games: number;
+  record: { w: number; l: number; otl: number };
+  goalsForPerGame: number;
+  goalsAgainstPerGame: number;
+  shotsForPerGame: number;
+  shotsAgainstPerGame: number;
+  powerPlay: { goals: number; opps: number; pct: number | null };
+  penaltyKill: { oppPPGoals: number; oppPPOpps: number; pct: number | null };
+  gameIds: number[];
+  skippedPPGames?: number[];
+  note?: string;
+};
+
 // Calm team colors (tweak anytime). Leafs fixed; opponent changes by abbrev.
 const TEAM_COLORS: Record<string, string> = {
   TOR: "rgba(11, 0, 216, 1)", // Leafs blue (deeper, cleaner)
 
-  ANA: "rgba(245, 121, 58, 1)",   // Ducks orange
-  ARI: "rgba(140, 38, 51, 1)",    // Coyotes maroon
-  BOS: "rgba(255, 184, 28, 1)",   // Bruins gold
-  BUF: "rgba(0, 89, 255, 1)",     // Sabres royal blue
-  CAR: "rgba(204, 0, 0, 1)",      // Canes red
-  CBJ: "rgba(0, 38, 84, 1)",      // Jackets navy
-  CGY: "rgba(255, 39, 75, 1)",    // Flames red
-  CHI: "rgba(207, 10, 44, 1)",    // Hawks red
-  COL: "rgba(202, 16, 75, 1)",    // Avs burgundy
-  DAL: "rgba(0, 104, 71, 1)",     // Stars green
-  DET: "rgba(255, 0, 30, 1)",    // Wings red
-  EDM: "rgba(255, 76, 0, 1)",     // Oilers orange
-  FLA: "rgba(110, 0, 18, 1)",    // Panthers red
-  LAK: "rgba(162, 170, 173, 1)",  // Kings silver
-  MIN: "rgba(9, 137, 71, 1)",     // Wild green
-  MTL: "rgba(175, 30, 45, 1)",    // Canadiens red
-  NJD: "rgba(206, 17, 38, 1)",    // Devils red
-  NSH: "rgba(255, 184, 28, 1)",   // Preds gold
-  NYI: "rgba(5, 102, 187, 1)",     // Islanders blue
-  NYR: "rgba(0, 85, 255, 1)",     // Rangers blue
-  OTT: "rgba(197, 32, 50, 1)",    // Sens red
-  PHI: "rgba(247, 73, 2, 1)",     // Flyers orange
-  PIT: "rgba(252, 181, 20, 1)",   // Pens gold
-  SEA: "rgba(99, 162, 194, 1)",    // Kraken teal/navy
-  SJS: "rgba(0, 109, 117, 1)",    // Sharks teal
-  STL: "rgba(26, 64, 135, 1)",     // Blues blue
-  TBL: "rgba(32, 76, 206, 1)",     // Bolts blue
-  VAN: "rgba(0, 19, 54, 1)",      // Canucks blue
-  VGK: "rgba(180, 151, 90, 1)",   // Knights gold
-  WPG: "rgba(0, 10, 24, 1)",      // Jets navy
-  WSH: "rgba(23, 85, 171, 1)",      // Caps navy/red base
-  UTA: "rgba(120, 120, 120, 1)",  // Utah placeholder
+  ANA: "rgba(245, 121, 58, 1)", // Ducks orange
+  ARI: "rgba(140, 38, 51, 1)", // Coyotes maroon
+  BOS: "rgba(255, 184, 28, 1)", // Bruins gold
+  BUF: "rgba(0, 89, 255, 1)", // Sabres royal blue
+  CAR: "rgba(204, 0, 0, 1)", // Canes red
+  CBJ: "rgba(0, 38, 84, 1)", // Jackets navy
+  CGY: "rgba(255, 39, 75, 1)", // Flames red
+  CHI: "rgba(207, 10, 44, 1)", // Hawks red
+  COL: "rgba(202, 16, 75, 1)", // Avs burgundy
+  DAL: "rgba(0, 104, 71, 1)", // Stars green
+  DET: "rgba(255, 0, 30, 1)", // Wings red
+  EDM: "rgba(255, 76, 0, 1)", // Oilers orange
+  FLA: "rgba(110, 0, 18, 1)", // Panthers red
+  LAK: "rgba(162, 170, 173, 1)", // Kings silver
+  MIN: "rgba(9, 137, 71, 1)", // Wild green
+  MTL: "rgba(175, 30, 45, 1)", // Canadiens red
+  NJD: "rgba(206, 17, 38, 1)", // Devils red
+  NSH: "rgba(255, 184, 28, 1)", // Preds gold
+  NYI: "rgba(5, 102, 187, 1)", // Islanders blue
+  NYR: "rgba(0, 85, 255, 1)", // Rangers blue
+  OTT: "rgba(197, 32, 50, 1)", // Sens red
+  PHI: "rgba(247, 73, 2, 1)", // Flyers orange
+  PIT: "rgba(252, 181, 20, 1)", // Pens gold
+  SEA: "rgba(99, 162, 194, 1)", // Kraken teal/navy
+  SJS: "rgba(0, 109, 117, 1)", // Sharks teal
+  STL: "rgba(26, 64, 135, 1)", // Blues blue
+  TBL: "rgba(32, 76, 206, 1)", // Bolts blue
+  VAN: "rgba(0, 19, 54, 1)", // Canucks blue
+  VGK: "rgba(180, 151, 90, 1)", // Knights gold
+  WPG: "rgba(0, 10, 24, 1)", // Jets navy
+  WSH: "rgba(23, 85, 171, 1)", // Caps navy/red base
+  UTA: "rgba(120, 120, 120, 1)", // Utah placeholder
 };
 
 function getTeamColor(abbrev?: string) {
@@ -176,6 +191,10 @@ export default function Home() {
   const [oppSummary, setOppSummary] = useState<TeamSummary | null>(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
 
+  const [torLast5, setTorLast5] = useState<TeamLast5 | null>(null);
+  const [oppLast5, setOppLast5] = useState<TeamLast5 | null>(null);
+  const [loadingLast5, setLoadingLast5] = useState(false);
+
   const oppAbbrev = getOppFromGame(selectedGame, TEAM);
 
   useEffect(() => {
@@ -192,6 +211,22 @@ export default function Home() {
         setOppSummary(oppT);
       })
       .finally(() => setLoadingSummary(false));
+  }, [TEAM, oppAbbrev]);
+
+  useEffect(() => {
+    if (!oppAbbrev) return;
+
+    setLoadingLast5(true);
+
+    Promise.all([
+      fetch(`/api/team/last5?team=${TEAM}`).then((r) => r.json()),
+      fetch(`/api/team/last5?team=${oppAbbrev}`).then((r) => r.json()),
+    ])
+      .then(([tor, opp]) => {
+        setTorLast5(tor);
+        setOppLast5(opp);
+      })
+      .finally(() => setLoadingLast5(false));
   }, [TEAM, oppAbbrev]);
 
   const leftColor = getTeamColor(TEAM);
@@ -212,13 +247,15 @@ export default function Home() {
             overflow: "hidden",
           }}
         >
+          {/* HEADER */}
           <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-            <div style={{ fontWeight: 900, letterSpacing: 0.6 }}>TEAM COMPARISON</div>
-            <div style={{ fontSize: 12, opacity: 0.65, marginTop: 4 }}>
+            <div style={{ fontWeight: 900, letterSpacing: 0.6, textAlign: "center"}}>TEAM COMPARISON</div>
+            <div style={{ fontSize: 12, opacity: 0.65, marginTop: 4, textAlign: "center" }}>
               Season stats (auto-updates based on the selected future game).
             </div>
           </div>
 
+          {/* BODY */}
           <div style={{ padding: 16, opacity: 0.95 }}>
             {loadingSummary && (
               <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 10 }}>Loading team stats…</div>
@@ -277,6 +314,111 @@ export default function Home() {
               leftVal={torSummary?.shotsAgainstPerGame ?? null}
               rightVal={oppSummary?.shotsAgainstPerGame ?? null}
               label="Shots Against / Game"
+              leftColor={leftColor}
+              rightColor={rightColor}
+            />
+
+            {/* LAST 5 HEADER */}
+            <div style={{ height: 18 }} />
+            <div
+              style={{
+                marginTop: 30,
+                marginBottom: 10,
+                fontWeight: 900,
+                letterSpacing: 0.6,
+                opacity: 0.92,
+                textAlign: "center",
+              }}
+            >
+              LAST 5 GAMES
+            </div>
+
+            {loadingLast5 && (
+              <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 10 }}>
+                Loading last 5…
+              </div>
+            )}
+
+            <StatRow
+              leftVal={torLast5 ? torLast5.record.w : null}
+              rightVal={oppLast5 ? oppLast5.record.w : null}
+              label="Record (W-L-OTL)"
+              leftText={torLast5 ? `${torLast5.record.w}-${torLast5.record.l}-${torLast5.record.otl}` : "—"}
+              rightText={oppLast5 ? `${oppLast5.record.w}-${oppLast5.record.l}-${oppLast5.record.otl}` : "—"}
+              leftColor={leftColor}
+              rightColor={rightColor}
+            />
+            <div style={{ height: 10 }} />
+
+            <StatRow
+              leftVal={torLast5?.goalsForPerGame ?? null}
+              rightVal={oppLast5?.goalsForPerGame ?? null}
+              label="Goals For / Game (L5)"
+              leftColor={leftColor}
+              rightColor={rightColor}
+            />
+            <div style={{ height: 10 }} />
+
+            <StatRow
+              leftVal={torLast5?.goalsAgainstPerGame ?? null}
+              rightVal={oppLast5?.goalsAgainstPerGame ?? null}
+              label="Goals Against / Game (L5)"
+              leftColor={leftColor}
+              rightColor={rightColor}
+            />
+            <div style={{ height: 10 }} />
+
+            <StatRow
+              leftVal={torLast5?.shotsForPerGame ?? null}
+              rightVal={oppLast5?.shotsForPerGame ?? null}
+              label="Shots For / Game (L5)"
+              leftColor={leftColor}
+              rightColor={rightColor}
+            />
+            <div style={{ height: 10 }} />
+
+            <StatRow
+              leftVal={torLast5?.shotsAgainstPerGame ?? null}
+              rightVal={oppLast5?.shotsAgainstPerGame ?? null}
+              label="Shots Against / Game (L5)"
+              leftColor={leftColor}
+              rightColor={rightColor}
+            />
+            <div style={{ height: 10 }} />
+
+            <StatRow
+              leftVal={torLast5?.powerPlay.pct ?? null}
+              rightVal={oppLast5?.powerPlay.pct ?? null}
+              label="Power Play % (L5)"
+              leftText={
+                torLast5?.powerPlay.pct != null
+                  ? `${torLast5.powerPlay.pct}% (${torLast5.powerPlay.goals}/${torLast5.powerPlay.opps})`
+                  : "—"
+              }
+              rightText={
+                oppLast5?.powerPlay.pct != null
+                  ? `${oppLast5.powerPlay.pct}% (${oppLast5.powerPlay.goals}/${oppLast5.powerPlay.opps})`
+                  : "—"
+              }
+              leftColor={leftColor}
+              rightColor={rightColor}
+            />
+            <div style={{ height: 10 }} />
+
+            <StatRow
+              leftVal={torLast5?.penaltyKill.pct ?? null}
+              rightVal={oppLast5?.penaltyKill.pct ?? null}
+              label="Penalty Kill % (L5)"
+              leftText={
+                torLast5?.penaltyKill.pct != null
+                  ? `${torLast5.penaltyKill.pct}% (${torLast5.penaltyKill.oppPPGoals}/${torLast5.penaltyKill.oppPPOpps})`
+                  : "—"
+              }
+              rightText={
+                oppLast5?.penaltyKill.pct != null
+                  ? `${oppLast5.penaltyKill.pct}% (${oppLast5.penaltyKill.oppPPGoals}/${oppLast5.penaltyKill.oppPPOpps})`
+                  : "—"
+              }
               leftColor={leftColor}
               rightColor={rightColor}
             />
