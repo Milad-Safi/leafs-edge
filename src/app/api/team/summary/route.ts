@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 
+type RecordSplit = {
+  w: number;
+  l: number;
+};
+
 type TeamSummary = {
   teamAbbrev: string;
   seasonId: number;
@@ -13,7 +18,7 @@ type TeamSummary = {
   goalsForPerGame: number | null;
   goalsAgainstPerGame: number | null;
 
-  powerPlayPct: number | null;   // percent (0-100)
+  powerPlayPct: number | null; // percent (0-100)
   penaltyKillPct: number | null; // percent (0-100)
 
   shotsForPerGame: number | null;
@@ -23,6 +28,10 @@ type TeamSummary = {
   losses: number | null;
   otLosses: number | null;
   points: number | null;
+
+  // ✅ NEW
+  homeRecord: RecordSplit;
+  awayRecord: RecordSplit;
 };
 
 function toNumber(val: unknown): number | null {
@@ -73,6 +82,61 @@ async function getTeamIdByAbbrev(teamAbbrev: string): Promise<number | null> {
   return toNumber(found?.id ?? found?.teamId) ?? null;
 }
 
+async function getHomeAwayRecord(teamAbbrev: string, seasonId: number): Promise<{
+  homeRecord: RecordSplit;
+  awayRecord: RecordSplit;
+}> {
+  const homeRecord: RecordSplit = { w: 0, l: 0 };
+  const awayRecord: RecordSplit = { w: 0, l: 0 };
+
+  const endpoint = `https://api-web.nhle.com/v1/club-schedule-season/${teamAbbrev}/${seasonId}`;
+  const res = await fetch(endpoint, {
+    // schedule changes as games finish; keep it fresh
+    cache: "no-store",
+    headers: { "User-Agent": "leafs-edge" },
+  });
+
+  if (!res.ok) {
+    // If schedule fails, just return zeros (don’t break your page)
+    return { homeRecord, awayRecord };
+  }
+
+  const json = await res.json();
+  const games: any[] = Array.isArray(json?.games) ? json.games : [];
+
+  for (const g of games) {
+  const state = String(g?.gameState ?? "").toUpperCase();
+  const isCompleted = state === "FINAL" || state === "OFF";
+  if (!isCompleted) continue;
+
+  const homeAbbrev = String(g?.homeTeam?.abbrev || "").toUpperCase();
+  const awayAbbrev = String(g?.awayTeam?.abbrev || "").toUpperCase();
+  const isHome = homeAbbrev === teamAbbrev;
+  const isAway = awayAbbrev === teamAbbrev;
+  if (!isHome && !isAway) continue;
+
+  const homeScore = toNumber(g?.homeTeam?.score);
+  const awayScore = toNumber(g?.awayTeam?.score);
+
+  // If a finished game somehow has no score, skip it (prevents fake 0-0 losses)
+  if (homeScore == null || awayScore == null) continue;
+
+  const goalsFor = isHome ? homeScore : awayScore;
+  const goalsAgainst = isHome ? awayScore : homeScore;
+
+  if (goalsFor > goalsAgainst) {
+    if (isHome) homeRecord.w++;
+    else awayRecord.w++;
+  } else {
+    if (isHome) homeRecord.l++;
+    else awayRecord.l++;
+  }
+}
+
+
+  return { homeRecord, awayRecord };
+}
+
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const teamAbbrev = (url.searchParams.get("team") || "").trim().toUpperCase();
@@ -93,25 +157,29 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: `Unknown team abbrev: ${teamAbbrev}` }, { status: 404 });
     }
 
-    // One endpoint for everything we need
+    // One endpoint for everything we need (season summary)
     const cayenneExp = `seasonId=${seasonId} and gameTypeId=${gameTypeId} and teamId=${teamId}`;
     const endpoint =
       "https://api.nhle.com/stats/rest/en/team/summary" +
       `?cayenneExp=${encodeURIComponent(cayenneExp)}`;
 
-    const res = await fetch(endpoint, {
-      next: { revalidate: 60 },
-      headers: { "User-Agent": "leafs-edge" },
-    });
+    // Fetch season summary + schedule splits in parallel
+    const [summaryRes, splits] = await Promise.all([
+      fetch(endpoint, {
+        next: { revalidate: 60 },
+        headers: { "User-Agent": "leafs-edge" },
+      }),
+      getHomeAwayRecord(teamAbbrev, seasonId),
+    ]);
 
-    if (!res.ok) {
+    if (!summaryRes.ok) {
       return NextResponse.json(
-        { error: `team/summary fetch failed: ${res.status}`, endpoint },
+        { error: `team/summary fetch failed: ${summaryRes.status}`, endpoint },
         { status: 502 }
       );
     }
 
-    const json = await res.json();
+    const json = await summaryRes.json();
     const row = Array.isArray(json?.data) ? json.data[0] : null;
 
     if (!row) {
@@ -145,6 +213,10 @@ export async function GET(req: Request) {
       losses: toNumber(row?.losses),
       otLosses: toNumber(row?.otLosses),
       points: toNumber(row?.points),
+
+      // ✅ NEW
+      homeRecord: splits.homeRecord,
+      awayRecord: splits.awayRecord,
     };
 
     return NextResponse.json(payload);
