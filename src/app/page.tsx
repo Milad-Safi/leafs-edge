@@ -12,6 +12,7 @@ import Last5Section, {
 } from "@/components/Last5";
 
 import { getTeamColor } from "@/lib/teamColours";
+import HotPlayersLast5, { type HotL5Payload } from "@/components/HotPlayers";
 
 
 function getOppFromGame(game: Game | null, teamAbbrev: string) {
@@ -25,6 +26,9 @@ function getOppFromGame(game: Game | null, teamAbbrev: string) {
 
 export default function Home() {
   const TEAM = "TOR";
+
+  const [torHot, setTorHot] = useState<HotL5Payload | null>(null);
+  const [oppHot, setOppHot] = useState<HotL5Payload | null>(null);
 
   const [teamRanks, setTeamRanks] = useState<any | null>(null);
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
@@ -78,7 +82,26 @@ export default function Home() {
     .then((r) => r.json())
     .then((j) => setTeamRanks(j?.ranks ? j : null))
     .catch(() => setTeamRanks(null));
+  }, [TEAM, oppAbbrev]);
+
+  useEffect(() => {
+  if (!oppAbbrev) return;
+
+  Promise.all([
+    fetch(`/api/team/hotLast5?team=${TEAM}`).then((r) => r.json()),
+    fetch(`/api/team/hotLast5?team=${oppAbbrev}`).then((r) => r.json()),
+  ])
+    .then(([tor, opp]) => {
+      setTorHot(tor?.leaders ? tor : null);
+      setOppHot(opp?.leaders ? opp : null);
+    })
+    .catch(() => {
+      setTorHot(null);
+      setOppHot(null);
+    });
 }, [TEAM, oppAbbrev]);
+
+
 
   const leftColor = getTeamColor(TEAM);
   const rightColor = getTeamColor(oppAbbrev ?? "");
@@ -108,14 +131,14 @@ export default function Home() {
           }}
         >
           <TeamComparisonSection
-          left={torSummary}
-          right={oppSummary}
-          loading={loadingSummary}
-          leftColor={leftColor}
-          rightColor={rightColor}
-          leftAbbrev={TEAM}
-          rightAbbrev={oppAbbrev ?? ""}
-          ranks={teamRanks}
+            left={torSummary}
+            right={oppSummary}
+            loading={loadingSummary}
+            leftColor={leftColor}
+            rightColor={rightColor}
+            leftAbbrev={TEAM}
+            rightAbbrev={oppAbbrev ?? ""}
+            ranks={teamRanks}
           />
 
           <Last5Section
@@ -124,7 +147,11 @@ export default function Home() {
             loading={loadingLast5}
             leftColor={leftColor}
             rightColor={rightColor}
+            hotLeft={torHot}
+            hotRight={oppHot}
           />
+
+
         </div>
       </section>
     </main>
