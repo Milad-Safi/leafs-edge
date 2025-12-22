@@ -37,7 +37,7 @@ export default function Last5Section({
   hotRight: HotL5Payload | null;
 }) {
   return (
-    <div style={{ padding: 2, opacity: 0.95 }}>
+    <div style={{ padding: 16, opacity: 0.95 }}>
       {/* top divider */}
       <div
         style={{

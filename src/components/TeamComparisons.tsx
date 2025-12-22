@@ -92,7 +92,7 @@ export default function TeamComparisonSection({
           TEAM COMPARISON
         </div>
         <div style={{ fontSize: 12, opacity: 0.65, marginTop: 4, textAlign: "center" }}>
-          Season stats (auto-updates based on the selected future game).
+          2025-2026 Regular Season Stats 
         </div>
       </div>
 

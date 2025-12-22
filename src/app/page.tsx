@@ -13,6 +13,7 @@ import Last5Section, {
 
 import { getTeamColor } from "@/lib/teamColours";
 import HotPlayersLast5, { type HotL5Payload } from "@/components/HotPlayers";
+import InjuriesSection from "@/components/Injuries";
 
 
 function getOppFromGame(game: Game | null, teamAbbrev: string) {
@@ -151,6 +152,7 @@ export default function Home() {
             hotRight={oppHot}
           />
 
+          <InjuriesSection leftTeam="TOR" rightTeam={oppAbbrev} />
 
         </div>
       </section>
