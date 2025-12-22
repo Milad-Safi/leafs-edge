@@ -7,7 +7,8 @@ type TeamAbbrev = string;
 type ScheduleGame = {
   id: number;
   gameState: string;
-  gameDate: string;
+  gameDate: string; // keep, but do NOT use for ordering
+  startTimeUTC?: string; // ✅ used for ordering
   homeTeam: { abbrev: string; score?: number };
   awayTeam: { abbrev: string; score?: number };
 };
@@ -22,8 +23,20 @@ function normalizeTeam(input: string): TeamAbbrev {
   return input.trim().toUpperCase();
 }
 
-function isFinal(g: ScheduleGame) {
-  return typeof g.gameState === "string" && g.gameState.toUpperCase().includes("FINAL");
+function toUtcMs(v: unknown): number | null {
+  if (typeof v !== "string") return null;
+  const ms = Date.parse(v);
+  return Number.isFinite(ms) ? ms : null;
+}
+
+/**
+ * ✅ FIX:
+ * Completed NHL games in this feed are typically gameState === "OFF"
+ * Some endpoints also use "FINAL".
+ */
+function isCompleted(g: ScheduleGame) {
+  const st = String(g?.gameState ?? "").toUpperCase();
+  return st === "OFF" || st === "FINAL";
 }
 
 function gameSummaryUrl(season: string, gameId: number) {
@@ -67,7 +80,6 @@ function parseGsPowerPlays(html: string): Array<{ goals: number; opps: number }>
 
   const lower = html.toLowerCase();
 
-  // GS pages usually contain this exact header text
   const key1 = "power plays (goals-opp./pptime)";
   const key2 = "power plays";
 
@@ -75,10 +87,8 @@ function parseGsPowerPlays(html: string): Array<{ goals: number; opps: number }>
   if (idx === -1) idx = lower.indexOf(key2);
   if (idx === -1) return [];
 
-  // Grab a chunk after the header; big enough to include both team lines
   const chunk = html.slice(idx, idx + 5000);
 
-  // Match "1-4 / 06:12" anywhere (ignores tags/spaces/&nbsp;)
   const re = /(\d+)\s*-\s*(\d+)\s*\/\s*\d{1,2}:\d{2}/g;
 
   const out: Array<{ goals: number; opps: number }> = [];
@@ -86,14 +96,13 @@ function parseGsPowerPlays(html: string): Array<{ goals: number; opps: number }>
 
   while ((m = re.exec(chunk)) !== null) {
     out.push({ goals: Number(m[1]), opps: Number(m[2]) });
-    if (out.length >= 2) break; // away + home
+    if (out.length >= 2) break;
   }
 
   return out;
 }
 
 async function fetchBoxscores(gameIds: number[]) {
-  // parallel fetch boxscores
   const results = await Promise.all(
     gameIds.map(async (id) => {
       const r = await fetch(boxscoreUrl(id), { next: { revalidate: 300 } });
@@ -121,7 +130,7 @@ function computeRecord(team: TeamAbbrev, games: ScheduleGame[]) {
     const oppScore = isHome ? (g.awayTeam.score ?? 0) : (g.homeTeam.score ?? 0);
 
     if (myScore > oppScore) w++;
-    else l++; // (keeping your simplified loss logic)
+    else l++; // keeping your simplified loss logic
   }
 
   return { w, l, otl };
@@ -140,13 +149,24 @@ export async function GET(req: Request) {
   try {
     const allGames = await fetchTeamGames(team);
 
+    /**
+     * ✅ FIX:
+     * - only completed games (OFF/FINAL)
+     * - sort by startTimeUTC (real time) desc
+     * - NEVER sort by gameDate
+     */
     const finals = allGames
-      .filter(isFinal)
-      .sort((a, b) => (a.gameDate < b.gameDate ? 1 : -1))
+      .filter(isCompleted)
+      .map((g) => ({
+        ...g,
+        _startMs: toUtcMs(g.startTimeUTC) ?? -1,
+      }))
+      .filter((g) => g._startMs > 0)
+      .sort((a, b) => b._startMs - a._startMs)
       .slice(0, 5);
 
     if (finals.length === 0) {
-      return NextResponse.json({ error: "No final games found yet." }, { status: 404 });
+      return NextResponse.json({ error: "No completed games found yet." }, { status: 404 });
     }
 
     const gameIds = finals.map((g) => g.id);
@@ -154,7 +174,6 @@ export async function GET(req: Request) {
     // totals
     let gf = 0,
       ga = 0;
-
     let sf = 0,
       sa = 0;
 
@@ -166,7 +185,7 @@ export async function GET(req: Request) {
 
     const skippedPPGames: number[] = [];
 
-    // --- SOG: boxscore (this is what fixed your shots) ---
+    // --- SOG: boxscore ---
     const boxscoreMap = await fetchBoxscores(gameIds);
 
     // --- PP/PK: GS htmlreports ---
@@ -208,7 +227,6 @@ export async function GET(req: Request) {
         continue;
       }
 
-      // GS order is typically away then home
       const awayRow = rows[0];
       const homeRow = rows[1];
 
@@ -242,7 +260,7 @@ export async function GET(req: Request) {
       gameIds,
       skippedPPGames,
       note:
-        "SOG derived from gamecenter boxscore. PP/PK derived from NHL Game Summary (GS) Power Plays row. Any GS parse failures are listed in skippedPPGames.",
+        "Ordering uses startTimeUTC (not gameDate). Completed games are OFF/FINAL. SOG from gamecenter boxscore. PP/PK from NHL GS htmlreports.",
     });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message ?? "Unknown error" }, { status: 500 });

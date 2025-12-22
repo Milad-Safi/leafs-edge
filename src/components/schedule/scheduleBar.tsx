@@ -56,10 +56,20 @@ function getResultLabel(leafsScore: number | null, oppScore: number | null, game
   return "T";
 }
 
-function formatDateShort(yyyyMmDd: string) {
-  const [y, m, d] = yyyyMmDd.split("-").map(Number);
-  const dt = new Date(Date.UTC(y, m - 1, d));
-  return dt.toLocaleDateString(undefined, { month: "short", day: "2-digit" }).toUpperCase();
+/**
+ * ✅ FIX:
+ * Show the date using startTimeUTC rendered in America/Toronto
+ * (not gameDate + Date.UTC which can go 1 day behind).
+ */
+function formatDateShortFromUTC(startTimeUTC: string) {
+  const dt = new Date(startTimeUTC);
+  return dt
+    .toLocaleDateString(undefined, {
+      timeZone: "America/Toronto",
+      month: "short",
+      day: "2-digit",
+    })
+    .toUpperCase();
 }
 
 function formatTimeLocalFromUTC(utcIso: string) {
@@ -96,18 +106,18 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
       games.find((g) => new Date(g.startTimeUTC).getTime() > now && !isFinished(g.gameState)) ?? null
     );
   }, [games]);
-  
+
   useEffect(() => {
-  if (!nextGame) return;
+    if (!nextGame) return;
 
-  setSelectedId(nextGame.id);
+    setSelectedId(nextGame.id);
 
-  // Tell the page what game is selected (so header updates by default)
-  onSelectFutureGame?.(nextGame);
+    // Tell the page what game is selected (so header updates by default)
+    onSelectFutureGame?.(nextGame);
 
-  const el = cardRefs.current.get(nextGame.id);
-  el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-}, [nextGame?.id]); // keep this
+    const el = cardRefs.current.get(nextGame.id);
+    el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }, [nextGame?.id]); // keep this
 
   function scrollByPx(px: number) {
     scrollerRef.current?.scrollBy({ left: px, behavior: "smooth" });
@@ -134,7 +144,9 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
           const leafsIsHome = g.homeAbbrev?.toUpperCase() === teamAbbrev.toUpperCase();
           const opp = leafsIsHome ? g.awayAbbrev : g.homeAbbrev;
 
-          const topLine = formatDateShort(g.gameDate);
+          // ✅ FIX: use startTimeUTC (Toronto timezone) for date label
+          const topLine = formatDateShortFromUTC(g.startTimeUTC);
+
           const midLine = `${teamAbbrev} ${leafsIsHome ? "vs" : "@"} ${opp}`;
 
           let bottomLine = "";

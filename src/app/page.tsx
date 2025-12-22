@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import ScheduleBar, { type Game } from "@/components/schedule/scheduleBar";
 import MatchupHeader from "@/components/MatchupHeader";
-
+import GoaliesSection from "@/components/goalies";
 import TeamComparisonSection, {
   type TeamSummary,
 } from "@/components/TeamComparisons";
@@ -24,10 +24,31 @@ function getOppFromGame(game: Game | null, teamAbbrev: string) {
     ?.toUpperCase?.() ?? null;
 }
 
+function torontoDateFromUTC(utcIso: string | null | undefined): string | null {
+  if (!utcIso) return null;
+  const dt = new Date(utcIso);
+  if (!Number.isFinite(dt.getTime())) return null;
+
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Toronto",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(dt);
+
+  const y = parts.find((p) => p.type === "year")?.value;
+  const m = parts.find((p) => p.type === "month")?.value;
+  const d = parts.find((p) => p.type === "day")?.value;
+  if (!y || !m || !d) return null;
+
+  return `${y}-${m}-${d}`;
+}
+
+
 
 export default function Home() {
   const TEAM = "TOR";
-
+  
   const [torHot, setTorHot] = useState<HotL5Payload | null>(null);
   const [oppHot, setOppHot] = useState<HotL5Payload | null>(null);
 
@@ -106,6 +127,7 @@ export default function Home() {
 
   const leftColor = getTeamColor(TEAM);
   const rightColor = getTeamColor(oppAbbrev ?? "");
+  const gameDayToronto = torontoDateFromUTC(selectedGame?.startTimeUTC ?? null);
 
 
   return (
@@ -152,7 +174,19 @@ export default function Home() {
             hotRight={oppHot}
           />
 
+          {oppAbbrev && gameDayToronto && (
+            <GoaliesSection
+              leftTeam="TOR"
+              rightTeam={oppAbbrev}
+              gameDate={gameDayToronto}
+              leftColor={leftColor}
+              rightColor={rightColor}
+            />
+          )}
+
           <InjuriesSection leftTeam="TOR" rightTeam={oppAbbrev} />
+
+
 
         </div>
       </section>

@@ -281,6 +281,7 @@ export default function InjuriesSection({
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
           gap: 28,
+          paddingInline: 18,
         }}
       >
         <Column

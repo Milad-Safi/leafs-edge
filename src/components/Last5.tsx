@@ -38,14 +38,17 @@ export default function Last5Section({
 }) {
   return (
     <div style={{ padding: 16, opacity: 0.95 }}>
+
       {/* top divider */}
-      <div
-        style={{
-          height: 1,
-          background: "rgba(255,255,255,0.08)",
-          margin: "13px 0 10px",
-        }}
-      />
+      <div style={{ margin: "13px -16px 10px" }}>
+        <div
+          style={{
+            height: 1,
+            background: "rgba(255,255,255,0.08)",
+          }}
+        />
+      </div>
+
 
       {/* section title */}
       <div
@@ -62,13 +65,15 @@ export default function Last5Section({
       </div>
 
       {/* bottom divider */}
-      <div
-        style={{
-          height: 1,
-          background: "rgba(255,255,255,0.08)",
-          marginBottom: 20,
-        }}
-      />
+      <div style={{ margin: "0 -16px 20px" }}>
+        <div
+          style={{
+            height: 1,
+            background: "rgba(255,255,255,0.08)",
+          }}
+        />
+      </div>
+
 
       {loading && (
         <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 10 }}>

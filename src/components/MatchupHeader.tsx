@@ -16,19 +16,20 @@ type TeamSummaryMini = {
   awayRecord?: RecordSplit;
 };
 
-function formatPrettyDate(yyyyMmDd: string) {
-  const [y, m, d] = yyyyMmDd.split("-").map(Number);
-  const dt = new Date(Date.UTC(y, m - 1, d));
+function formatPrettyDateFromUTC(utcIso: string) {
+  const dt = new Date(utcIso);
   return dt.toLocaleDateString(undefined, {
+    timeZone: "America/Toronto",
     weekday: "short",
     month: "short",
     day: "numeric",
   });
 }
 
-function formatTimeLocalFromUTC(utcIso: string) {
+function formatTimeTorontoFromUTC(utcIso: string) {
   const dt = new Date(utcIso);
   return dt.toLocaleTimeString(undefined, {
+    timeZone: "America/Toronto",
     hour: "numeric",
     minute: "2-digit",
   });
@@ -56,8 +57,10 @@ export default function MatchupHeader({
   const opp = leafsIsHome ? game.awayAbbrev : game.homeAbbrev;
 
   const matchup = `${TEAM} ${leafsIsHome ? "vs" : "@"} ${opp}`;
-  const date = formatPrettyDate(game.gameDate);
-  const time = formatTimeLocalFromUTC(game.startTimeUTC);
+
+  // ✅ FIX: use startTimeUTC for BOTH date + time, rendered in Toronto timezone
+  const date = formatPrettyDateFromUTC(game.startTimeUTC);
+  const time = formatTimeTorontoFromUTC(game.startTimeUTC);
 
   // Overall records
   const leftOverall =
@@ -74,13 +77,9 @@ export default function MatchupHeader({
       ? `${rightSummary.wins}-${rightSummary.losses}-${rightSummary.otLosses}`
       : "—";
 
-  const leftSplit = leafsIsHome
-    ? leftSummary?.homeRecord
-    : leftSummary?.awayRecord;
+  const leftSplit = leafsIsHome ? leftSummary?.homeRecord : leftSummary?.awayRecord;
 
-  const rightSplit = leafsIsHome
-    ? rightSummary?.awayRecord
-    : rightSummary?.homeRecord;
+  const rightSplit = leafsIsHome ? rightSummary?.awayRecord : rightSummary?.homeRecord;
 
   const leftSplitLabel = leafsIsHome ? "Home" : "Away";
   const rightSplitLabel = leafsIsHome ? "Away" : "Home";
@@ -117,9 +116,7 @@ export default function MatchupHeader({
 
         <div style={styles.center}>
           <div style={styles.matchup}>{matchup}</div>
-          <div style={styles.centerSub}>
-            {leafsIsHome ? "Home game" : "Away game"}
-          </div>
+          <div style={styles.centerSub}>{leafsIsHome ? "Home game" : "Away game"}</div>
         </div>
 
         <div style={styles.teamSideRight}>
