@@ -27,7 +27,6 @@ function higherBetterStrength(v: number | null | undefined, baseline: number, k:
 
 function toPct100(v: number | null | undefined) {
   if (v == null || !Number.isFinite(v)) return null;
-  // if it's a fraction like 0.234, convert to 23.4
   return v <= 1 ? v * 100 : v;
 }
 
@@ -75,12 +74,12 @@ export default function Last5Section({
             textAlign: "center",
           }}
         >
-          Last 5:
+          Last 5 Games:
         </div>
 
         {loading && (
           <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 12 }}>
-            Loading last 5…
+            Loading last 5 Games…
           </div>
         )}
 
