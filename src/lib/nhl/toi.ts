@@ -1,9 +1,5 @@
 // src/lib/nhl/toi.ts
 
-/**
- * Convert "MM:SS" TOI into minutes as a float.
- * Returns 0 for invalid input.
- */
 export function toiToMinutes(toi: any): number {
   if (typeof toi !== "string") return 0;
 

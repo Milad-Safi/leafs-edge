@@ -186,7 +186,6 @@ export default function GoaliesSection({
           }}
         >
           <div style={{ padding: 18, paddingBottom: 16 }}>
-            {/* ONLY CHANGE IS THIS className */}
             <div
               className="goaliesGrid"
               style={{

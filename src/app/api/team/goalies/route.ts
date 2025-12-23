@@ -5,8 +5,6 @@ import { toiToMinutes } from "@/lib/nhl/toi";
 
 export const runtime = "nodejs";
 
-/* -------------------- fetchers -------------------- */
-
 async function fetchRosterGoalies(team: string) {
   const url = `https://api-web.nhle.com/v1/roster/${team}/current`;
   const res = await fetch(url, { next: { revalidate: 3600 } });
@@ -31,11 +29,6 @@ async function fetchRosterGoalies(team: string) {
 
   return map;
 }
-
-/**
- * ✅ Single source of truth: use YOUR injuries endpoint.
- * Works in dev + prod because we build an absolute base URL from req.url.
- */
 async function fetchInjuredIdsViaApi(team: string, reqUrl: string): Promise<Set<number>> {
   const u = new URL(reqUrl);
   const base = `${u.protocol}//${u.host}`;
@@ -58,7 +51,6 @@ async function fetchInjuredIdsViaApi(team: string, reqUrl: string): Promise<Set<
   return set;
 }
 
-// CLUB STATS (goalies)
 async function fetchClubGoalies(team: string, season: string): Promise<any[]> {
   const url = `https://api-web.nhle.com/v1/club-stats/${team}/${season}/2`;
   const res = await fetch(url, { next: { revalidate: 3600 } });
@@ -67,7 +59,6 @@ async function fetchClubGoalies(team: string, season: string): Promise<any[]> {
   return Array.isArray(data?.goalies) ? data.goalies : [];
 }
 
-// SEASON SCHEDULE (for last 5 completed before gameDate)
 async function fetchSeasonSchedule(team: string, season: string): Promise<any[]> {
   const url = `https://api-web.nhle.com/v1/club-schedule-season/${team}/${season}`;
   const res = await fetch(url, { next: { revalidate: 3600 } });
@@ -80,8 +71,6 @@ function isCompletedGameState(v: any) {
   const st = String(v ?? "").toUpperCase();
   return st === "OFF" || st === "FINAL";
 }
-
-/* -------------------- boxscore helpers -------------------- */
 
 function getTeamGoaliesFromBoxscore(box: any, team: string): any[] {
   const awayAbbrev = cleanStr(box?.awayTeam?.abbrev)?.toUpperCase() ?? null;
@@ -110,7 +99,6 @@ function starterIdFromBoxscore(box: any, team: string): number | null {
   const starterId = toNum(starterRow?.playerId);
   if (starterId) return starterId;
 
-  // Fallback: highest TOI
   let bestId: number | null = null;
   let bestTOI = 0;
 
@@ -127,7 +115,6 @@ function starterIdFromBoxscore(box: any, team: string): number | null {
   return bestId;
 }
 
-// Used only for prevGame b2b check (single game)
 async function fetchStarterIdFromBoxscore(team: string, gameId: number) {
   const url = `https://api-web.nhle.com/v1/gamecenter/${gameId}/boxscore`;
   const res = await fetch(url, { next: { revalidate: 3600 } });
@@ -201,8 +188,6 @@ async function computeLast5GoalieSplitsFromBoxes(team: string, goalieId: number,
   return { games, record: { w, l, ot }, svPct, gaa };
 }
 
-/* -------------------- route -------------------- */
-
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
@@ -217,7 +202,6 @@ export async function GET(req: Request) {
     );
   }
 
-  // Treat incoming YYYY-MM-DD as the Toronto game day
   const gameDate = isoDate(new Date(gameDateRaw));
 
   try {
@@ -228,13 +212,11 @@ export async function GET(req: Request) {
       fetchSeasonSchedule(team, season),
     ]);
 
-    // Eligible roster goalies: active roster AND not injured (by playerId)
     const eligibleRosterIds: number[] = [];
     for (const [id] of rosterMap) {
       if (!injuredIds.has(id)) eligibleRosterIds.push(id);
     }
 
-    // Season stats map by playerId (club-stats)
     const seasonById = new Map<number, any>();
     for (const g of clubGoalies) {
       const id = toNum(g?.playerId);
@@ -263,7 +245,6 @@ export async function GET(req: Request) {
     const last5Boxes = await fetchBoxscores(last5GameIds);
     const last5StarterIds = last5Boxes.map((box) => starterIdFromBoxscore(box, team));
 
-    // Count starts among eligible roster goalies
     const startsMap = new Map<number, number>();
     for (const sid of last5StarterIds) {
       if (!sid) continue;
@@ -271,7 +252,6 @@ export async function GET(req: Request) {
       startsMap.set(sid, (startsMap.get(sid) ?? 0) + 1);
     }
 
-    // Build candidates (use club-stats goalie fields)
     const candidates = eligibleRosterIds.map((id) => {
       const r = rosterMap.get(id)!;
       const s = seasonById.get(id);
@@ -301,7 +281,6 @@ export async function GET(req: Request) {
       });
     }
 
-    // Projection: last5 starts → season games played
     candidates.sort((a, b) => {
       if (b.last5Starts !== a.last5Starts) return b.last5Starts - a.last5Starts;
       return b.gamesPlayed - a.gamesPlayed;
@@ -309,7 +288,6 @@ export async function GET(req: Request) {
 
     let projected = candidates[0];
 
-    // Back-to-back override (prev game Toronto-day exactly 1 day before)
     const prevDate =
       typeof prevGame?._torDate === "string"
         ? prevGame._torDate

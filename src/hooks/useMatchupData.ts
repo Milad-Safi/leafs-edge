@@ -42,7 +42,6 @@ export default function useMatchupData({
   const [oppHot, setOppHot] = useState<HotL5Payload | null>(null);
   const [loadingHot, setLoadingHot] = useState(false);
 
-  // Prevent stale responses from overwriting newer matchup selections.
   const requestSeq = useRef(0);
 
   useEffect(() => {
@@ -110,7 +109,6 @@ export default function useMatchupData({
         if (requestSeq.current === seq) setLoadingLast5(false);
       }
 
-      // Ranks
       try {
         const j = await fetch(
           `/api/team/ranks?teamA=${teamAbbrev}&teamB=${oppAbbrev}`,
@@ -124,7 +122,6 @@ export default function useMatchupData({
         setTeamRanks(null);
       }
 
-      // Hot last 5
       try {
         setLoadingHot(true);
         const [tor, opp] = await Promise.all([

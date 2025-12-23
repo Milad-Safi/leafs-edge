@@ -86,7 +86,6 @@ export async function GET(req: Request) {
 
     const teamLower = team.toLowerCase();
 
-    // 1) Discover current + previous season using ANY season request (use your current default)
     const seedSeason = 20252026;
     const seed = await fetchJson<ClubScheduleSeason>(
       `https://api-web.nhle.com/v1/club-schedule-season/${teamLower}/${seedSeason}`
@@ -94,7 +93,6 @@ export async function GET(req: Request) {
 
     const seasons = [seed.currentSeason, seed.previousSeason];
 
-    // 2) Collect matchup gameIds across those two seasons (REG SEASON only gameType=2)
     const perSeason: { season: number; gameIds: number[] }[] = [];
 
     for (const season of seasons) {
@@ -105,7 +103,7 @@ export async function GET(req: Request) {
       const gameIds =
         (sched.games ?? [])
           .filter((g) => {
-            if (g.gameType !== 2) return false; // reg season only
+            if (g.gameType !== 2) return false; 
             const ht = (g.homeTeam?.abbrev || "").toUpperCase();
             const at = (g.awayTeam?.abbrev || "").toUpperCase();
             return (ht === team && at === opp) || (ht === opp && at === team);
@@ -118,7 +116,6 @@ export async function GET(req: Request) {
 
     const gameIds = Array.from(new Set(perSeason.flatMap((x) => x.gameIds)));
 
-    // 3) Aggregate stats separately for each team
     const aggTeam = new Map<number, Agg>();
     const aggOpp = new Map<number, Agg>();
 

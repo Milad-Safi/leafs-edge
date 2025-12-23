@@ -16,10 +16,6 @@ export function toUtcMs(v: any): number | null {
   return Number.isFinite(ms) ? ms : null;
 }
 
-/**
- * Convert a UTC ISO timestamp into YYYY-MM-DD for America/Toronto.
- * Returns null on invalid input.
- */
 export function torontoDateISO(utcIso: any): string | null {
   if (typeof utcIso !== "string") return null;
 

@@ -113,7 +113,6 @@ export default function MatchupHeader({
         </div>
 
         <div style={styles.center}>
-          {/* added className for mobile-only font sizing */}
           <div className="mhTitle" style={styles.matchup}>
             {matchup}
           </div>

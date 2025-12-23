@@ -27,7 +27,6 @@ function toNumber(val: unknown): number | null {
 }
 
 function inferCurrentSeasonIdFromToday(): number {
-  // July cutoff (same logic as your summary route)
   const now = new Date();
   const y = now.getUTCFullYear();
   const m = now.getUTCMonth() + 1;
