@@ -103,14 +103,12 @@ function InjuryRow({
         }}
       >
         {headshotUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={headshotUrl}
             alt={name}
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
             loading="lazy"
             onError={(e) => {
-              // if NHL image 404s, fallback to initials box
               (e.currentTarget as HTMLImageElement).src = "";
             }}
           />
@@ -132,7 +130,6 @@ function InjuryRow({
         )}
       </div>
 
-      {/* Text */}
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
         <div style={{ minWidth: 0 }}>
           <div
@@ -248,7 +245,7 @@ export default function InjuriesSection({
     let cancelled = false;
 
     async function run() {
-      if (!leftTeam || !rightTeam) return; // ✅ don't fetch with null
+      if (!leftTeam || !rightTeam) return; 
       setLoading(true);
 
       try {

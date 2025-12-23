@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { styles } from "@/components/schedule/scheduleBar.styles";
 
 export type Game = {
   id: number;
   gameDate: string;
   startTimeUTC: string;
-  gameState: string; // FUT, OFF, etc.
+  gameState: string; 
   homeAbbrev: string;
   awayAbbrev: string;
   homeScore: number | null;
@@ -14,53 +15,33 @@ export type Game = {
 };
 
 type Props = {
-  teamAbbrev?: string; // "TOR"
-  onSelectFutureGame?: (game: Game) => void; // for later (main page)
+  teamAbbrev?: string; 
+  onSelectFutureGame?: (game: Game) => void; 
 };
-
 function normalizeGameState(state: string) {
   return (state || "").toUpperCase();
 }
-
 function isFinished(gameState: string) {
   const s = normalizeGameState(gameState);
   return s === "OFF" || s === "FINAL" || s === "F";
 }
-
 function isFuture(gameState: string) {
   const s = normalizeGameState(gameState);
   return s === "FUT";
-}
-
-function isOTLossGameState(state: string) {
-  // If the API provides these, we'll show OTL instead of L
-  const s = normalizeGameState(state);
-  return s === "OTL" || s === "SOL";
-}
-
-function isOTWinGameState(state: string) {
-  // If the API provides these, we'll show OTW instead of W
-  const s = normalizeGameState(state);
-  return s === "OTW" || s === "SOW";
 }
 
 function getResultLabel(leafsScore: number | null, oppScore: number | null, gameState: string) {
   if (leafsScore == null || oppScore == null) return "";
 
   if (leafsScore > oppScore) {
-    return isOTWinGameState(gameState) ? "OTW" : "W";
+    return "W";
   }
   if (leafsScore < oppScore) {
-    return isOTLossGameState(gameState) ? "OTL" : "L";
+    return "L";
   }
   return "T";
 }
 
-/**
- * ✅ FIX:
- * Show the date using startTimeUTC rendered in America/Toronto
- * (not gameDate + Date.UTC which can go 1 day behind).
- */
 function formatDateShortFromUTC(startTimeUTC: string) {
   const dt = new Date(startTimeUTC);
   return dt
@@ -96,12 +77,9 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
     if (games.length === 0) return null;
 
     const now = Date.now();
-
-    // Prefer explicit FUT
     const fut = games.find((g) => isFuture(g.gameState));
     if (fut) return fut;
 
-    // Fallback: anything in the future that isn't finished
     return (
       games.find((g) => new Date(g.startTimeUTC).getTime() > now && !isFinished(g.gameState)) ?? null
     );
@@ -111,20 +89,18 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
     if (!nextGame) return;
 
     setSelectedId(nextGame.id);
-
-    // Tell the page what game is selected (so header updates by default)
     onSelectFutureGame?.(nextGame);
 
     const el = cardRefs.current.get(nextGame.id);
     el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  }, [nextGame?.id]); // keep this
+  }, [nextGame?.id]); 
 
   function scrollByPx(px: number) {
     scrollerRef.current?.scrollBy({ left: px, behavior: "smooth" });
   }
 
   function handleSelect(game: Game) {
-    if (isFinished(game.gameState)) return; // past games not clickable
+    if (isFinished(game.gameState)) return; 
 
     setSelectedId(game.id);
     onSelectFutureGame?.(game);
@@ -140,11 +116,8 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
         {games.map((g) => {
           const finished = isFinished(g.gameState);
           const selected = selectedId === g.id;
-
           const leafsIsHome = g.homeAbbrev?.toUpperCase() === teamAbbrev.toUpperCase();
           const opp = leafsIsHome ? g.awayAbbrev : g.homeAbbrev;
-
-          // ✅ FIX: use startTimeUTC (Toronto timezone) for date label
           const topLine = formatDateShortFromUTC(g.startTimeUTC);
 
           const midLine = `${teamAbbrev} ${leafsIsHome ? "vs" : "@"} ${opp}`;
@@ -156,14 +129,9 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
           if (finished) {
             const leafsScore = leafsIsHome ? g.homeScore : g.awayScore;
             const oppScore = leafsIsHome ? g.awayScore : g.homeScore;
-
-            // Leafs-perspective score (matches label)
             bottomLine = `${leafsScore ?? "-"} - ${oppScore ?? "-"}`;
-
-            // W/L badge
             resultLabel = getResultLabel(leafsScore, oppScore, g.gameState);
 
-            // red/green tone
             if (leafsScore != null && oppScore != null) {
               if (leafsScore > oppScore) resultTone = "win";
               else if (leafsScore < oppScore) resultTone = "loss";
@@ -217,88 +185,3 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  wrap: {
-    position: "sticky",
-    top: 0,
-    zIndex: 50,
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    padding: "10px 12px",
-    background: "#0b0f14",
-    borderBottom: "1px solid rgba(255,255,255,0.08)",
-  },
-  arrowBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.12)",
-    background: "rgba(255,255,255,0.06)",
-    color: "white",
-    cursor: "pointer",
-    fontSize: 18,
-  },
-  scroller: {
-    flex: 1,
-    display: "flex",
-    gap: 10,
-    overflowX: "auto",
-    overflowY: "hidden",
-    scrollSnapType: "x mandatory",
-    paddingBottom: 6,
-  },
-  card: {
-    minWidth: 170,
-    height: 70,
-    padding: "10px 12px",
-    borderRadius: 12,
-    border: "1px solid rgba(255,255,255,0.12)",
-    background: "rgba(255,255,255,0.04)",
-    color: "white",
-    textAlign: "left",
-    cursor: "pointer",
-    scrollSnapAlign: "center",
-  },
-  cardSelected: {
-    border: "1px solid rgba(255,255,255,0.45)",
-    background: "rgba(255,255,255,0.10)",
-  },
-  cardDisabled: {
-    opacity: 0.55,
-    cursor: "not-allowed",
-  },
-  cardTop: { fontSize: 12, opacity: 0.9, letterSpacing: 0.6 },
-  cardMid: { fontSize: 13, marginTop: 4, fontWeight: 600 },
-
-  cardBotRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 10,
-    fontSize: 12,
-    marginTop: 6,
-    opacity: 0.9,
-  },
-
-  resultBadge: {
-    padding: "2px 8px",
-    borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.16)",
-    background: "rgba(255,255,255,0.06)",
-    fontSize: 11,
-    fontWeight: 700,
-    letterSpacing: 0.6,
-  },
-
-  resultWin: {
-    border: "1px solid rgba(0,255,120,0.35)",
-    background: "rgba(0,255,120,0.12)",
-  },
-
-  resultLoss: {
-    border: "1px solid rgba(255,60,60,0.35)",
-    background: "rgba(255,60,60,0.12)",
-  },
-};

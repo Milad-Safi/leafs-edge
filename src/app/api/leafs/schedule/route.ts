@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 type NHLGame = {
   id: number;
-  gameDate: string; // comes from NHL, but can be off vs Toronto local date
+  gameDate: string; 
   startTimeUTC: string;
   gameState?: string; // FUT, OFF, LIVE, etc.
   homeTeam?: { abbrev?: string; score?: number };
@@ -19,11 +19,6 @@ function getSeasonStringForToday(): string {
   return `${startYear}${endYear}`;
 }
 
-/**
- * ✅ KEY FIX:
- * Convert startTimeUTC -> Toronto calendar day (YYYY-MM-DD)
- * so you NEVER rely on the feed's gameDate which can appear "1 day behind"
- */
 function torontoDateISO(utcIso: string): string {
   const dt = new Date(utcIso);
 
@@ -68,11 +63,7 @@ export async function GET() {
 
     return {
       id: g.id,
-
-      // ✅ overwrite gameDate to be Toronto-correct everywhere downstream
       gameDate: torDate,
-
-      // also expose explicitly so it’s obvious in the UI/debug
       gameDayToronto: torDate,
 
       startTimeUTC: g.startTimeUTC,

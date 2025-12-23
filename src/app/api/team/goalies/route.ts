@@ -1,83 +1,18 @@
 import { NextResponse } from "next/server";
+import { cleanStr, toNum } from "@/lib/nhl/parse";
+import { isoDate, diffDays, toUtcMs, torontoDateISO } from "@/lib/nhl/dates";
+import { toiToMinutes } from "@/lib/nhl/toi";
 
 export const runtime = "nodejs";
-
-const INJURY_SOURCE =
-  "https://datacrunch.9c9media.ca/statsapi/sports/hockey/leagues/nhl/playerInjuries?type=json";
-
-function cleanStr(v: any): string | null {
-  if (typeof v !== "string") return null;
-  const t = v.trim();
-  return t ? t : null;
-}
-
-function toNum(v: any): number | null {
-  if (typeof v === "number") return Number.isFinite(v) ? v : null;
-  if (typeof v === "string") {
-    const n = Number(v);
-    return Number.isFinite(n) ? n : null;
-  }
-  return null;
-}
-
-function isoDate(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
-
-function diffDays(aISO: string, bISO: string) {
-  const a = new Date(aISO).getTime();
-  const b = new Date(bISO).getTime();
-  return Math.round((a - b) / (1000 * 60 * 60 * 24));
-}
-
-function toiToMinutes(toi: any): number {
-  if (typeof toi !== "string") return 0;
-  const parts = toi.split(":");
-  if (parts.length !== 2) return 0;
-  const mm = Number(parts[0]);
-  const ss = Number(parts[1]);
-  if (!Number.isFinite(mm) || !Number.isFinite(ss)) return 0;
-  return mm + ss / 60;
-}
-
-function toUtcMs(v: any): number | null {
-  if (typeof v !== "string") return null;
-  const ms = Date.parse(v);
-  return Number.isFinite(ms) ? ms : null;
-}
-
-function torontoDateISO(utcIso: string): string | null {
-  if (typeof utcIso !== "string") return null;
-  const dt = new Date(utcIso);
-  if (!Number.isFinite(dt.getTime())) return null;
-
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Toronto",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(dt);
-
-  const y = parts.find((p) => p.type === "year")?.value;
-  const m = parts.find((p) => p.type === "month")?.value;
-  const d = parts.find((p) => p.type === "day")?.value;
-
-  if (!y || !m || !d) return null;
-  return `${y}-${m}-${d}`;
-}
-
-function isCompletedGameState(v: any) {
-  const st = String(v ?? "").toUpperCase();
-  return st === "OFF" || st === "FINAL";
-}
 
 /* -------------------- fetchers -------------------- */
 
 async function fetchRosterGoalies(team: string) {
   const url = `https://api-web.nhle.com/v1/roster/${team}/current`;
   const res = await fetch(url, { next: { revalidate: 3600 } });
-  if (!res.ok)
+  if (!res.ok) {
     return new Map<number, { playerId: number; name: string; headshot: string | null }>();
+  }
 
   const data = await res.json();
   const map = new Map<number, { playerId: number; name: string; headshot: string | null }>();
@@ -86,9 +21,9 @@ async function fetchRosterGoalies(team: string) {
     const id = toNum(g?.id);
     if (!id) continue;
 
-    const name = `${cleanStr(g?.firstName?.default) ?? ""} ${cleanStr(
-      g?.lastName?.default
-    ) ?? ""}`.trim();
+    const name = `${cleanStr(g?.firstName?.default) ?? ""} ${
+      cleanStr(g?.lastName?.default) ?? ""
+    }`.trim();
     if (!name) continue;
 
     map.set(id, { playerId: id, name, headshot: cleanStr(g?.headshot) });
@@ -97,30 +32,33 @@ async function fetchRosterGoalies(team: string) {
   return map;
 }
 
-async function fetchInjuredIds(team: string): Promise<Set<number>> {
-  const res = await fetch(INJURY_SOURCE, { next: { revalidate: 3600 } });
+/**
+ * ✅ Single source of truth: use YOUR injuries endpoint.
+ * Works in dev + prod because we build an absolute base URL from req.url.
+ */
+async function fetchInjuredIdsViaApi(team: string, reqUrl: string): Promise<Set<number>> {
+  const u = new URL(reqUrl);
+  const base = `${u.protocol}//${u.host}`;
+
+  const res = await fetch(`${base}/api/team/injuries?team=${team}`, {
+    next: { revalidate: 3600 },
+    headers: { accept: "application/json" },
+  });
+
   if (!res.ok) return new Set();
 
-  const data = await res.json();
-  const blocks: any[] = Array.isArray(data)
-    ? data
-    : Array.isArray(data?.items)
-    ? data.items
-    : [];
-
-  const block = blocks.find(
-    (b) => cleanStr(b?.competitor?.shortName)?.toUpperCase() === team
-  );
+  const json = await res.json();
+  const injuries: any[] = Array.isArray(json?.injuries) ? json.injuries : [];
 
   const set = new Set<number>();
-  for (const pi of block?.playerInjuries ?? []) {
-    const pid = toNum(pi?.player?.playerId);
+  for (const it of injuries) {
+    const pid = toNum(it?.playerId);
     if (pid) set.add(pid);
   }
   return set;
 }
 
-// CLUB STATS (your confirmed field names)
+// CLUB STATS (goalies)
 async function fetchClubGoalies(team: string, season: string): Promise<any[]> {
   const url = `https://api-web.nhle.com/v1/club-stats/${team}/${season}/2`;
   const res = await fetch(url, { next: { revalidate: 3600 } });
@@ -129,7 +67,7 @@ async function fetchClubGoalies(team: string, season: string): Promise<any[]> {
   return Array.isArray(data?.goalies) ? data.goalies : [];
 }
 
-// SEASON SCHEDULE for last 5
+// SEASON SCHEDULE (for last 5 completed before gameDate)
 async function fetchSeasonSchedule(team: string, season: string): Promise<any[]> {
   const url = `https://api-web.nhle.com/v1/club-schedule-season/${team}/${season}`;
   const res = await fetch(url, { next: { revalidate: 3600 } });
@@ -138,7 +76,13 @@ async function fetchSeasonSchedule(team: string, season: string): Promise<any[]>
   return Array.isArray(data?.games) ? data.games : [];
 }
 
-// BOX SCORE: extract the goalies array for our team using the REAL structure
+function isCompletedGameState(v: any) {
+  const st = String(v ?? "").toUpperCase();
+  return st === "OFF" || st === "FINAL";
+}
+
+/* -------------------- boxscore helpers -------------------- */
+
 function getTeamGoaliesFromBoxscore(box: any, team: string): any[] {
   const awayAbbrev = cleanStr(box?.awayTeam?.abbrev)?.toUpperCase() ?? null;
   const homeAbbrev = cleanStr(box?.homeTeam?.abbrev)?.toUpperCase() ?? null;
@@ -158,13 +102,7 @@ function getTeamGoaliesFromBoxscore(box: any, team: string): any[] {
   return [];
 }
 
-// BOX SCORE: starter goalie id
-async function fetchStarterIdFromBoxscore(team: string, gameId: number) {
-  const url = `https://api-web.nhle.com/v1/gamecenter/${gameId}/boxscore`;
-  const res = await fetch(url, { next: { revalidate: 3600 } });
-  if (!res.ok) return null;
-
-  const box = await res.json();
+function starterIdFromBoxscore(box: any, team: string): number | null {
   const goalies = getTeamGoaliesFromBoxscore(box, team);
   if (goalies.length === 0) return null;
 
@@ -189,9 +127,37 @@ async function fetchStarterIdFromBoxscore(team: string, gameId: number) {
   return bestId;
 }
 
-async function computeLast5GoalieSplits(team: string, goalieId: number, last5GameIds: number[]) {
-  if (!goalieId || last5GameIds.length === 0) {
-    return { games: 0, record: { w: 0, l: 0, ot: 0 }, svPct: null as number | null, gaa: null as number | null };
+// Used only for prevGame b2b check (single game)
+async function fetchStarterIdFromBoxscore(team: string, gameId: number) {
+  const url = `https://api-web.nhle.com/v1/gamecenter/${gameId}/boxscore`;
+  const res = await fetch(url, { next: { revalidate: 3600 } });
+  if (!res.ok) return null;
+
+  const box = await res.json();
+  return starterIdFromBoxscore(box, team);
+}
+
+async function fetchBoxscores(gameIds: number[]) {
+  const boxes = await Promise.all(
+    gameIds.map(async (gid) => {
+      const r = await fetch(`https://api-web.nhle.com/v1/gamecenter/${gid}/boxscore`, {
+        next: { revalidate: 3600 },
+      });
+      if (!r.ok) return null;
+      return (await r.json()) as any;
+    })
+  );
+  return boxes.filter(Boolean) as any[];
+}
+
+async function computeLast5GoalieSplitsFromBoxes(team: string, goalieId: number, boxes: any[]) {
+  if (!goalieId || boxes.length === 0) {
+    return {
+      games: 0,
+      record: { w: 0, l: 0, ot: 0 },
+      svPct: null as number | null,
+      gaa: null as number | null,
+    };
   }
 
   let shotsAgainst = 0;
@@ -204,19 +170,7 @@ async function computeLast5GoalieSplits(team: string, goalieId: number, last5Gam
   let ot = 0;
   let games = 0;
 
-  const boxes = await Promise.all(
-    last5GameIds.map(async (gid) => {
-      const r = await fetch(`https://api-web.nhle.com/v1/gamecenter/${gid}/boxscore`, {
-        next: { revalidate: 3600 },
-      });
-      if (!r.ok) return null;
-      return (await r.json()) as any;
-    })
-  );
-
   for (const box of boxes) {
-    if (!box) continue;
-
     const goalies = getTeamGoaliesFromBoxscore(box, team);
     const row = goalies.find((g: any) => toNum(g?.playerId) === goalieId);
     if (!row) continue;
@@ -236,7 +190,6 @@ async function computeLast5GoalieSplits(team: string, goalieId: number, last5Gam
     minutes += toiMin;
 
     const decision = String(row?.decision ?? "").toUpperCase();
-    // Common values: "W", "L", "OT", "OTL"
     if (decision === "W") w++;
     else if (decision === "L") l++;
     else if (decision.includes("OT")) ot++;
@@ -270,12 +223,12 @@ export async function GET(req: Request) {
   try {
     const [rosterMap, injuredIds, clubGoalies, seasonGames] = await Promise.all([
       fetchRosterGoalies(team),
-      fetchInjuredIds(team), // ✅ FIX
+      fetchInjuredIdsViaApi(team, req.url),
       fetchClubGoalies(team, season),
       fetchSeasonSchedule(team, season),
     ]);
 
-    // ✅ Eligible roster goalies: active roster AND not injured (by playerId)
+    // Eligible roster goalies: active roster AND not injured (by playerId)
     const eligibleRosterIds: number[] = [];
     for (const [id] of rosterMap) {
       if (!injuredIds.has(id)) eligibleRosterIds.push(id);
@@ -293,11 +246,7 @@ export async function GET(req: Request) {
       .map((g: any) => {
         const torDate = torontoDateISO(g?.startTimeUTC);
         const startMs = toUtcMs(g?.startTimeUTC) ?? -1;
-        return {
-          ...g,
-          _torDate: torDate,
-          _startMs: startMs,
-        };
+        return { ...g, _torDate: torDate, _startMs: startMs };
       })
       .filter((g: any) => g._torDate && g._torDate < gameDate)
       .filter((g: any) => isCompletedGameState(g?.gameState))
@@ -311,10 +260,8 @@ export async function GET(req: Request) {
       .map((g: any) => toNum(g?.id))
       .filter((x: any): x is number => typeof x === "number");
 
-    // ✅ last5StarterIds should no longer be null (because we only choose completed games)
-    const last5StarterIds = await Promise.all(
-      last5GameIds.map((gid) => fetchStarterIdFromBoxscore(team, gid))
-    );
+    const last5Boxes = await fetchBoxscores(last5GameIds);
+    const last5StarterIds = last5Boxes.map((box) => starterIdFromBoxscore(box, team));
 
     // Count starts among eligible roster goalies
     const startsMap = new Map<number, number>();
@@ -367,8 +314,8 @@ export async function GET(req: Request) {
       typeof prevGame?._torDate === "string"
         ? prevGame._torDate
         : typeof prevGame?.gameDate === "string"
-        ? prevGame.gameDate
-        : null;
+          ? prevGame.gameDate
+          : null;
 
     const isBackToBack = prevDate ? diffDays(gameDate, prevDate) === 1 : false;
 
@@ -383,8 +330,11 @@ export async function GET(req: Request) {
       }
     }
 
-    // ✅ NEW: last-5 splits for whichever goalie ended up projected (after b2b override)
-    const last5Splits = await computeLast5GoalieSplits(team, projected.playerId, last5GameIds);
+    const last5Splits = await computeLast5GoalieSplitsFromBoxes(
+      team,
+      projected.playerId,
+      last5Boxes
+    );
 
     return NextResponse.json({
       team,
@@ -397,8 +347,6 @@ export async function GET(req: Request) {
         savePct: projected.savePct,
         gaa: projected.gaa,
         last5Starts: projected.last5Starts,
-
-        // ✅ NEW payload for UI bars
         last5Splits,
       },
       meta: {

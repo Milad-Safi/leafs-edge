@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cleanStr, toNum } from "@/lib/nhl/parse";
 
 export const runtime = "nodejs";
 
@@ -25,26 +26,6 @@ type TeamInjuryReport = {
   error?: string;
 };
 
-function cleanStr(v: any): string | null {
-  if (typeof v !== "string") return null;
-  const t = v.trim();
-  return t ? t : null;
-}
-
-function toNum(v: any): number | null {
-  if (typeof v === "number") return Number.isFinite(v) ? v : null;
-  if (typeof v === "string") {
-    const n = Number(v);
-    return Number.isFinite(n) ? n : null;
-  }
-  return null;
-}
-
-/**
- * Build TWO maps:
- *  - NHL id -> headshot
- *  - "first last" -> headshot   (THIS is what actually works)
- */
 async function fetchRosterHeadshots(team: string): Promise<{
   byId: Map<number, string>;
   byName: Map<string, string>;
@@ -124,8 +105,8 @@ export async function GET(req: Request) {
     const blocks: any[] = Array.isArray(data)
       ? data
       : Array.isArray(data?.items)
-      ? data.items
-      : [];
+        ? data.items
+        : [];
 
     const block = blocks.find(
       (b) => cleanStr(b?.competitor?.shortName)?.toUpperCase() === team
@@ -154,10 +135,7 @@ export async function GET(req: Request) {
         status: cleanStr(pi?.status),
         date: cleanStr(pi?.date),
         description: cleanStr(pi?.description),
-        headshot:
-          (pid !== null && roster.byId.get(pid)) ||
-          roster.byName.get(nameKey) ||
-          null,
+        headshot: (pid !== null && roster.byId.get(pid)) || roster.byName.get(nameKey) || null,
       };
     });
 

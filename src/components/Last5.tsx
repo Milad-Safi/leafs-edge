@@ -36,21 +36,21 @@ export default function Last5Section({
   hotLeft: HotL5Payload | null;
   hotRight: HotL5Payload | null;
 }) {
+  const lRec = left?.record;
+  const rRec = right?.record;
+
+  const lPP = left?.powerPlay;
+  const rPP = right?.powerPlay;
+
+  const lPK = left?.penaltyKill;
+  const rPK = right?.penaltyKill;
+
   return (
     <div style={{ padding: 16, opacity: 0.95 }}>
-
-      {/* top divider */}
       <div style={{ margin: "13px -16px 10px" }}>
-        <div
-          style={{
-            height: 1,
-            background: "rgba(255,255,255,0.08)",
-          }}
-        />
+        <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
       </div>
 
-
-      {/* section title */}
       <div
         style={{
           padding: "14px 0",
@@ -64,16 +64,9 @@ export default function Last5Section({
         LAST 5 GAMES
       </div>
 
-      {/* bottom divider */}
       <div style={{ margin: "0 -16px 20px" }}>
-        <div
-          style={{
-            height: 1,
-            background: "rgba(255,255,255,0.08)",
-          }}
-        />
+        <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
       </div>
-
 
       {loading && (
         <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 10 }}>
@@ -81,19 +74,17 @@ export default function Last5Section({
         </div>
       )}
 
-      {/* Record */}
       <StatRow
-        leftVal={left ? left.record.w : null}
-        rightVal={right ? right.record.w : null}
+        leftVal={typeof lRec?.w === "number" ? lRec.w : null}
+        rightVal={typeof rRec?.w === "number" ? rRec.w : null}
         label="Record (W-L-OTL)"
-        leftText={left ? `${left.record.w}-${left.record.l}-${left.record.otl}` : "—"}
-        rightText={right ? `${right.record.w}-${right.record.l}-${right.record.otl}` : "—"}
+        leftText={lRec ? `${lRec.w}-${lRec.l}-${lRec.otl}` : "—"}
+        rightText={rRec ? `${rRec.w}-${rRec.l}-${rRec.otl}` : "—"}
         leftColor={leftColor}
         rightColor={rightColor}
       />
       <div style={{ height: 10 }} />
 
-      {/* Shots For */}
       <StatRow
         leftVal={left?.shotsForPerGame ?? null}
         rightVal={right?.shotsForPerGame ?? null}
@@ -103,7 +94,6 @@ export default function Last5Section({
       />
       <div style={{ height: 10 }} />
 
-      {/* Shots Against */}
       <StatRow
         leftVal={left?.shotsAgainstPerGame ?? null}
         rightVal={right?.shotsAgainstPerGame ?? null}
@@ -113,19 +103,18 @@ export default function Last5Section({
       />
       <div style={{ height: 10 }} />
 
-      {/* Power Play */}
       <StatRow
-        leftVal={left?.powerPlay.pct ?? null}
-        rightVal={right?.powerPlay.pct ?? null}
+        leftVal={lPP?.pct ?? null}
+        rightVal={rPP?.pct ?? null}
         label="Power Play % (L5)"
         leftText={
-          left?.powerPlay.pct != null
-            ? `${left.powerPlay.pct}% (${left.powerPlay.goals}/${left.powerPlay.opps})`
+          lPP?.pct != null
+            ? `${lPP.pct}% (${lPP.goals}/${lPP.opps})`
             : "—"
         }
         rightText={
-          right?.powerPlay.pct != null
-            ? `${right.powerPlay.pct}% (${right.powerPlay.goals}/${right.powerPlay.opps})`
+          rPP?.pct != null
+            ? `${rPP.pct}% (${rPP.goals}/${rPP.opps})`
             : "—"
         }
         leftColor={leftColor}
@@ -133,19 +122,18 @@ export default function Last5Section({
       />
       <div style={{ height: 10 }} />
 
-      {/* Penalty Kill */}
       <StatRow
-        leftVal={left?.penaltyKill.pct ?? null}
-        rightVal={right?.penaltyKill.pct ?? null}
+        leftVal={lPK?.pct ?? null}
+        rightVal={rPK?.pct ?? null}
         label="Penalty Kill % (L5)"
         leftText={
-          left?.penaltyKill.pct != null
-            ? `${left.penaltyKill.pct}% (${left.penaltyKill.oppPPGoals}/${left.penaltyKill.oppPPOpps})`
+          lPK?.pct != null
+            ? `${lPK.pct}% (${lPK.oppPPGoals}/${lPK.oppPPOpps})`
             : "—"
         }
         rightText={
-          right?.penaltyKill.pct != null
-            ? `${right.penaltyKill.pct}% (${right.penaltyKill.oppPPGoals}/${right.penaltyKill.oppPPOpps})`
+          rPK?.pct != null
+            ? `${rPK.pct}% (${rPK.oppPPGoals}/${rPK.oppPPOpps})`
             : "—"
         }
         leftColor={leftColor}
@@ -154,7 +142,6 @@ export default function Last5Section({
 
       <div style={{ height: 10 }} />
 
-      {/* Hot players */}
       <HotPlayersRows
         left={hotLeft}
         right={hotRight}

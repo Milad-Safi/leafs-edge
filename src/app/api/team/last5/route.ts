@@ -7,8 +7,8 @@ type TeamAbbrev = string;
 type ScheduleGame = {
   id: number;
   gameState: string;
-  gameDate: string; // keep, but do NOT use for ordering
-  startTimeUTC?: string; // ✅ used for ordering
+  gameDate: string; 
+  startTimeUTC?: string; 
   homeTeam: { abbrev: string; score?: number };
   awayTeam: { abbrev: string; score?: number };
 };
@@ -29,11 +29,6 @@ function toUtcMs(v: unknown): number | null {
   return Number.isFinite(ms) ? ms : null;
 }
 
-/**
- * ✅ FIX:
- * Completed NHL games in this feed are typically gameState === "OFF"
- * Some endpoints also use "FINAL".
- */
 function isCompleted(g: ScheduleGame) {
   const st = String(g?.gameState ?? "").toUpperCase();
   return st === "OFF" || st === "FINAL";
@@ -69,12 +64,6 @@ async function fetchTeamGames(team: TeamAbbrev): Promise<ScheduleGame[]> {
   return games;
 }
 
-/**
- * Robust GS PP parse:
- * 1) locate Power Plays section
- * 2) in a limited window after it, pull first two "X-Y / MM:SS" occurrences
- * Return in order: [away, home]
- */
 function parseGsPowerPlays(html: string): Array<{ goals: number; opps: number }> {
   if (!html) return [];
 
@@ -130,7 +119,7 @@ function computeRecord(team: TeamAbbrev, games: ScheduleGame[]) {
     const oppScore = isHome ? (g.awayTeam.score ?? 0) : (g.homeTeam.score ?? 0);
 
     if (myScore > oppScore) w++;
-    else l++; // keeping your simplified loss logic
+    else l++; 
   }
 
   return { w, l, otl };
@@ -148,13 +137,6 @@ export async function GET(req: Request) {
 
   try {
     const allGames = await fetchTeamGames(team);
-
-    /**
-     * ✅ FIX:
-     * - only completed games (OFF/FINAL)
-     * - sort by startTimeUTC (real time) desc
-     * - NEVER sort by gameDate
-     */
     const finals = allGames
       .filter(isCompleted)
       .map((g) => ({

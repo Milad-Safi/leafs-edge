@@ -26,19 +26,13 @@ function shortName(full: string) {
   if (parts.length <= 1) return full;
   const first = parts[0];
   const last = parts[parts.length - 1];
-  if (first.endsWith(".")) return full; // already "A."
+  if (first.endsWith(".")) return full; 
   return `${first[0]}. ${last}`;
 }
 
-function fmtGoals(p: Leader | null) {
-  return p ? `${shortName(p.name)} — ${p.goals} G` : "—";
-}
-function fmtPoints(p: Leader | null) {
-  return p ? `${shortName(p.name)} — ${p.points} P` : "—";
-}
-function fmtShots(p: Leader | null) {
-  return p ? `${shortName(p.name)} — ${p.shots} SOG` : "—";
-}
+function fmtGoals(p: Leader | null) { return p ? `${shortName(p.name)} — ${p.goals} G` : "—"; }
+function fmtPoints(p: Leader | null) { return p ? `${shortName(p.name)} — ${p.points} P` : "—"; }
+function fmtShots(p: Leader | null) { return p ? `${shortName(p.name)} — ${p.shots} SOG` : "—"; }
 
 export default function HotPlayersRows({
   left,
@@ -62,9 +56,7 @@ export default function HotPlayersRows({
 
   return (
   <>
-    {/* divider + subheading + divider */}
     <div style={{ marginTop: 6, marginBottom: 12 }}>
-      {/* top divider (full width, ignoring parent padding: 16) */}
       <div style={{ margin: "0 -16px 10px" }}>
         <div
           style={{
@@ -73,8 +65,6 @@ export default function HotPlayersRows({
           }}
         />
       </div>
-
-      {/* subheading */}
       <div
         style={{
           padding: "10px 0",
@@ -87,8 +77,6 @@ export default function HotPlayersRows({
       >
         LEADERS (LAST 5)
       </div>
-
-      {/* bottom divider (full width) */}
       <div style={{ margin: "10px -16px 0" }}>
         <div
           style={{

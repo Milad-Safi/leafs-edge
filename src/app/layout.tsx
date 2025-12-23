@@ -3,7 +3,7 @@ import "@/styles/global.css";
 
 export const metadata: Metadata = {
   title: "Leafs Edge",
-  description: "Toronto Maple Leafs game analysis & betting edge",
+  description: "Toronto Maple Leafs Game Previews",
 };
 
 export default function RootLayout({

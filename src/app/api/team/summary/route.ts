@@ -8,28 +8,20 @@ type RecordSplit = {
 type TeamSummary = {
   teamAbbrev: string;
   seasonId: number;
-  gameTypeId: number; // 2 = regular season
-
+  gameTypeId: number;
   teamId: number | null;
   teamFullName: string | null;
-
   gamesPlayed: number | null;
-
   goalsForPerGame: number | null;
   goalsAgainstPerGame: number | null;
-
   powerPlayPct: number | null; // percent (0-100)
   penaltyKillPct: number | null; // percent (0-100)
-
   shotsForPerGame: number | null;
   shotsAgainstPerGame: number | null;
-
   wins: number | null;
   losses: number | null;
   otLosses: number | null;
   points: number | null;
-
-  // ✅ NEW
   homeRecord: RecordSplit;
   awayRecord: RecordSplit;
 };
@@ -54,7 +46,7 @@ function pctFromDecimal01(n: number | null): number | null {
 }
 
 function inferCurrentSeasonIdFromToday(): number {
-  // Example: Dec 2025 is the 2025-2026 season => 20252026
+  // Example: Sept 2025 is the 2025-2026 season => 20252026
   const now = new Date();
   const y = now.getUTCFullYear();
   const m = now.getUTCMonth() + 1; // 1-12
@@ -97,7 +89,7 @@ async function getHomeAwayRecord(teamAbbrev: string, seasonId: number): Promise<
   });
 
   if (!res.ok) {
-    // If schedule fails, just return zeros (don’t break your page)
+    // If schedule fails, just return zeros 
     return { homeRecord, awayRecord };
   }
 
@@ -118,7 +110,7 @@ async function getHomeAwayRecord(teamAbbrev: string, seasonId: number): Promise<
   const homeScore = toNumber(g?.homeTeam?.score);
   const awayScore = toNumber(g?.awayTeam?.score);
 
-  // If a finished game somehow has no score, skip it (prevents fake 0-0 losses)
+  // If a finished game somehow has no score, skip it 
   if (homeScore == null || awayScore == null) continue;
 
   const goalsFor = isHome ? homeScore : awayScore;
@@ -132,8 +124,6 @@ async function getHomeAwayRecord(teamAbbrev: string, seasonId: number): Promise<
     else awayRecord.l++;
   }
 }
-
-
   return { homeRecord, awayRecord };
 }
 
@@ -144,7 +134,7 @@ export async function GET(req: Request) {
   // Optional override: /api/team/summary?team=TOR&season=20252026
   const seasonOverride = toNumber(url.searchParams.get("season"));
 
-  const gameTypeId = 2; // regular season
+  const gameTypeId = 2; // 2 == regular season, 3 == playoffs 
   const seasonId = seasonOverride ?? inferCurrentSeasonIdFromToday();
 
   if (!teamAbbrev) {
@@ -157,13 +147,11 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: `Unknown team abbrev: ${teamAbbrev}` }, { status: 404 });
     }
 
-    // One endpoint for everything we need (season summary)
     const cayenneExp = `seasonId=${seasonId} and gameTypeId=${gameTypeId} and teamId=${teamId}`;
     const endpoint =
       "https://api.nhle.com/stats/rest/en/team/summary" +
       `?cayenneExp=${encodeURIComponent(cayenneExp)}`;
 
-    // Fetch season summary + schedule splits in parallel
     const [summaryRes, splits] = await Promise.all([
       fetch(endpoint, {
         next: { revalidate: 60 },
@@ -202,7 +190,6 @@ export async function GET(req: Request) {
       goalsForPerGame: round2(toNumber(row?.goalsForPerGame)),
       goalsAgainstPerGame: round2(toNumber(row?.goalsAgainstPerGame)),
 
-      // NOTE: these are decimals in [0..1] -> convert to percent
       powerPlayPct: pctFromDecimal01(toNumber(row?.powerPlayPct)),
       penaltyKillPct: pctFromDecimal01(toNumber(row?.penaltyKillPct)),
 
@@ -214,7 +201,6 @@ export async function GET(req: Request) {
       otLosses: toNumber(row?.otLosses),
       points: toNumber(row?.points),
 
-      // ✅ NEW
       homeRecord: splits.homeRecord,
       awayRecord: splits.awayRecord,
     };

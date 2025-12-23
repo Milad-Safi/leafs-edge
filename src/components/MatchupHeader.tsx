@@ -58,11 +58,9 @@ export default function MatchupHeader({
 
   const matchup = `${TEAM} ${leafsIsHome ? "vs" : "@"} ${opp}`;
 
-  // ✅ FIX: use startTimeUTC for BOTH date + time, rendered in Toronto timezone
   const date = formatPrettyDateFromUTC(game.startTimeUTC);
   const time = formatTimeTorontoFromUTC(game.startTimeUTC);
 
-  // Overall records
   const leftOverall =
     leftSummary?.wins != null &&
     leftSummary?.losses != null &&
