@@ -56,6 +56,21 @@ function ordinal(n: number) {
   return `${n}th`;
 }
 
+function toPct100(v: number | null | undefined) {
+  if (v == null || !Number.isFinite(v)) return null;
+  return v <= 1 ? v * 100 : v;
+}
+
+function higherBetterStrength(v: number | null | undefined, baseline: number, k: number) {
+  if (v == null || !Number.isFinite(v)) return null;
+  return Math.exp(k * (v - baseline));
+}
+
+function lowerBetterStrength(v: number | null | undefined, baseline: number, k: number) {
+  if (v == null || !Number.isFinite(v)) return null;
+  return Math.exp(k * (baseline - v));
+}
+
 export default function TeamComparisonSection({
   left,
   right,
@@ -75,9 +90,36 @@ export default function TeamComparisonSection({
   rightAbbrev: string;
   ranks: TeamRanks | null;
 }) {
+  function normTeamKey(t: string) {
+    return (t ?? "").toUpperCase().trim();
+  }
+
+  function rankFor(metricKey: keyof TeamRanks["ranks"], team: string) {
+    const key = normTeamKey(team);
+
+    // Primary lookup
+    let r = ranks?.ranks?.[metricKey]?.[key] ?? null;
+
+    // Fallbacks (in case you passed wrong abbrev prop)
+    if (r == null) {
+      const leftKey = normTeamKey(left?.teamAbbrev ?? "");
+      const rightKey = normTeamKey(right?.teamAbbrev ?? "");
+
+      if (key === leftKey) r = ranks?.ranks?.[metricKey]?.[leftKey] ?? null;
+      if (r == null && key === rightKey) r = ranks?.ranks?.[metricKey]?.[rightKey] ?? null;
+    }
+
+    return r;
+  }
+
   function rankSuffix(metricKey: keyof TeamRanks["ranks"], team: string) {
-    const r = ranks?.ranks?.[metricKey]?.[team] ?? null;
+    const r = rankFor(metricKey, team);
     return r != null ? ` (${ordinal(r)})` : "";
+  }
+
+  function rankPrefix(metricKey: keyof TeamRanks["ranks"], team: string) {
+    const r = rankFor(metricKey, team);
+    return r != null ? `(${ordinal(r)}) ` : "";
   }
 
   return (
@@ -93,7 +135,7 @@ export default function TeamComparisonSection({
         }}
       >
         <div style={{ fontWeight: 900, letterSpacing: 0.6, textAlign: "center" }}>
-          TEAM COMPARISON
+          Team Comparisons
         </div>
         <div style={{ fontSize: 12, opacity: 0.65, marginTop: 4, textAlign: "center" }}>
           2025-2026 Regular Season Stats
@@ -111,12 +153,11 @@ export default function TeamComparisonSection({
           <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 10 }}>Loading team stats…</div>
         )}
 
-        {/* Use a grid for consistent spacing instead of repeated <div style={{height:10}}/> */}
         <div style={UI.rowsGrid(10)}>
           <StatRow
-            leftVal={left?.goalsForPerGame ?? null}
-            rightVal={right?.goalsForPerGame ?? null}
             label="Goals For / Game"
+            leftVal={higherBetterStrength(left?.goalsForPerGame ?? null, 3.0, 0.63)}
+            rightVal={higherBetterStrength(right?.goalsForPerGame ?? null, 3.0, 0.63)}
             leftText={
               left?.goalsForPerGame != null
                 ? `${left.goalsForPerGame}${rankSuffix("goalsForPerGame", leftAbbrev)}`
@@ -124,7 +165,7 @@ export default function TeamComparisonSection({
             }
             rightText={
               right?.goalsForPerGame != null
-                ? `${right.goalsForPerGame}${rankSuffix("goalsForPerGame", rightAbbrev)}`
+                ? `${rankPrefix("goalsForPerGame", rightAbbrev)}${right.goalsForPerGame}`
                 : "—"
             }
             leftColor={leftColor}
@@ -132,9 +173,9 @@ export default function TeamComparisonSection({
           />
 
           <StatRow
-            leftVal={left?.goalsAgainstPerGame ?? null}
-            rightVal={right?.goalsAgainstPerGame ?? null}
             label="Goals Against / Game"
+            leftVal={lowerBetterStrength(left?.goalsAgainstPerGame ?? null, 3.0, 0.45)}
+            rightVal={lowerBetterStrength(right?.goalsAgainstPerGame ?? null, 3.0, 0.45)}
             leftText={
               left?.goalsAgainstPerGame != null
                 ? `${left.goalsAgainstPerGame}${rankSuffix("goalsAgainstPerGame", leftAbbrev)}`
@@ -142,7 +183,7 @@ export default function TeamComparisonSection({
             }
             rightText={
               right?.goalsAgainstPerGame != null
-                ? `${right.goalsAgainstPerGame}${rankSuffix("goalsAgainstPerGame", rightAbbrev)}`
+                ? `${rankPrefix("goalsAgainstPerGame", rightAbbrev)}${right.goalsAgainstPerGame}`
                 : "—"
             }
             leftColor={leftColor}
@@ -150,17 +191,19 @@ export default function TeamComparisonSection({
           />
 
           <StatRow
-            leftVal={left?.powerPlayPct ?? null}
-            rightVal={right?.powerPlayPct ?? null}
+            leftVal={higherBetterStrength(toPct100(left?.powerPlayPct ?? null), 20, 0.08)}
+            rightVal={higherBetterStrength(toPct100(right?.powerPlayPct ?? null), 20, 0.08)}
             label="Power Play %"
             leftText={
               left?.powerPlayPct != null
-                ? `${left.powerPlayPct}%${rankSuffix("powerPlayPct", leftAbbrev)}`
+                ? `${toPct100(left.powerPlayPct)?.toFixed(1)}%${rankSuffix("powerPlayPct", leftAbbrev)}`
                 : "—"
             }
             rightText={
               right?.powerPlayPct != null
-                ? `${right.powerPlayPct}%${rankSuffix("powerPlayPct", rightAbbrev)}`
+                ? `${rankPrefix("powerPlayPct", rightAbbrev)}${toPct100(right.powerPlayPct)?.toFixed(
+                    1
+                  )}%`
                 : "—"
             }
             leftColor={leftColor}
@@ -168,17 +211,22 @@ export default function TeamComparisonSection({
           />
 
           <StatRow
-            leftVal={left?.penaltyKillPct ?? null}
-            rightVal={right?.penaltyKillPct ?? null}
+            leftVal={higherBetterStrength(toPct100(left?.penaltyKillPct ?? null), 80, 0.20)}
+            rightVal={higherBetterStrength(toPct100(right?.penaltyKillPct ?? null), 80, 0.20)}
             label="Penalty Kill %"
             leftText={
               left?.penaltyKillPct != null
-                ? `${left.penaltyKillPct}%${rankSuffix("penaltyKillPct", leftAbbrev)}`
+                ? `${toPct100(left.penaltyKillPct)?.toFixed(1)}%${rankSuffix(
+                    "penaltyKillPct",
+                    leftAbbrev
+                  )}`
                 : "—"
             }
             rightText={
               right?.penaltyKillPct != null
-                ? `${right.penaltyKillPct}%${rankSuffix("penaltyKillPct", rightAbbrev)}`
+                ? `${rankPrefix("penaltyKillPct", rightAbbrev)}${toPct100(
+                    right.penaltyKillPct
+                  )?.toFixed(1)}%`
                 : "—"
             }
             leftColor={leftColor}
@@ -186,9 +234,9 @@ export default function TeamComparisonSection({
           />
 
           <StatRow
-            leftVal={left?.shotsForPerGame ?? null}
-            rightVal={right?.shotsForPerGame ?? null}
             label="Shots For / Game"
+            leftVal={higherBetterStrength(left?.shotsForPerGame ?? null, 30, 0.2)}
+            rightVal={higherBetterStrength(right?.shotsForPerGame ?? null, 30, 0.2)}
             leftText={
               left?.shotsForPerGame != null
                 ? `${left.shotsForPerGame}${rankSuffix("shotsForPerGame", leftAbbrev)}`
@@ -196,7 +244,7 @@ export default function TeamComparisonSection({
             }
             rightText={
               right?.shotsForPerGame != null
-                ? `${right.shotsForPerGame}${rankSuffix("shotsForPerGame", rightAbbrev)}`
+                ? `${rankPrefix("shotsForPerGame", rightAbbrev)}${right.shotsForPerGame}`
                 : "—"
             }
             leftColor={leftColor}
@@ -204,8 +252,8 @@ export default function TeamComparisonSection({
           />
 
           <StatRow
-            leftVal={left?.shotsAgainstPerGame ?? null}
-            rightVal={right?.shotsAgainstPerGame ?? null}
+            leftVal={lowerBetterStrength(left?.shotsAgainstPerGame ?? null, 30, 0.12)}
+            rightVal={lowerBetterStrength(right?.shotsAgainstPerGame ?? null, 30, 0.12)}
             label="Shots Against / Game"
             leftText={
               left?.shotsAgainstPerGame != null
@@ -214,7 +262,7 @@ export default function TeamComparisonSection({
             }
             rightText={
               right?.shotsAgainstPerGame != null
-                ? `${right.shotsAgainstPerGame}${rankSuffix("shotsAgainstPerGame", rightAbbrev)}`
+                ? `${rankPrefix("shotsAgainstPerGame", rightAbbrev)}${right.shotsAgainstPerGame}`
                 : "—"
             }
             leftColor={leftColor}

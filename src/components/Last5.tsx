@@ -20,6 +20,22 @@ export type TeamLast5 = {
   note?: string;
 };
 
+function higherBetterStrength(v: number | null | undefined, baseline: number, k: number) {
+  if (v == null || !Number.isFinite(v)) return null;
+  return Math.exp(k * (v - baseline));
+}
+
+function toPct100(v: number | null | undefined) {
+  if (v == null || !Number.isFinite(v)) return null;
+  // if it's a fraction like 0.234, convert to 23.4
+  return v <= 1 ? v * 100 : v;
+}
+
+function lowerBetterStrength(v: number | null | undefined, baseline: number, k: number) {
+  if (v == null || !Number.isFinite(v)) return null;
+  return Math.exp(k * (baseline - v));
+}
+
 export default function Last5Section({
   left,
   right,
@@ -52,7 +68,7 @@ export default function Last5Section({
         {/* TITLE */}
         <div
           style={{
-            paddingTop: 10,       
+            paddingTop: 3,       
             paddingBottom: 14,
             fontWeight: 900,
             opacity: 0.92,
@@ -81,56 +97,45 @@ export default function Last5Section({
           />
 
           <StatRow
-            leftVal={left?.shotsForPerGame ?? null}
-            rightVal={right?.shotsForPerGame ?? null}
+            leftVal={higherBetterStrength(left?.shotsForPerGame ?? null, 30, 0.12)}
+            rightVal={higherBetterStrength(right?.shotsForPerGame ?? null, 30, 0.12)}
             label="Shots For / Game"
+            leftText={left?.shotsForPerGame != null ? `${left.shotsForPerGame}` : "—"}
+            rightText={right?.shotsForPerGame != null ? `${right.shotsForPerGame}` : "—"}
             leftColor={leftColor}
             rightColor={rightColor}
           />
 
           <StatRow
-            leftVal={left?.shotsAgainstPerGame ?? null}
-            rightVal={right?.shotsAgainstPerGame ?? null}
+            leftVal={lowerBetterStrength(left?.shotsAgainstPerGame ?? null, 30, 0.12)}
+            rightVal={lowerBetterStrength(right?.shotsAgainstPerGame ?? null, 30, 0.12)}
             label="Shots Against / Game"
+            leftText={left?.shotsAgainstPerGame != null ? `${left.shotsAgainstPerGame}` : "—"}
+            rightText={right?.shotsAgainstPerGame != null ? `${right.shotsAgainstPerGame}` : "—"}
             leftColor={leftColor}
             rightColor={rightColor}
           />
 
           <StatRow
-            leftVal={lPP?.pct ?? null}
-            rightVal={rPP?.pct ?? null}
+            leftVal={higherBetterStrength(toPct100(lPP?.pct ?? null), 20, 0.05)}
+            rightVal={higherBetterStrength(toPct100(rPP?.pct ?? null), 20, 0.05)}
             label="Power Play %"
-            leftText={
-              lPP?.pct != null
-                ? `${lPP.pct}% (${lPP.goals}/${lPP.opps})`
-                : "—"
-            }
-            rightText={
-              rPP?.pct != null
-                ? `${rPP.pct}% (${rPP.goals}/${rPP.opps})`
-                : "—"
-            }
+            leftText={lPP?.pct != null ? `${toPct100(lPP.pct)?.toFixed(1)}% (${lPP.goals}/${lPP.opps})` : "—"}
+            rightText={rPP?.pct != null ? `${toPct100(rPP.pct)?.toFixed(1)}% (${rPP.goals}/${rPP.opps})` : "—"}
             leftColor={leftColor}
             rightColor={rightColor}
           />
 
           <StatRow
-            leftVal={lPK?.pct ?? null}
-            rightVal={rPK?.pct ?? null}
+            leftVal={higherBetterStrength(toPct100(lPK?.pct ?? null), 80, 0.04)}
+            rightVal={higherBetterStrength(toPct100(rPK?.pct ?? null), 80, 0.04)}
             label="Penalty Kill %"
-            leftText={
-              lPK?.pct != null
-                ? `${lPK.pct}% (${lPK.oppPPGoals}/${lPK.oppPPOpps})`
-                : "—"
-            }
-            rightText={
-              rPK?.pct != null
-                ? `${rPK.pct}% (${rPK.oppPPGoals}/${rPK.oppPPOpps})`
-                : "—"
-            }
+            leftText={lPK?.pct != null ? `${toPct100(lPK.pct)?.toFixed(1)}% (${lPK.oppPPGoals}/${lPK.oppPPOpps})` : "—"}
+            rightText={rPK?.pct != null ? `${toPct100(rPK.pct)?.toFixed(1)}% (${rPK.oppPPGoals}/${rPK.oppPPOpps})` : "—"}
             leftColor={leftColor}
             rightColor={rightColor}
           />
+
         </div>
 
         <div style={{ height: 18 }} />

@@ -1,36 +1,178 @@
 import { NextResponse } from "next/server";
-import { toNum } from "@/lib/nhl/parse";
+
+type RanksForMetric = Record<string, number | null>;
+
+export type TeamRanks = {
+  seasonId: number;
+  teamsCount: number;
+  teamA: string;
+  teamB: string;
+  ranks: {
+    goalsForPerGame: RanksForMetric;
+    goalsAgainstPerGame: RanksForMetric;
+    powerPlayPct: RanksForMetric;
+    penaltyKillPct: RanksForMetric;
+    shotsForPerGame: RanksForMetric;
+    shotsAgainstPerGame: RanksForMetric;
+  };
+};
+
+function toNumber(val: unknown): number | null {
+  if (typeof val === "number" && Number.isFinite(val)) return val;
+  if (typeof val === "string") {
+    const n = Number(val);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
+function inferCurrentSeasonIdFromToday(): number {
+  // July cutoff (same logic as your summary route)
+  const now = new Date();
+  const y = now.getUTCFullYear();
+  const m = now.getUTCMonth() + 1;
+  const startYear = m >= 7 ? y : y - 1;
+  return Number(`${startYear}${startYear + 1}`);
+}
+
+async function getTeamMeta() {
+  const res = await fetch("https://api.nhle.com/stats/rest/en/team", {
+    next: { revalidate: 60 * 60 },
+    headers: { "User-Agent": "leafs-edge" },
+  });
+  if (!res.ok) return [];
+
+  const json = await res.json();
+  const rows: any[] = Array.isArray(json?.data) ? json.data : [];
+
+  // normalize to: { id, triCode }
+  return rows
+    .map((t) => {
+      const id = toNumber(t?.id ?? t?.teamId);
+      const triCode = String(t?.triCode || t?.abbrev || t?.abbreviation || "").toUpperCase();
+      return id != null && triCode ? { id, triCode } : null;
+    })
+    .filter(Boolean) as { id: number; triCode: string }[];
+}
+
+type TeamSummaryRow = {
+  teamId: number;
+  goalsForPerGame: number | null;
+  goalsAgainstPerGame: number | null;
+  powerPlayPct: number | null;   // 0-1 decimal in this feed
+  penaltyKillPct: number | null; // 0-1 decimal in this feed
+  shotsForPerGame: number | null;
+  shotsAgainstPerGame: number | null;
+};
+
+async function getLeagueTeamSummary(seasonId: number, gameTypeId: number): Promise<TeamSummaryRow[]> {
+  const url =
+    "https://api.nhle.com/stats/rest/en/team/summary" +
+    `?cayenneExp=${encodeURIComponent(`seasonId=${seasonId} and gameTypeId=${gameTypeId}`)}`;
+
+  const res = await fetch(url, {
+    next: { revalidate: 60 * 60 },
+    headers: { "User-Agent": "leafs-edge" },
+  });
+
+  if (!res.ok) return [];
+  const json = await res.json();
+  const rows: any[] = Array.isArray(json?.data) ? json.data : [];
+
+  return rows
+    .map((r) => ({
+      teamId: toNumber(r?.teamId) ?? -1,
+      goalsForPerGame: toNumber(r?.goalsForPerGame),
+      goalsAgainstPerGame: toNumber(r?.goalsAgainstPerGame),
+      powerPlayPct: toNumber(r?.powerPlayPct),
+      penaltyKillPct: toNumber(r?.penaltyKillPct),
+      shotsForPerGame: toNumber(r?.shotsForPerGame),
+      shotsAgainstPerGame: toNumber(r?.shotsAgainstPerGame),
+    }))
+    .filter((r) => r.teamId !== -1);
+}
+
+function pct01ToPct100(v: number | null) {
+  if (v == null) return null;
+  // This feed is 0-1 (ex: 0.224489) => 22.4489
+  return v <= 1 ? v * 100 : v;
+}
+
+function computeRanks(
+  rows: { triCode: string; value: number | null }[],
+  higherBetter: boolean
+): Record<string, number | null> {
+  const valid = rows.filter((r) => r.value != null) as { triCode: string; value: number }[];
+
+  valid.sort((a, b) => {
+    if (higherBetter) return b.value - a.value;
+    return a.value - b.value;
+  });
+
+  const out: Record<string, number | null> = {};
+  rows.forEach((r) => (out[r.triCode] = null));
+
+  // simple 1..N rank (no tie compression)
+  valid.forEach((r, i) => {
+    out[r.triCode] = i + 1;
+  });
+
+  return out;
+}
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const team = (searchParams.get("team") ?? "").toUpperCase();
 
-  if (!team) {
-    return NextResponse.json({ error: "Missing ?team=TOR" }, { status: 400 });
-  }
+  const teamA = String(searchParams.get("teamA") || "TOR").toUpperCase();
+  const teamB = String(searchParams.get("teamB") || "MTL").toUpperCase();
+  const seasonId = toNumber(searchParams.get("seasonId")) ?? inferCurrentSeasonIdFromToday();
+  const gameTypeId = toNumber(searchParams.get("gameTypeId")) ?? 2;
 
-  try {
-    const url = `https://api-web.nhle.com/v1/club-stats/${team}/20252026/2`;
-    const res = await fetch(url, { next: { revalidate: 60 * 10 } });
-    if (!res.ok) {
-      return NextResponse.json({ error: `NHL API ${res.status}` }, { status: 502 });
-    }
+  const meta = await getTeamMeta();
+  const league = await getLeagueTeamSummary(seasonId, gameTypeId);
 
-    const data = await res.json();
+  const idToTri = new Map(meta.map((m) => [m.id, m.triCode]));
+  const leagueByTri = league
+    .map((r) => {
+      const tri = idToTri.get(r.teamId);
+      return tri ? { triCode: tri, row: r } : null;
+    })
+    .filter(Boolean) as { triCode: string; row: TeamSummaryRow }[];
 
-    const teamStats = data?.teamStats ?? data;
+  const teamsCount = leagueByTri.length;
 
-    const ranks = {
-      goalsForPerGameRank: toNum(teamStats?.goalsForPerGameRank),
-      goalsAgainstPerGameRank: toNum(teamStats?.goalsAgainstPerGameRank),
-      shotsForPerGameRank: toNum(teamStats?.shotsForPerGameRank),
-      shotsAgainstPerGameRank: toNum(teamStats?.shotsAgainstPerGameRank),
-      powerPlayPctRank: toNum(teamStats?.powerPlayPctRank),
-      penaltyKillPctRank: toNum(teamStats?.penaltyKillPctRank),
-    };
+  const payload: TeamRanks = {
+    seasonId,
+    teamsCount,
+    teamA,
+    teamB,
+    ranks: {
+      goalsForPerGame: computeRanks(
+        leagueByTri.map((x) => ({ triCode: x.triCode, value: x.row.goalsForPerGame })),
+        true
+      ),
+      goalsAgainstPerGame: computeRanks(
+        leagueByTri.map((x) => ({ triCode: x.triCode, value: x.row.goalsAgainstPerGame })),
+        false
+      ),
+      powerPlayPct: computeRanks(
+        leagueByTri.map((x) => ({ triCode: x.triCode, value: pct01ToPct100(x.row.powerPlayPct) })),
+        true
+      ),
+      penaltyKillPct: computeRanks(
+        leagueByTri.map((x) => ({ triCode: x.triCode, value: pct01ToPct100(x.row.penaltyKillPct) })),
+        true
+      ),
+      shotsForPerGame: computeRanks(
+        leagueByTri.map((x) => ({ triCode: x.triCode, value: x.row.shotsForPerGame })),
+        true
+      ),
+      shotsAgainstPerGame: computeRanks(
+        leagueByTri.map((x) => ({ triCode: x.triCode, value: x.row.shotsAgainstPerGame })),
+        false
+      ),
+    },
+  };
 
-    return NextResponse.json({ team, ranks });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? "Fetch failed" }, { status: 500 });
-  }
+  return NextResponse.json(payload);
 }
