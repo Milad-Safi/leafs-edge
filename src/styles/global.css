@@ -261,3 +261,64 @@ body {
     font-size: 14px !important;
   }
 }
+
+@media (max-width: 640px) {
+  .mhRow {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    text-align: center !important;
+  }
+
+  .mhTitle {
+    font-size: 30px !important;   /* big but not insane */
+    line-height: 1.05 !important;
+    letter-spacing: 0.4px !important;
+  }
+
+  /* tighten the side blocks so they don’t look like empty columns */
+  .mhRow > div {
+    justify-content: center !important;
+  }
+
+  .mhRow img {
+    width: 46px !important;
+    height: 46px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .goaliesGrid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .statRowLabel {
+    font-size: 12px !important;
+    opacity: 0.65 !important;
+  }
+
+  .statRowLeft,
+  .statRowRight {
+    font-size: 15px !important;
+  }
+
+  /* make bar contrast stronger for readability */
+  .statRowBars {
+    opacity: 0.32 !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .injuriesHeader {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+  }
+
+  .injuriesHeader .updatedText {
+    font-size: 12px !important;
+    opacity: 0.6 !important;
+  }
+}

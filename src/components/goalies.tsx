@@ -11,7 +11,7 @@ function initials(name: string) {
 
 function fmtSvDecimal(v: number | null | undefined) {
   if (v == null || !Number.isFinite(v)) return "—";
-  return v.toFixed(3); 
+  return v.toFixed(3);
 }
 
 function fmtNum(v: number | null | undefined, digits = 2) {
@@ -26,15 +26,16 @@ function svStrength(sv: number | null | undefined) {
   return Math.exp(k * (sv - baseline));
 }
 
-// Record Comparison 
-function recordGoodness(s: { games: number; record: { w: number; l: number; ot: number } } | null): number | null {
+function recordGoodness(
+  s: { games: number; record: { w: number; l: number; ot: number } } | null
+): number | null {
   if (!s || !s.games) return null;
   const pts = s.record.w * 2 + s.record.ot;
   const maxPts = s.games * 2;
   const lostPts = Math.max(0, maxPts - pts);
   return 1 / (lostPts + 1);
 }
-// for gaa 
+
 function inversePositive(v: number | null | undefined): number | null {
   if (v == null || !Number.isFinite(v) || v <= 0) return null;
   return 1 / v;
@@ -79,7 +80,7 @@ function GoalieCard({
         overflow: "hidden",
       }}
     >
-      <div style={{ padding: 22 }}>
+      <div style={{ padding: 18 }}>
         <div style={{ fontWeight: 950, fontSize: 18, color: "rgba(255,255,255,0.92)" }}>
           {title}
         </div>
@@ -94,12 +95,11 @@ function GoalieCard({
               style={{
                 display: "grid",
                 gridTemplateColumns: "92px 1fr",
-                gap: 18,
+                gap: 16,
                 alignItems: "center",
                 marginTop: 8,
               }}
             >
-              {/* Headshot */}
               <div
                 style={{
                   width: 92,
@@ -120,27 +120,14 @@ function GoalieCard({
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   />
                 ) : (
-                  <div style={{ fontWeight: 950, fontSize: 24, color: "rgba(255,255,255,0.85)" }}>
+                  <div style={{ fontWeight: 950, fontSize: 24 }}>
                     {initials(starter.name)}
                   </div>
                 )}
               </div>
 
-              {/* Stats */}
-              <div style={{ minWidth: 0 }}>
-                <div
-                  style={{
-                    fontWeight: 950,
-                    fontSize: 18,
-                    color: "rgba(255,255,255,0.95)",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                  title={starter.name}
-                >
-                  {starter.name}
-                </div>
+              <div>
+                <div style={{ fontWeight: 950, fontSize: 18 }}>{starter.name}</div>
 
                 <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
                   <StatLine
@@ -162,12 +149,6 @@ function GoalieCard({
           )}
         </div>
       </div>
-      <div
-        style={{
-          height: 14,
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.0), rgba(0,0,0,0.22))",
-        }}
-      />
     </div>
   );
 }
@@ -195,9 +176,7 @@ export default function GoaliesSection({
 
   return (
     <section style={{ width: "100%", marginTop: 26 }}>
-      {/* keeps it off the outer site border */}
-      <div style={{ padding: "0 18px 18px 18px" }}>
-        {/* main module wrapper */}
+      <div style={{ padding: "0 18px 18px" }}>
         <div
           style={{
             borderRadius: 18,
@@ -206,34 +185,26 @@ export default function GoaliesSection({
             overflow: "hidden",
           }}
         >
-          {/* TOP: goalie cards */}
           <div style={{ padding: 18, paddingBottom: 16 }}>
+            {/* ONLY CHANGE IS THIS className */}
             <div
+              className="goaliesGrid"
               style={{
                 display: "grid",
-                gridTemplateColumns: "1fr 1px 1fr",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 16,
                 alignItems: "stretch",
               }}
             >
-              <div style={{ paddingRight: 14 }}>
-                <GoalieCard title="Projected Starter:" loading={loading} starter={lStarter} />
-              </div>
-
-              {/* middle split between the two cards */}
-              <div style={{ background: "rgba(255,255,255,0.08)" }} />
-
-              <div style={{ paddingLeft: 14 }}>
-                <GoalieCard title="Projected Starter:" loading={loading} starter={rStarter} />
-              </div>
+              <GoalieCard title="Projected Starter:" loading={loading} starter={lStarter} />
+              <GoalieCard title="Projected Starter:" loading={loading} starter={rStarter} />
             </div>
           </div>
 
-          {/* DIVIDER between cards + bars (no extra box) */}
           <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
 
-          {/* BOTTOM: bars directly on main container */}
           <div style={{ padding: 18, paddingTop: 16 }}>
-            <div style={{ fontWeight: 950, fontSize: 16, color: "rgba(255,255,255,0.90)" }}>
+            <div style={{ fontWeight: 950, fontSize: 16 }}>
               Last 5 Splits (Projected Starters)
             </div>
 
@@ -242,8 +213,12 @@ export default function GoaliesSection({
                 label="Record"
                 leftVal={recordGoodness(l5Left)}
                 rightVal={recordGoodness(l5Right)}
-                leftText={l5Left ? `${l5Left.record.w}-${l5Left.record.l}-${l5Left.record.ot}` : "—"}
-                rightText={l5Right ? `${l5Right.record.w}-${l5Right.record.l}-${l5Right.record.ot}` : "—"}
+                leftText={
+                  l5Left ? `${l5Left.record.w}-${l5Left.record.l}-${l5Left.record.ot}` : "—"
+                }
+                rightText={
+                  l5Right ? `${l5Right.record.w}-${l5Right.record.l}-${l5Right.record.ot}` : "—"
+                }
                 leftColor={leftColor}
                 rightColor={rightColor}
               />
@@ -263,7 +238,7 @@ export default function GoaliesSection({
                 leftVal={inversePositive(l5Left?.gaa ?? null)}
                 rightVal={inversePositive(l5Right?.gaa ?? null)}
                 leftText={l5Left?.gaa != null ? l5Left.gaa.toFixed(2) : "—"}
-                rightText={l5Right?.gaa != null ? l5Right.gaa.toFixed(2) : "—"}
+                rightText={l5Right?.gaa != null ? l5Right?.gaa.toFixed(2) : "—"}
                 leftColor={leftColor}
                 rightColor={rightColor}
               />

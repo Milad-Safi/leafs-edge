@@ -76,7 +76,6 @@ export default function MatchupHeader({
       : "—";
 
   const leftSplit = leafsIsHome ? leftSummary?.homeRecord : leftSummary?.awayRecord;
-
   const rightSplit = leafsIsHome ? rightSummary?.awayRecord : rightSummary?.homeRecord;
 
   const leftSplitLabel = leafsIsHome ? "Home" : "Away";
@@ -94,7 +93,8 @@ export default function MatchupHeader({
         </span>
       </div>
 
-      <div style={styles.mainRow}>
+      {/* added className for mobile-only CSS overrides */}
+      <div className="mhRow" style={styles.mainRow}>
         <div style={styles.teamSideLeft}>
           <img src={logoUrl(TEAM)} alt={`${TEAM} logo`} style={styles.logo} />
           <div style={styles.teamText}>
@@ -113,7 +113,10 @@ export default function MatchupHeader({
         </div>
 
         <div style={styles.center}>
-          <div style={styles.matchup}>{matchup}</div>
+          {/* added className for mobile-only font sizing */}
+          <div className="mhTitle" style={styles.matchup}>
+            {matchup}
+          </div>
           <div style={styles.centerSub}>{leafsIsHome ? "Home game" : "Away game"}</div>
         </div>
 
