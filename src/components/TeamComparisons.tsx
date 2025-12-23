@@ -2,6 +2,7 @@
 
 import React from "react";
 import StatRow from "@/components/StatRow";
+import { UI } from "@/styles/uiStyles";
 
 type RecordSplit = { w: number; l: number };
 
@@ -84,7 +85,10 @@ export default function TeamComparisonSection({
       {/* HEADER */}
       <div
         style={{
-          padding: "14px 16px",
+          paddingTop: 14,
+          paddingRight: 16,
+          paddingBottom: 14,
+          paddingLeft: 16,
           borderBottom: "1px solid rgba(255,255,255,0.08)",
         }}
       >
@@ -92,128 +96,131 @@ export default function TeamComparisonSection({
           TEAM COMPARISON
         </div>
         <div style={{ fontSize: 12, opacity: 0.65, marginTop: 4, textAlign: "center" }}>
-          2025-2026 Regular Season Stats 
+          2025-2026 Regular Season Stats
         </div>
       </div>
 
       {/* BODY */}
-      <div style={{ padding: 16, opacity: 0.95 }}>
+      <div
+        style={{
+          ...UI.pad(16),
+          opacity: 0.95,
+        }}
+      >
         {loading && (
           <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 10 }}>Loading team stats…</div>
         )}
 
-        <StatRow
-          leftVal={left?.goalsForPerGame ?? null}
-          rightVal={right?.goalsForPerGame ?? null}
-          label="Goals For / Game"
-          leftText={
-            left?.goalsForPerGame != null
-              ? `${left.goalsForPerGame}${rankSuffix("goalsForPerGame", leftAbbrev)}`
-              : "—"
-          }
-          rightText={
-            right?.goalsForPerGame != null
-              ? `${right.goalsForPerGame}${rankSuffix("goalsForPerGame", rightAbbrev)}`
-              : "—"
-          }
-          leftColor={leftColor}
-          rightColor={rightColor}
-        />
-        <div style={{ height: 10 }} />
+        {/* Use a grid for consistent spacing instead of repeated <div style={{height:10}}/> */}
+        <div style={UI.rowsGrid(10)}>
+          <StatRow
+            leftVal={left?.goalsForPerGame ?? null}
+            rightVal={right?.goalsForPerGame ?? null}
+            label="Goals For / Game"
+            leftText={
+              left?.goalsForPerGame != null
+                ? `${left.goalsForPerGame}${rankSuffix("goalsForPerGame", leftAbbrev)}`
+                : "—"
+            }
+            rightText={
+              right?.goalsForPerGame != null
+                ? `${right.goalsForPerGame}${rankSuffix("goalsForPerGame", rightAbbrev)}`
+                : "—"
+            }
+            leftColor={leftColor}
+            rightColor={rightColor}
+          />
 
-        <StatRow
-          leftVal={left?.goalsAgainstPerGame ?? null}
-          rightVal={right?.goalsAgainstPerGame ?? null}
-          label="Goals Against / Game"
-          leftText={
-            left?.goalsAgainstPerGame != null
-              ? `${left.goalsAgainstPerGame}${rankSuffix("goalsAgainstPerGame", leftAbbrev)}`
-              : "—"
-          }
-          rightText={
-            right?.goalsAgainstPerGame != null
-              ? `${right.goalsAgainstPerGame}${rankSuffix("goalsAgainstPerGame", rightAbbrev)}`
-              : "—"
-          }
-          leftColor={leftColor}
-          rightColor={rightColor}
-        />
-        <div style={{ height: 10 }} />
+          <StatRow
+            leftVal={left?.goalsAgainstPerGame ?? null}
+            rightVal={right?.goalsAgainstPerGame ?? null}
+            label="Goals Against / Game"
+            leftText={
+              left?.goalsAgainstPerGame != null
+                ? `${left.goalsAgainstPerGame}${rankSuffix("goalsAgainstPerGame", leftAbbrev)}`
+                : "—"
+            }
+            rightText={
+              right?.goalsAgainstPerGame != null
+                ? `${right.goalsAgainstPerGame}${rankSuffix("goalsAgainstPerGame", rightAbbrev)}`
+                : "—"
+            }
+            leftColor={leftColor}
+            rightColor={rightColor}
+          />
 
-        <StatRow
-          leftVal={left?.powerPlayPct ?? null}
-          rightVal={right?.powerPlayPct ?? null}
-          label="Power Play %"
-          leftText={
-            left?.powerPlayPct != null
-              ? `${left.powerPlayPct}%${rankSuffix("powerPlayPct", leftAbbrev)}`
-              : "—"
-          }
-          rightText={
-            right?.powerPlayPct != null
-              ? `${right.powerPlayPct}%${rankSuffix("powerPlayPct", rightAbbrev)}`
-              : "—"
-          }
-          leftColor={leftColor}
-          rightColor={rightColor}
-        />
-        <div style={{ height: 10 }} />
+          <StatRow
+            leftVal={left?.powerPlayPct ?? null}
+            rightVal={right?.powerPlayPct ?? null}
+            label="Power Play %"
+            leftText={
+              left?.powerPlayPct != null
+                ? `${left.powerPlayPct}%${rankSuffix("powerPlayPct", leftAbbrev)}`
+                : "—"
+            }
+            rightText={
+              right?.powerPlayPct != null
+                ? `${right.powerPlayPct}%${rankSuffix("powerPlayPct", rightAbbrev)}`
+                : "—"
+            }
+            leftColor={leftColor}
+            rightColor={rightColor}
+          />
 
-        <StatRow
-          leftVal={left?.penaltyKillPct ?? null}
-          rightVal={right?.penaltyKillPct ?? null}
-          label="Penalty Kill %"
-          leftText={
-            left?.penaltyKillPct != null
-              ? `${left.penaltyKillPct}%${rankSuffix("penaltyKillPct", leftAbbrev)}`
-              : "—"
-          }
-          rightText={
-            right?.penaltyKillPct != null
-              ? `${right.penaltyKillPct}%${rankSuffix("penaltyKillPct", rightAbbrev)}`
-              : "—"
-          }
-          leftColor={leftColor}
-          rightColor={rightColor}
-        />
-        <div style={{ height: 10 }} />
+          <StatRow
+            leftVal={left?.penaltyKillPct ?? null}
+            rightVal={right?.penaltyKillPct ?? null}
+            label="Penalty Kill %"
+            leftText={
+              left?.penaltyKillPct != null
+                ? `${left.penaltyKillPct}%${rankSuffix("penaltyKillPct", leftAbbrev)}`
+                : "—"
+            }
+            rightText={
+              right?.penaltyKillPct != null
+                ? `${right.penaltyKillPct}%${rankSuffix("penaltyKillPct", rightAbbrev)}`
+                : "—"
+            }
+            leftColor={leftColor}
+            rightColor={rightColor}
+          />
 
-        <StatRow
-          leftVal={left?.shotsForPerGame ?? null}
-          rightVal={right?.shotsForPerGame ?? null}
-          label="Shots For / Game"
-          leftText={
-            left?.shotsForPerGame != null
-              ? `${left.shotsForPerGame}${rankSuffix("shotsForPerGame", leftAbbrev)}`
-              : "—"
-          }
-          rightText={
-            right?.shotsForPerGame != null
-              ? `${right.shotsForPerGame}${rankSuffix("shotsForPerGame", rightAbbrev)}`
-              : "—"
-          }
-          leftColor={leftColor}
-          rightColor={rightColor}
-        />
-        <div style={{ height: 10 }} />
+          <StatRow
+            leftVal={left?.shotsForPerGame ?? null}
+            rightVal={right?.shotsForPerGame ?? null}
+            label="Shots For / Game"
+            leftText={
+              left?.shotsForPerGame != null
+                ? `${left.shotsForPerGame}${rankSuffix("shotsForPerGame", leftAbbrev)}`
+                : "—"
+            }
+            rightText={
+              right?.shotsForPerGame != null
+                ? `${right.shotsForPerGame}${rankSuffix("shotsForPerGame", rightAbbrev)}`
+                : "—"
+            }
+            leftColor={leftColor}
+            rightColor={rightColor}
+          />
 
-        <StatRow
-          leftVal={left?.shotsAgainstPerGame ?? null}
-          rightVal={right?.shotsAgainstPerGame ?? null}
-          label="Shots Against / Game"
-          leftText={
-            left?.shotsAgainstPerGame != null
-              ? `${left.shotsAgainstPerGame}${rankSuffix("shotsAgainstPerGame", leftAbbrev)}`
-              : "—"
-          }
-          rightText={
-            right?.shotsAgainstPerGame != null
-              ? `${right.shotsAgainstPerGame}${rankSuffix("shotsAgainstPerGame", rightAbbrev)}`
-              : "—"
-          }
-          leftColor={leftColor}
-          rightColor={rightColor}
-        />
+          <StatRow
+            leftVal={left?.shotsAgainstPerGame ?? null}
+            rightVal={right?.shotsAgainstPerGame ?? null}
+            label="Shots Against / Game"
+            leftText={
+              left?.shotsAgainstPerGame != null
+                ? `${left.shotsAgainstPerGame}${rankSuffix("shotsAgainstPerGame", leftAbbrev)}`
+                : "—"
+            }
+            rightText={
+              right?.shotsAgainstPerGame != null
+                ? `${right.shotsAgainstPerGame}${rankSuffix("shotsAgainstPerGame", rightAbbrev)}`
+                : "—"
+            }
+            leftColor={leftColor}
+            rightColor={rightColor}
+          />
+        </div>
       </div>
     </>
   );

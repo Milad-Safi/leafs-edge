@@ -11,6 +11,9 @@ import InjuriesSection from "@/components/Injuries";
 
 import useMatchupData from "@/hooks/useMatchupData";
 import { getTeamColor } from "@/lib/teamColours";
+import MatchupHistory from "@/components/matchupHistory";
+import { useMatchupHistory } from "@/hooks/useMatchupHistory";
+
 
 function getOppFromGame(game: Game | null, teamAbbrev: string) {
   if (!game) return null;
@@ -62,6 +65,7 @@ export default function Home() {
   const leftColor = getTeamColor(TEAM);
   const rightColor = getTeamColor(oppAbbrev ?? "");
   const gameDayToronto = torontoDateFromUTC(selectedGame?.startTimeUTC ?? null);
+  const { data: history, loading: historyLoading } = useMatchupHistory(TEAM, oppAbbrev);
 
   return (
     <main style={{ minHeight: "100vh", color: "white" }}>
@@ -105,6 +109,16 @@ export default function Home() {
             rightColor={rightColor}
             hotLeft={torHot}
             hotRight={oppHot}
+          />
+
+
+          <MatchupHistory
+            data={history}
+            loading={historyLoading}
+            leftAbbrev="TOR"
+            rightAbbrev={oppAbbrev ?? ""}
+            leftColor={leftColor}
+            rightColor={rightColor}
           />
 
           {oppAbbrev && gameDayToronto && (

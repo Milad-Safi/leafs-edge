@@ -3,6 +3,7 @@
 import React from "react";
 import StatRow from "@/components/StatRow";
 import HotPlayersRows, { type HotL5Payload } from "@/components/HotPlayers";
+import { UI } from "@/styles/uiStyles";
 
 export type TeamLast5 = {
   team: string;
@@ -46,108 +47,102 @@ export default function Last5Section({
   const rPK = right?.penaltyKill;
 
   return (
-    <div style={{ padding: 16, opacity: 0.95 }}>
-      <div style={{ margin: "13px -16px 10px" }}>
-        <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
-      </div>
-
-      <div
-        style={{
-          padding: "14px 0",
-          fontWeight: 900,
-          letterSpacing: 0.67,
-          opacity: 0.92,
-          textAlign: "center",
-          marginBottom: 10,
-        }}
-      >
-        LAST 5 GAMES
-      </div>
-
-      <div style={{ margin: "0 -16px 20px" }}>
-        <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
-      </div>
-
-      {loading && (
-        <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 10 }}>
-          Loading last 5…
+    <div style={UI.moduleWrapper()}>
+      <div style={{ ...UI.pad(18), opacity: 0.95 }}>
+        {/* TITLE */}
+        <div
+          style={{
+            paddingTop: 10,       
+            paddingBottom: 14,
+            fontWeight: 900,
+            opacity: 0.92,
+            textAlign: "center",
+          }}
+        >
+          Last 5:
         </div>
-      )}
 
-      <StatRow
-        leftVal={typeof lRec?.w === "number" ? lRec.w : null}
-        rightVal={typeof rRec?.w === "number" ? rRec.w : null}
-        label="Record (W-L-OTL)"
-        leftText={lRec ? `${lRec.w}-${lRec.l}-${lRec.otl}` : "—"}
-        rightText={rRec ? `${rRec.w}-${rRec.l}-${rRec.otl}` : "—"}
-        leftColor={leftColor}
-        rightColor={rightColor}
-      />
-      <div style={{ height: 10 }} />
+        {loading && (
+          <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 12 }}>
+            Loading last 5…
+          </div>
+        )}
 
-      <StatRow
-        leftVal={left?.shotsForPerGame ?? null}
-        rightVal={right?.shotsForPerGame ?? null}
-        label="Shots For / Game (L5)"
-        leftColor={leftColor}
-        rightColor={rightColor}
-      />
-      <div style={{ height: 10 }} />
+        {/* STATS */}
+        <div style={UI.rowsGrid(10)}>
+          <StatRow
+            leftVal={typeof lRec?.w === "number" ? lRec.w : null}
+            rightVal={typeof rRec?.w === "number" ? rRec.w : null}
+            label="Record"
+            leftText={lRec ? `${lRec.w}-${lRec.l}-${lRec.otl}` : "—"}
+            rightText={rRec ? `${rRec.w}-${rRec.l}-${rRec.otl}` : "—"}
+            leftColor={leftColor}
+            rightColor={rightColor}
+          />
 
-      <StatRow
-        leftVal={left?.shotsAgainstPerGame ?? null}
-        rightVal={right?.shotsAgainstPerGame ?? null}
-        label="Shots Against / Game (L5)"
-        leftColor={leftColor}
-        rightColor={rightColor}
-      />
-      <div style={{ height: 10 }} />
+          <StatRow
+            leftVal={left?.shotsForPerGame ?? null}
+            rightVal={right?.shotsForPerGame ?? null}
+            label="Shots For / Game"
+            leftColor={leftColor}
+            rightColor={rightColor}
+          />
 
-      <StatRow
-        leftVal={lPP?.pct ?? null}
-        rightVal={rPP?.pct ?? null}
-        label="Power Play % (L5)"
-        leftText={
-          lPP?.pct != null
-            ? `${lPP.pct}% (${lPP.goals}/${lPP.opps})`
-            : "—"
-        }
-        rightText={
-          rPP?.pct != null
-            ? `${rPP.pct}% (${rPP.goals}/${rPP.opps})`
-            : "—"
-        }
-        leftColor={leftColor}
-        rightColor={rightColor}
-      />
-      <div style={{ height: 10 }} />
+          <StatRow
+            leftVal={left?.shotsAgainstPerGame ?? null}
+            rightVal={right?.shotsAgainstPerGame ?? null}
+            label="Shots Against / Game"
+            leftColor={leftColor}
+            rightColor={rightColor}
+          />
 
-      <StatRow
-        leftVal={lPK?.pct ?? null}
-        rightVal={rPK?.pct ?? null}
-        label="Penalty Kill % (L5)"
-        leftText={
-          lPK?.pct != null
-            ? `${lPK.pct}% (${lPK.oppPPGoals}/${lPK.oppPPOpps})`
-            : "—"
-        }
-        rightText={
-          rPK?.pct != null
-            ? `${rPK.pct}% (${rPK.oppPPGoals}/${rPK.oppPPOpps})`
-            : "—"
-        }
-        leftColor={leftColor}
-        rightColor={rightColor}
-      />
+          <StatRow
+            leftVal={lPP?.pct ?? null}
+            rightVal={rPP?.pct ?? null}
+            label="Power Play %"
+            leftText={
+              lPP?.pct != null
+                ? `${lPP.pct}% (${lPP.goals}/${lPP.opps})`
+                : "—"
+            }
+            rightText={
+              rPP?.pct != null
+                ? `${rPP.pct}% (${rPP.goals}/${rPP.opps})`
+                : "—"
+            }
+            leftColor={leftColor}
+            rightColor={rightColor}
+          />
 
-      <div style={{ height: 10 }} />
+          <StatRow
+            leftVal={lPK?.pct ?? null}
+            rightVal={rPK?.pct ?? null}
+            label="Penalty Kill %"
+            leftText={
+              lPK?.pct != null
+                ? `${lPK.pct}% (${lPK.oppPPGoals}/${lPK.oppPPOpps})`
+                : "—"
+            }
+            rightText={
+              rPK?.pct != null
+                ? `${rPK.pct}% (${rPK.oppPPGoals}/${rPK.oppPPOpps})`
+                : "—"
+            }
+            leftColor={leftColor}
+            rightColor={rightColor}
+          />
+        </div>
 
-      <HotPlayersRows
-        left={hotLeft}
-        right={hotRight}
-        leftColor={leftColor}
-        rightColor={rightColor}
-      />
+        <div style={{ height: 18 }} />
+
+        <HotPlayersRows
+          left={hotLeft}
+          right={hotRight}
+          leftColor={leftColor}
+          rightColor={rightColor}
+          hideHeader
+        />
+      </div>
     </div>
   );
 }

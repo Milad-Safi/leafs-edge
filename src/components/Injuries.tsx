@@ -272,7 +272,7 @@ export default function InjuriesSection({
   }, [leftTeam, rightTeam]);
 
   return (
-    <section style={{ width: "100%", marginTop: 34 }}>
+    <section style={{ width: "100%", marginTop: 34, paddingBottom: 15 }}>
       <div
         style={{
           display: "grid",

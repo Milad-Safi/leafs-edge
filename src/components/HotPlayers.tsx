@@ -2,6 +2,7 @@
 
 import React from "react";
 import StatRow from "@/components/StatRow";
+import { UI } from "@/styles/uiStyles";
 
 type Leader = {
   playerId: number;
@@ -26,24 +27,32 @@ function shortName(full: string) {
   if (parts.length <= 1) return full;
   const first = parts[0];
   const last = parts[parts.length - 1];
-  if (first.endsWith(".")) return full; 
+  if (first.endsWith(".")) return full;
   return `${first[0]}. ${last}`;
 }
 
-function fmtGoals(p: Leader | null) { return p ? `${shortName(p.name)} — ${p.goals} G` : "—"; }
-function fmtPoints(p: Leader | null) { return p ? `${shortName(p.name)} — ${p.points} P` : "—"; }
-function fmtShots(p: Leader | null) { return p ? `${shortName(p.name)} — ${p.shots} SOG` : "—"; }
+function fmtGoals(p: Leader | null) {
+  return p ? `${shortName(p.name)} — ${p.goals} G` : "—";
+}
+function fmtPoints(p: Leader | null) {
+  return p ? `${shortName(p.name)} — ${p.points} P` : "—";
+}
+function fmtShots(p: Leader | null) {
+  return p ? `${shortName(p.name)} — ${p.shots} SOG` : "—";
+}
 
 export default function HotPlayersRows({
   left,
   right,
   leftColor,
   rightColor,
+  hideHeader = false,
 }: {
   left: HotL5Payload | null;
   right: HotL5Payload | null;
   leftColor: string;
   rightColor: string;
+  hideHeader?: boolean;
 }) {
   const lg = left?.leaders.goals ?? null;
   const rg = right?.leaders.goals ?? null;
@@ -55,70 +64,65 @@ export default function HotPlayersRows({
   const rs = right?.leaders.shots ?? null;
 
   return (
-  <>
-    <div style={{ marginTop: 6, marginBottom: 12 }}>
-      <div style={{ margin: "0 -16px 10px" }}>
-        <div
-          style={{
-            height: 1,
-            background: "rgba(255,255,255,0.08)",
-          }}
+    <>
+      {!hideHeader && (
+        <div style={{ marginTop: 6, marginBottom: 12 }}>
+          <div style={{ marginTop: 0, marginRight: -16, marginBottom: 10, marginLeft: -16 }}>
+            <div style={UI.hairline(0.08)} />
+          </div>
+
+          <div
+            style={{
+              paddingTop: 10,
+              paddingRight: 0,
+              paddingBottom: 10,
+              paddingLeft: 0,
+              fontWeight: 900,
+              letterSpacing: 0.7,
+              textTransform: "uppercase",
+              opacity: 0.9,
+              textAlign: "center",
+            }}
+          >
+          </div>
+
+          <div style={{ marginTop: 10, marginRight: -16, marginBottom: 0, marginLeft: -16 }}>
+            <div style={UI.hairline(0.08)} />
+          </div>
+        </div>
+      )}
+
+      <div style={UI.rowsGrid(10)}>
+        <StatRow
+          leftVal={lg ? lg.goals : null}
+          rightVal={rg ? rg.goals : null}
+          label="Goals Leader (L5)"
+          leftText={fmtGoals(lg)}
+          rightText={fmtGoals(rg)}
+          leftColor={leftColor}
+          rightColor={rightColor}
+        />
+
+        <StatRow
+          leftVal={lp ? lp.points : null}
+          rightVal={rp ? rp.points : null}
+          label="Points Leader (L5)"
+          leftText={fmtPoints(lp)}
+          rightText={fmtPoints(rp)}
+          leftColor={leftColor}
+          rightColor={rightColor}
+        />
+
+        <StatRow
+          leftVal={ls ? ls.shots : null}
+          rightVal={rs ? rs.shots : null}
+          label="SOG Leader (L5)"
+          leftText={fmtShots(ls)}
+          rightText={fmtShots(rs)}
+          leftColor={leftColor}
+          rightColor={rightColor}
         />
       </div>
-      <div
-        style={{
-          padding: "10px 0",
-          fontWeight: 900,
-          letterSpacing: 0.7,
-          textTransform: "uppercase",
-          opacity: 0.9,
-          textAlign: "center",
-        }}
-      >
-        LEADERS (LAST 5)
-      </div>
-      <div style={{ margin: "10px -16px 0" }}>
-        <div
-          style={{
-            height: 1,
-            background: "rgba(255,255,255,0.08)",
-          }}
-        />
-      </div>
-    </div>
-
-    <StatRow
-      leftVal={lg ? lg.goals : null}
-      rightVal={rg ? rg.goals : null}
-      label="Goals leader (L5)"
-      leftText={fmtGoals(lg)}
-      rightText={fmtGoals(rg)}
-      leftColor={leftColor}
-      rightColor={rightColor}
-    />
-    <div style={{ height: 10 }} />
-
-    <StatRow
-      leftVal={lp ? lp.points : null}
-      rightVal={rp ? rp.points : null}
-      label="Points leader (L5)"
-      leftText={fmtPoints(lp)}
-      rightText={fmtPoints(rp)}
-      leftColor={leftColor}
-      rightColor={rightColor}
-    />
-    <div style={{ height: 10 }} />
-
-    <StatRow
-      leftVal={ls ? ls.shots : null}
-      rightVal={rs ? rs.shots : null}
-      label="Shots leader (L5)"
-      leftText={fmtShots(ls)}
-      rightText={fmtShots(rs)}
-      leftColor={leftColor}
-      rightColor={rightColor}
-    />
-  </>
-);
-
+    </>
+  );
 }
