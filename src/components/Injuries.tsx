@@ -87,7 +87,6 @@ function InjuryRow({
         alignItems: "center",
       }}
     >
-      {/* Image box */}
       <div
         style={{
           width: 88,
@@ -245,17 +244,13 @@ export default function InjuriesSection({
     let cancelled = false;
 
     async function run() {
-      if (!leftTeam || !rightTeam) return; 
+      if (!leftTeam || !rightTeam) return;
       setLoading(true);
 
       try {
         const [a, b] = await Promise.all([
-          fetch(`/api/team/injuries?team=${encodeURIComponent(leftTeam)}`).then((r) =>
-            r.json()
-          ),
-          fetch(`/api/team/injuries?team=${encodeURIComponent(rightTeam)}`).then((r) =>
-            r.json()
-          ),
+          fetch(`/api/team/injuries?team=${encodeURIComponent(leftTeam)}`).then((r) => r.json()),
+          fetch(`/api/team/injuries?team=${encodeURIComponent(rightTeam)}`).then((r) => r.json()),
         ]);
         if (cancelled) return;
         setLeft(a);
@@ -274,6 +269,7 @@ export default function InjuriesSection({
   return (
     <section style={{ width: "100%", marginTop: 34, paddingBottom: 15 }}>
       <div
+        className="injuriesGrid"
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
@@ -281,18 +277,8 @@ export default function InjuriesSection({
           paddingInline: 18,
         }}
       >
-        <Column
-          title="Injuries:"
-          loading={loading}
-          items={leftItems}
-          lastUpdated={left?.lastUpdated ?? null}
-        />
-        <Column
-          title="Injuries:"
-          loading={loading}
-          items={rightItems}
-          lastUpdated={right?.lastUpdated ?? null}
-        />
+        <Column title="Injuries:" loading={loading} items={leftItems} lastUpdated={left?.lastUpdated ?? null} />
+        <Column title="Injuries:" loading={loading} items={rightItems} lastUpdated={right?.lastUpdated ?? null} />
       </div>
     </section>
   );

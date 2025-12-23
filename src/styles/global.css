@@ -322,3 +322,62 @@ body {
     opacity: 0.6 !important;
   }
 }
+
+@media (max-width: 640px) {
+  /* Goalies: make each card layout roomier */
+  .goaliesGrid > div {
+    padding: 16px !important;
+  }
+
+  /* Inside each goalie card: change 92px/1fr grid into stacked layout */
+  .goaliesGrid > div div[style*="grid-template-columns: 92px 1fr"] {
+    grid-template-columns: 1fr !important;
+    justify-items: center !important;
+    text-align: center !important;
+    gap: 12px !important;
+  }
+
+  /* Headshot bigger */
+  .goaliesGrid > div img {
+    width: 110px !important;
+    height: 110px !important;
+  }
+
+  /* Name bigger */
+  .goaliesGrid > div div[style*="font-size: 18px"] {
+    font-size: 20px !important;
+  }
+
+  /* Stat lines spacing */
+  .goaliesGrid > div div[style*="display: grid"][style*="gap: 8px"] {
+    gap: 10px !important;
+  }
+}
+@media (max-width: 640px) {
+  /* Injuries: stack the 2 columns */
+  .injuriesGrid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    padding-inline: 12px !important;
+  }
+
+  /* Goalies: cards already stack; make INSIDE of card readable */
+  .goaliesGrid > div div[style*="grid-template-columns: 92px 1fr"] {
+    grid-template-columns: 1fr !important;
+    justify-items: center !important;
+    text-align: center !important;
+    gap: 12px !important;
+  }
+
+  /* Bigger headshot on mobile */
+  .goaliesGrid img {
+    width: 110px !important;
+    height: 110px !important;
+  }
+
+  /* Slightly bigger name */
+  .goaliesGrid > div div[style*="font-size: 18px"] {
+    font-size: 20px !important;
+  }
+}
+
