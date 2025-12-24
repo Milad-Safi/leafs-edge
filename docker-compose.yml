@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: leafs_edge_postgres
+    environment:
+      POSTGRES_USER: leafs
+      POSTGRES_PASSWORD: leafs_pw
+      POSTGRES_DB: leafs_edge
+    ports:
+      - "5432:5432"
+    volumes:
+      - leafs_edge_pg:/var/lib/postgresql/data
+
+volumes:
+  leafs_edge_pg:
