@@ -55,3 +55,12 @@ out/
 .env.production
 .env.development
 
+node_modules/
+.next/
+.env*
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/
