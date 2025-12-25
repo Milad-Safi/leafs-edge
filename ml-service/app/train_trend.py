@@ -9,7 +9,12 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from .trend_db import get_games, list_teams
+from .trend_db import (
+    get_games,
+    list_teams,
+    get_team_baseline_asof_with_fallback,
+    get_league_baseline_asof,
+)
 from .trend_features import window_features
 
 LABELS = ["DOWN", "FLAT", "UP"]  # class index order
@@ -85,51 +90,29 @@ def _clamp(x: float, lo: float, hi: float) -> float:
 
 
 def _signed_sqrt(x: float) -> float:
-    # Smooth amplification: 0.01 -> 0.10, 0.04 -> 0.20, 0.09 -> 0.30, etc.
     return math.copysign(math.sqrt(abs(x)), x) if x != 0 else 0.0
 
 
 def _shots_extreme_term(shot_diff_pg: float) -> float:
-    """
-    Shots are almost irrelevant unless extreme.
-    Deadzone: [-8, +8] -> 0
-    Beyond that, contribute softly, capped.
-    Output roughly in [-0.30, +0.30] range max.
-    """
     dead = 8.0
     if -dead <= shot_diff_pg <= dead:
         return 0.0
 
-    # amount beyond deadzone
     over = abs(shot_diff_pg) - dead
-
-    # scale: every extra 10 shots beyond deadzone ~0.10 score change
     raw = 0.10 * (over / 10.0)
-
-    # cap so it can't dominate
     raw = _clamp(raw, 0.0, 0.30)
-
     return raw if shot_diff_pg > 0 else -raw
 
 
 def window_score_from_features(feats: Dict[str, float]) -> float:
     """
-    Labeling score (defines what "trend" means).
-    - Dominant: goal differential per game (gd_pg)
-    - Special teams: smooth around baselines using signed-sqrt so small changes matter,
-      big changes matter more.
-    - Shots: only matter when extreme (deadzone + cap)
+    LABELING LOGIC — UNCHANGED.
 
-    Baselines:
-      PP baseline = 0.20
-      PK baseline = 0.80
-
-    Score:
-      score = 1.00*gd_pg + 0.45*signed_sqrt(pp_pct-0.20) + 0.45*signed_sqrt(pk_pct-0.80) + 0.50*shots_extreme_term
+    We intentionally keep this identical so the *definition*
+    of UP / FLAT / DOWN does not drift.
     """
     gd = float(feats.get("gd_pg", 0.0))
 
-    # pp_pct/pk_pct might be -1 sentinel if unknown; treat as baseline (0 delta)
     pp = float(feats.get("pp_pct", -1.0))
     pk = float(feats.get("pk_pct", -1.0))
 
@@ -157,11 +140,14 @@ def _build_windows_for_team(
     k: int,
     eps: float,
     feature_names: Optional[List[str]] = None,
+    *,
+    opp_baseline_provider,
+    league_baseline,
 ) -> Tuple[List[List[float]], List[int], List[str]]:
     """
     rows must be chronological ASC.
-    For each i where we have past window [i-n, i) and future window [i, i+k)
-    label compares future_score vs past_score using window_score_from_features().
+    For each i where we have past window [i-n, i) and future window [i, i+k),
+    label compares future_score vs past_score using the SAME scoring function.
     """
     X_list: List[List[float]] = []
     y_list: List[int] = []
@@ -172,9 +158,16 @@ def _build_windows_for_team(
         past = rows[i - n : i]
         future = rows[i : i + k]
 
-        # window_features expects DESC order
-        past_feats, _ = window_features(list(reversed(past)))
-        future_feats, _ = window_features(list(reversed(future)))
+        past_feats, _ = window_features(
+            list(reversed(past)),
+            opp_baseline_provider=opp_baseline_provider,
+            league_baseline=league_baseline,
+        )
+        future_feats, _ = window_features(
+            list(reversed(future)),
+            opp_baseline_provider=opp_baseline_provider,
+            league_baseline=league_baseline,
+        )
 
         if not past_feats or not future_feats:
             continue
@@ -203,7 +196,7 @@ def _build_windows_for_team(
 
 def build_trend_dataset(
     n: int = 10,
-    k: int = 7,
+    k: int = 5,
     eps: float = 0.13,
     through: Optional[str] = None,
 ) -> TrendDataset:
@@ -212,14 +205,28 @@ def build_trend_dataset(
     y_all: List[int] = []
     feature_names: List[str] = []
 
+    # League baseline is computed ONCE per training run
+    league_baseline = get_league_baseline_asof(through or dt.date.today().isoformat())
+
     for t in teams:
-        rows = get_games(t, end_date=through)  # chronological
+        rows = get_games(t, end_date=through)
         if len(rows) < (n + k + 2):
             continue
 
+        # Opponent baseline provider closure
+        def opp_provider(opp: str, as_of: str):
+            return get_team_baseline_asof_with_fallback(opp, as_of, m=10)
+
         X_t, y_t, feature_names = _build_windows_for_team(
-            rows, n=n, k=k, eps=eps, feature_names=feature_names
+            rows,
+            n=n,
+            k=k,
+            eps=eps,
+            feature_names=feature_names,
+            opp_baseline_provider=opp_provider,
+            league_baseline=league_baseline,
         )
+
         X_all.extend(X_t)
         y_all.extend(y_t)
 
@@ -241,13 +248,19 @@ def build_trend_dataset(
             "UP": int(np.sum(y == 2)),
         },
         "labeling": {
-            "score": "1.00*gd_pg + 0.45*signed_sqrt(pp_pct-0.20) + 0.45*signed_sqrt(pk_pct-0.80) + 0.50*shots_extreme_term",
+            "score": "unchanged (gd + PP/PK + shots)",
             "pp_baseline": 0.20,
             "pk_baseline": 0.80,
             "shots_deadzone": 8.0,
             "shots_cap": 0.30,
         },
+        "context": {
+            "opponent_adjustment": "relative-to-opponent (Option B)",
+            "opp_window": 10,
+            "neutral_fallback": "league baseline",
+        },
     }
+
     return TrendDataset(X=X, y=y, feature_names=feature_names, meta=meta)
 
 

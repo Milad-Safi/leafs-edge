@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict
 
 import numpy as np
 
-from .trend_db import get_last_n
+from .trend_db import (
+    get_last_n,
+    get_team_baseline_asof_with_fallback,
+    get_league_baseline_asof,
+)
 from .trend_features import window_features
 
 
@@ -29,7 +33,19 @@ def predict_team_trend(
     model = load_trend_model(model_path)
 
     rows = get_last_n(team, as_of=as_of, n=n)
-    feats, meta = window_features(rows)
+
+    # League baseline once (neutral fallback)
+    league_baseline = get_league_baseline_asof(as_of)
+
+    # Opponent baseline provider (same as training)
+    def opp_provider(opp: str, as_of_date: str):
+        return get_team_baseline_asof_with_fallback(opp, as_of_date, m=10)
+
+    feats, meta = window_features(
+        rows,
+        opp_baseline_provider=opp_provider,
+        league_baseline=league_baseline,
+    )
 
     if not feats or meta["n_used"] == 0:
         return {
@@ -74,7 +90,7 @@ def predict_team_trend(
         "trend": trend,
         "confidence": confidence,
         "probs": probs,
-        "features": feats,  # keep this for debug + future "why" UI
+        "features": feats,  # debug / explainability
         "model_info": {
             "trained_at": model.get("trained_at"),
             "n": model.get("dataset", {}).get("n"),
