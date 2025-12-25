@@ -2,249 +2,85 @@ import { NextResponse } from "next/server";
 
 export const revalidate = 60;
 
-type TeamAbbrev = string;
-
-type ScheduleGame = {
-  id: number;
-  gameState: string;
-  gameDate: string; 
-  startTimeUTC?: string; 
-  homeTeam: { abbrev: string; score?: number };
-  awayTeam: { abbrev: string; score?: number };
-};
-
-type BoxscoreResponse = {
-  id: number;
-  homeTeam?: { abbrev: string; sog?: number };
-  awayTeam?: { abbrev: string; sog?: number };
-};
-
-function normalizeTeam(input: string): TeamAbbrev {
-  return input.trim().toUpperCase();
-}
-
-function toUtcMs(v: unknown): number | null {
-  if (typeof v !== "string") return null;
-  const ms = Date.parse(v);
-  return Number.isFinite(ms) ? ms : null;
-}
-
-function isCompleted(g: ScheduleGame) {
-  const st = String(g?.gameState ?? "").toUpperCase();
-  return st === "OFF" || st === "FINAL";
-}
-
-function gameSummaryUrl(season: string, gameId: number) {
-  const code = String(gameId).slice(-6); // "010025"
-  return `https://www.nhl.com/scores/htmlreports/${season}/GS${code}.HTM`;
-}
-
-function boxscoreUrl(gameId: number) {
-  return `https://api-web.nhle.com/v1/gamecenter/${gameId}/boxscore`;
-}
-
-async function fetchTeamGames(team: TeamAbbrev): Promise<ScheduleGame[]> {
-  const url = `https://api-web.nhle.com/v1/club-schedule-season/${team}/20252026`;
-
-  const res = await fetch(url, { next: { revalidate: 60 } });
-  if (!res.ok) throw new Error(`Schedule fetch failed (${res.status})`);
-
-  const data = (await res.json()) as any;
-
-  const games: ScheduleGame[] =
-    data?.games ??
-    data?.gameWeek?.flatMap((w: any) => w?.games ?? []) ??
-    data?.weeks?.flatMap((w: any) => w?.games ?? []) ??
-    [];
-
-  if (!Array.isArray(games) || games.length === 0) {
-    throw new Error("No games found in schedule response");
+function toNumber(val: unknown): number | null {
+  if (typeof val === "number" && Number.isFinite(val)) return val;
+  if (typeof val === "string") {
+    const n = Number(val);
+    return Number.isFinite(n) ? n : null;
   }
-
-  return games;
+  return null;
 }
 
-function parseGsPowerPlays(html: string): Array<{ goals: number; opps: number }> {
-  if (!html) return [];
-
-  const lower = html.toLowerCase();
-
-  const key1 = "power plays (goals-opp./pptime)";
-  const key2 = "power plays";
-
-  let idx = lower.indexOf(key1);
-  if (idx === -1) idx = lower.indexOf(key2);
-  if (idx === -1) return [];
-
-  const chunk = html.slice(idx, idx + 5000);
-
-  const re = /(\d+)\s*-\s*(\d+)\s*\/\s*\d{1,2}:\d{2}/g;
-
-  const out: Array<{ goals: number; opps: number }> = [];
-  let m: RegExpExecArray | null;
-
-  while ((m = re.exec(chunk)) !== null) {
-    out.push({ goals: Number(m[1]), opps: Number(m[2]) });
-    if (out.length >= 2) break;
-  }
-
-  return out;
+function round1(n: number | null): number | null {
+  if (n == null) return null;
+  return Math.round(n * 10) / 10;
 }
 
-async function fetchBoxscores(gameIds: number[]) {
-  const results = await Promise.all(
-    gameIds.map(async (id) => {
-      const r = await fetch(boxscoreUrl(id), { next: { revalidate: 300 } });
-      if (!r.ok) return { id, data: null as BoxscoreResponse | null };
-      const data = (await r.json()) as BoxscoreResponse;
-      return { id, data };
-    })
-  );
-
-  const map = new Map<number, BoxscoreResponse>();
-  for (const r of results) {
-    if (r.data) map.set(r.id, r.data);
-  }
-  return map;
-}
-
-function computeRecord(team: TeamAbbrev, games: ScheduleGame[]) {
-  let w = 0,
-    l = 0,
-    otl = 0;
-
-  for (const g of games) {
-    const isHome = g.homeTeam.abbrev === team;
-    const myScore = isHome ? (g.homeTeam.score ?? 0) : (g.awayTeam.score ?? 0);
-    const oppScore = isHome ? (g.awayTeam.score ?? 0) : (g.homeTeam.score ?? 0);
-
-    if (myScore > oppScore) w++;
-    else l++; 
-  }
-
-  return { w, l, otl };
+function pctFromDecimal01(n: number | null): number | null {
+  if (n == null) return null;
+  return round1(n * 100);
 }
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const teamParam = searchParams.get("team");
-
-  if (!teamParam) {
-    return NextResponse.json({ error: "Missing ?team=TOR" }, { status: 400 });
-  }
-
-  const team = normalizeTeam(teamParam);
-
   try {
-    const allGames = await fetchTeamGames(team);
-    const finals = allGames
-      .filter(isCompleted)
-      .map((g) => ({
-        ...g,
-        _startMs: toUtcMs(g.startTimeUTC) ?? -1,
-      }))
-      .filter((g) => g._startMs > 0)
-      .sort((a, b) => b._startMs - a._startMs)
-      .slice(0, 5);
+    const url = new URL(req.url);
+    const team = (url.searchParams.get("team") ?? "").trim().toUpperCase();
 
-    if (finals.length === 0) {
-      return NextResponse.json({ error: "No completed games found yet." }, { status: 404 });
+    if (!team) {
+      return NextResponse.json({ error: "Missing team" }, { status: 400 });
     }
 
-    const gameIds = finals.map((g) => g.id);
-
-    // totals
-    let gf = 0,
-      ga = 0;
-    let sf = 0,
-      sa = 0;
-
-    // PP/PK totals
-    let ppGoals = 0,
-      ppOpps = 0;
-    let oppPPGoals = 0,
-      oppPPOpps = 0;
-
-    const skippedPPGames: number[] = [];
-
-    // --- SOG: boxscore ---
-    const boxscoreMap = await fetchBoxscores(gameIds);
-
-    // --- PP/PK: GS htmlreports ---
-    const season = "20252026";
-    const gsHtmls = await Promise.all(
-      finals.map(async (g) => {
-        const url = gameSummaryUrl(season, g.id);
-        const r = await fetch(url, { next: { revalidate: 86400 } });
-        if (!r.ok) return { id: g.id, html: "" };
-        return { id: g.id, html: await r.text() };
-      })
+    const backendBase = process.env.ML_SERVICE_URL || "http://localhost:8000";
+    const r = await fetch(
+      `${backendBase}/v1/team/last5?team=${encodeURIComponent(team)}`,
+      { cache: "no-store" }
     );
 
-    for (let i = 0; i < finals.length; i++) {
-      const g = finals[i];
-      const isHome = g.homeTeam.abbrev === team;
-
-      // goals
-      const myScore = isHome ? (g.homeTeam.score ?? 0) : (g.awayTeam.score ?? 0);
-      const oppScore = isHome ? (g.awayTeam.score ?? 0) : (g.homeTeam.score ?? 0);
-      gf += myScore;
-      ga += oppScore;
-
-      // shots (boxscore)
-      const bs = boxscoreMap.get(g.id);
-      if (bs?.homeTeam && bs?.awayTeam) {
-        const mySog = isHome ? (bs.homeTeam.sog ?? 0) : (bs.awayTeam.sog ?? 0);
-        const oppSog = isHome ? (bs.awayTeam.sog ?? 0) : (bs.homeTeam.sog ?? 0);
-        sf += mySog;
-        sa += oppSog;
-      }
-
-      // PP/PK (GS)
-      const html = gsHtmls[i]?.html ?? "";
-      const rows = parseGsPowerPlays(html);
-
-      if (rows.length < 2) {
-        skippedPPGames.push(g.id);
-        continue;
-      }
-
-      const awayRow = rows[0];
-      const homeRow = rows[1];
-
-      const myRow = isHome ? homeRow : awayRow;
-      const theirRow = isHome ? awayRow : homeRow;
-
-      ppGoals += myRow.goals;
-      ppOpps += myRow.opps;
-
-      oppPPGoals += theirRow.goals;
-      oppPPOpps += theirRow.opps;
+    if (!r.ok) {
+      const text = await r.text();
+      return NextResponse.json(
+        { error: "Backend error", detail: text },
+        { status: 502 }
+      );
     }
 
-    const gamesCount = finals.length;
-    const record = computeRecord(team, finals);
+    const b = await r.json();
 
-    const powerPlayPct = ppOpps > 0 ? +((ppGoals / ppOpps) * 100).toFixed(1) : null;
-    const penaltyKillPct =
-      oppPPOpps > 0 ? +(100 - (oppPPGoals / oppPPOpps) * 100).toFixed(1) : null;
+    // Convert backend decimal pct -> frontend percent
+    const ppPct = pctFromDecimal01(toNumber(b?.powerPlay?.pct));
+    const pkPct = pctFromDecimal01(toNumber(b?.penaltyKill?.pct));
 
     return NextResponse.json({
       team,
-      games: gamesCount,
-      record,
-      goalsForPerGame: +(gf / gamesCount).toFixed(2),
-      goalsAgainstPerGame: +(ga / gamesCount).toFixed(2),
-      shotsForPerGame: +(sf / gamesCount).toFixed(2),
-      shotsAgainstPerGame: +(sa / gamesCount).toFixed(2),
-      powerPlay: { goals: ppGoals, opps: ppOpps, pct: powerPlayPct },
-      penaltyKill: { oppPPGoals, oppPPOpps, pct: penaltyKillPct },
-      gameIds,
-      skippedPPGames,
+      games: toNumber(b?.games) ?? 0,
+      record: b?.record ?? { w: 0, l: 0 },
+
+      goalsForPerGame: toNumber(b?.goalsForPerGame),
+      goalsAgainstPerGame: toNumber(b?.goalsAgainstPerGame),
+      shotsForPerGame: toNumber(b?.shotsForPerGame),
+      shotsAgainstPerGame: toNumber(b?.shotsAgainstPerGame),
+
+      powerPlay: {
+        goals: toNumber(b?.powerPlay?.goals) ?? 0,
+        opps: toNumber(b?.powerPlay?.opps) ?? 0,
+        pct: ppPct,
+      },
+      penaltyKill: {
+        oppPPGoals: toNumber(b?.penaltyKill?.oppPPGoals) ?? 0,
+        oppPPOpps: toNumber(b?.penaltyKill?.oppPPOpps) ?? 0,
+        pct: pkPct,
+      },
+
+      gameIds: Array.isArray(b?.gameIds) ? b.gameIds : [],
+      skippedPPGames: [],
+
       note:
-        "Ordering uses startTimeUTC (not gameDate). Completed games are OFF/FINAL. SOG from gamecenter boxscore. PP/PK from NHL GS htmlreports.",
+        "DB-backed last 5 (this season). PP/PK computed from stored pp_goals/pp_opps and pk_goals_against/pk_opps.",
     });
   } catch (err: any) {
-    return NextResponse.json({ error: err?.message ?? "Unknown error" }, { status: 500 });
+    return NextResponse.json(
+      { error: err?.message ?? "Unknown error" },
+      { status: 500 }
+    );
   }
 }

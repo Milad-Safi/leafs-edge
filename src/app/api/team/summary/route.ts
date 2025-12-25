@@ -9,21 +9,32 @@ type TeamSummary = {
   teamAbbrev: string;
   seasonId: number;
   gameTypeId: number;
+
   teamId: number | null;
   teamFullName: string | null;
+
   gamesPlayed: number | null;
+
   goalsForPerGame: number | null;
   goalsAgainstPerGame: number | null;
+
   powerPlayPct: number | null; // percent (0-100)
   penaltyKillPct: number | null; // percent (0-100)
+
   shotsForPerGame: number | null;
   shotsAgainstPerGame: number | null;
+
   wins: number | null;
   losses: number | null;
   otLosses: number | null;
   points: number | null;
+
   homeRecord: RecordSplit;
   awayRecord: RecordSplit;
+
+  // Optional extra fields your UI might ignore:
+  seasonStart?: string;
+  through?: string | null;
 };
 
 function toNumber(val: unknown): number | null {
@@ -50,159 +61,72 @@ function inferCurrentSeasonIdFromToday(): number {
   const now = new Date();
   const y = now.getUTCFullYear();
   const m = now.getUTCMonth() + 1; // 1-12
-  const startYear = m >= 7 ? y : y - 1; // season starts around fall; July is a safe cutoff
+  const startYear = m >= 9 ? y : y - 1;
   const endYear = startYear + 1;
   return Number(`${startYear}${endYear}`);
 }
 
-async function getTeamIdByAbbrev(teamAbbrev: string): Promise<number | null> {
-  // Stats REST team list (same family as team/summary)
-  const res = await fetch("https://api.nhle.com/stats/rest/en/team", {
-    next: { revalidate: 60 * 60 },
-    headers: { "User-Agent": "leafs-edge" },
-  });
-  if (!res.ok) return null;
-
-  const json = await res.json();
-  const rows: any[] = Array.isArray(json?.data) ? json.data : [];
-
-  const found =
-    rows.find((t) => String(t?.triCode || "").toUpperCase() === teamAbbrev) ||
-    rows.find((t) => String(t?.abbrev || "").toUpperCase() === teamAbbrev) ||
-    rows.find((t) => String(t?.abbreviation || "").toUpperCase() === teamAbbrev);
-
-  return toNumber(found?.id ?? found?.teamId) ?? null;
-}
-
-async function getHomeAwayRecord(teamAbbrev: string, seasonId: number): Promise<{
-  homeRecord: RecordSplit;
-  awayRecord: RecordSplit;
-}> {
-  const homeRecord: RecordSplit = { w: 0, l: 0 };
-  const awayRecord: RecordSplit = { w: 0, l: 0 };
-
-  const endpoint = `https://api-web.nhle.com/v1/club-schedule-season/${teamAbbrev}/${seasonId}`;
-  const res = await fetch(endpoint, {
-    // schedule changes as games finish; keep it fresh
-    cache: "no-store",
-    headers: { "User-Agent": "leafs-edge" },
-  });
-
-  if (!res.ok) {
-    // If schedule fails, just return zeros 
-    return { homeRecord, awayRecord };
-  }
-
-  const json = await res.json();
-  const games: any[] = Array.isArray(json?.games) ? json.games : [];
-
-  for (const g of games) {
-  const state = String(g?.gameState ?? "").toUpperCase();
-  const isCompleted = state === "FINAL" || state === "OFF";
-  if (!isCompleted) continue;
-
-  const homeAbbrev = String(g?.homeTeam?.abbrev || "").toUpperCase();
-  const awayAbbrev = String(g?.awayTeam?.abbrev || "").toUpperCase();
-  const isHome = homeAbbrev === teamAbbrev;
-  const isAway = awayAbbrev === teamAbbrev;
-  if (!isHome && !isAway) continue;
-
-  const homeScore = toNumber(g?.homeTeam?.score);
-  const awayScore = toNumber(g?.awayTeam?.score);
-
-  // If a finished game somehow has no score, skip it 
-  if (homeScore == null || awayScore == null) continue;
-
-  const goalsFor = isHome ? homeScore : awayScore;
-  const goalsAgainst = isHome ? awayScore : homeScore;
-
-  if (goalsFor > goalsAgainst) {
-    if (isHome) homeRecord.w++;
-    else awayRecord.w++;
-  } else {
-    if (isHome) homeRecord.l++;
-    else awayRecord.l++;
-  }
-}
-  return { homeRecord, awayRecord };
-}
-
 export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const teamAbbrev = (url.searchParams.get("team") || "").trim().toUpperCase();
-
-  // Optional override: /api/team/summary?team=TOR&season=20252026
-  const seasonOverride = toNumber(url.searchParams.get("season"));
-
-  const gameTypeId = 2; // 2 == regular season, 3 == playoffs 
-  const seasonId = seasonOverride ?? inferCurrentSeasonIdFromToday();
-
-  if (!teamAbbrev) {
-    return NextResponse.json({ error: "Missing query param ?team=TOR" }, { status: 400 });
-  }
-
   try {
-    const teamId = await getTeamIdByAbbrev(teamAbbrev);
-    if (!teamId) {
-      return NextResponse.json({ error: `Unknown team abbrev: ${teamAbbrev}` }, { status: 404 });
+    const url = new URL(req.url);
+    const teamAbbrev = (url.searchParams.get("team") ?? "").trim().toUpperCase();
+
+    if (!teamAbbrev) {
+      return NextResponse.json({ error: "Missing team" }, { status: 400 });
     }
 
-    const cayenneExp = `seasonId=${seasonId} and gameTypeId=${gameTypeId} and teamId=${teamId}`;
-    const endpoint =
-      "https://api.nhle.com/stats/rest/en/team/summary" +
-      `?cayenneExp=${encodeURIComponent(cayenneExp)}`;
+    const backendBase = process.env.ML_SERVICE_URL || "http://localhost:8000";
+    const r = await fetch(
+      `${backendBase}/v1/team/summary?team=${encodeURIComponent(teamAbbrev)}`,
+      { cache: "no-store" }
+    );
 
-    const [summaryRes, splits] = await Promise.all([
-      fetch(endpoint, {
-        next: { revalidate: 60 },
-        headers: { "User-Agent": "leafs-edge" },
-      }),
-      getHomeAwayRecord(teamAbbrev, seasonId),
-    ]);
-
-    if (!summaryRes.ok) {
+    if (!r.ok) {
+      const text = await r.text();
       return NextResponse.json(
-        { error: `team/summary fetch failed: ${summaryRes.status}`, endpoint },
+        { error: "Backend error", detail: text },
         { status: 502 }
       );
     }
 
-    const json = await summaryRes.json();
-    const row = Array.isArray(json?.data) ? json.data[0] : null;
+    const b = await r.json();
 
-    if (!row) {
-      return NextResponse.json(
-        { error: "No team summary row returned", teamAbbrev, teamId, seasonId },
-        { status: 502 }
-      );
-    }
-
+    // Backend returns decimals for PP/PK, UI expects % (0-100)
     const payload: TeamSummary = {
       teamAbbrev,
-      seasonId,
-      gameTypeId,
+      seasonId: inferCurrentSeasonIdFromToday(),
+      gameTypeId: 2, // regular season
 
-      teamId: toNumber(row?.teamId ?? teamId),
-      teamFullName: typeof row?.teamFullName === "string" ? row.teamFullName : null,
+      teamId: null,
+      teamFullName: null,
 
-      gamesPlayed: toNumber(row?.gamesPlayed),
+      gamesPlayed: toNumber(b?.games),
 
-      goalsForPerGame: round2(toNumber(row?.goalsForPerGame)),
-      goalsAgainstPerGame: round2(toNumber(row?.goalsAgainstPerGame)),
+      goalsForPerGame: round2(toNumber(b?.goalsForPerGame)),
+      goalsAgainstPerGame: round2(toNumber(b?.goalsAgainstPerGame)),
 
-      powerPlayPct: pctFromDecimal01(toNumber(row?.powerPlayPct)),
-      penaltyKillPct: pctFromDecimal01(toNumber(row?.penaltyKillPct)),
+      powerPlayPct: pctFromDecimal01(toNumber(b?.powerPlayPct)),
+      penaltyKillPct: pctFromDecimal01(toNumber(b?.penaltyKillPct)),
 
-      shotsForPerGame: round2(toNumber(row?.shotsForPerGame)),
-      shotsAgainstPerGame: round2(toNumber(row?.shotsAgainstPerGame)),
+      shotsForPerGame: round2(toNumber(b?.shotsForPerGame)),
+      shotsAgainstPerGame: round2(toNumber(b?.shotsAgainstPerGame)),
 
-      wins: toNumber(row?.wins),
-      losses: toNumber(row?.losses),
-      otLosses: toNumber(row?.otLosses),
-      points: toNumber(row?.points),
+      wins: toNumber(b?.wins),
+      losses: toNumber(b?.losses),
+      otLosses: null,
+      points: null,
 
-      homeRecord: splits.homeRecord,
-      awayRecord: splits.awayRecord,
+      homeRecord: {
+        w: toNumber(b?.homeRecord?.w) ?? 0,
+        l: toNumber(b?.homeRecord?.l) ?? 0,
+      },
+      awayRecord: {
+        w: toNumber(b?.awayRecord?.w) ?? 0,
+        l: toNumber(b?.awayRecord?.l) ?? 0,
+      },
+
+      seasonStart: typeof b?.seasonStart === "string" ? b.seasonStart : undefined,
+      through: typeof b?.through === "string" || b?.through === null ? b.through : undefined,
     };
 
     return NextResponse.json(payload);
