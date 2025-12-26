@@ -8,7 +8,7 @@ import { UI } from "@/styles/uiStyles";
 export type TeamLast5 = {
   team: string;
   games: number;
-  record: { w: number; l: number; };
+  record: { w: number; l: number; otl: number };
   goalsForPerGame: number;
   goalsAgainstPerGame: number;
   shotsForPerGame: number;
@@ -89,8 +89,8 @@ export default function Last5Section({
             leftVal={typeof lRec?.w === "number" ? lRec.w : null}
             rightVal={typeof rRec?.w === "number" ? rRec.w : null}
             label="Record"
-            leftText={lRec ? `${lRec.w}-${lRec.l}` : "—"}
-            rightText={rRec ? `${rRec.w}-${rRec.l}` : "—"}
+            leftText={lRec ? `${lRec.w}-${lRec.l}-${lRec.otl}` : "—"}
+            rightText={rRec ? `${rRec.w}-${rRec.l}-${rRec.otl}` : "—"}
             leftColor={leftColor}
             rightColor={rightColor}
           />

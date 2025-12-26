@@ -1,4 +1,5 @@
 export function torontoDateKeyFromUTC(utcIso: string): string {
+  // Returns YYYY-MM-DD in America/Toronto
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Toronto",
     year: "numeric",

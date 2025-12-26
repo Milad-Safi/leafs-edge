@@ -156,8 +156,8 @@ export default function TeamComparisonSection({
         <div style={UI.rowsGrid(10)}>
           <StatRow
             label="Goals For / Game"
-            leftVal={higherBetterStrength(left?.goalsForPerGame ?? null, 3.0, 1)}
-            rightVal={higherBetterStrength(right?.goalsForPerGame ?? null, 3.0, 1)}
+            leftVal={higherBetterStrength(left?.goalsForPerGame ?? null, 3.0, 1.5)}
+            rightVal={higherBetterStrength(right?.goalsForPerGame ?? null, 3.0, 1.5)}
             leftText={
               left?.goalsForPerGame != null
                 ? `${left.goalsForPerGame}${rankSuffix("goalsForPerGame", leftAbbrev)}`

@@ -47,7 +47,7 @@ def extract_summary_fields_from_standings(
     team_abbrev: str,
 ) -> Optional[Dict[str, Any]]:
     """
-    Pull only the fields we want to merge into our /v1/team/summary response.
+    Pull only the fields we want to merge into our UI response for ONE TEAM.
     """
     row = extract_team_standings_row(payload, team_abbrev)
     if row is None:
@@ -95,5 +95,36 @@ def extract_summary_fields_from_standings(
     sdt = payload.get("standingsDateTimeUtc")
     if isinstance(sdt, str):
         out["standingsDateTimeUtc"] = sdt
+
+    return out
+
+
+def extract_all_summary_fields_from_standings(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Returns a dict keyed by TEAM ABBREV for ALL teams in the standings payload.
+    Example:
+      {
+        "TOR": { ... },
+        "OTT": { ... },
+        ...
+      }
+    """
+    rows = payload.get("standings")
+    if not isinstance(rows, list):
+        return {}
+
+    out: Dict[str, Any] = {}
+
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+
+        team = _team_abbrev_from_row(row)
+        if not team:
+            continue
+
+        fields = extract_summary_fields_from_standings(payload, team)
+        if fields is not None:
+            out[team] = fields
 
     return out

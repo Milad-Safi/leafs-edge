@@ -2,84 +2,94 @@ import { NextResponse } from "next/server";
 
 export const revalidate = 60;
 
-function toNumber(val: unknown): number | null {
-  if (typeof val === "number" && Number.isFinite(val)) return val;
-  if (typeof val === "string") {
-    const n = Number(val);
-    return Number.isFinite(n) ? n : null;
-  }
-  return null;
+type TeamAbbrev = string;
+
+function normalizeTeam(input: string): TeamAbbrev {
+  return input.trim().toUpperCase();
 }
 
-function round1(n: number | null): number | null {
-  if (n == null) return null;
-  return Math.round(n * 10) / 10;
+function backendBaseUrl() {
+  // frontend .env.local: NHL_BACKEND_URL=http://localhost:8000
+  return process.env.NHL_BACKEND_URL || "http://localhost:8000";
 }
 
-function pctFromDecimal01(n: number | null): number | null {
-  if (n == null) return null;
-  return round1(n * 100);
+function num(n: unknown, fallback = 0): number {
+  return typeof n === "number" && Number.isFinite(n) ? n : fallback;
+}
+
+function pct100(v: unknown): number | null {
+  // backend is 0..1, UI expects 0..100
+  if (typeof v !== "number" || !Number.isFinite(v)) return null;
+  return +((v * 100).toFixed(1));
 }
 
 export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const team = normalizeTeam(url.searchParams.get("team") || "");
+  const opp = normalizeTeam(url.searchParams.get("opp") || "");
+  const asOf = url.searchParams.get("as_of");
+
+  if (!team) {
+    return NextResponse.json({ error: "Missing ?team=TOR" }, { status: 400 });
+  }
+
+  // If your frontend doesn’t pass opp, we fall back to same team (won’t crash UI).
+  const teamB = opp || team;
+
   try {
-    const url = new URL(req.url);
-    const team = (url.searchParams.get("team") ?? "").trim().toUpperCase();
+    const upstream = new URL("/v1/matchup/summary", backendBaseUrl());
+    upstream.searchParams.set("teamA", team);
+    upstream.searchParams.set("teamB", teamB);
+    if (asOf) upstream.searchParams.set("as_of", asOf);
 
-    if (!team) {
-      return NextResponse.json({ error: "Missing team" }, { status: 400 });
-    }
-
-    const backendBase = process.env.ML_SERVICE_URL || "http://localhost:8000";
-    const r = await fetch(
-      `${backendBase}/v1/team/last5?team=${encodeURIComponent(team)}`,
-      { cache: "no-store" }
-    );
-
+    const r = await fetch(upstream.toString(), { next: { revalidate } });
     if (!r.ok) {
-      const text = await r.text();
+      const t = await r.text();
       return NextResponse.json(
-        { error: "Backend error", detail: text },
+        { error: `Upstream matchup/summary failed (${r.status})`, detail: t.slice(0, 800) },
         { status: 502 }
       );
     }
 
-    const b = await r.json();
+    const data: any = await r.json();
 
-    // Convert backend decimal pct -> frontend percent
-    const ppPct = pctFromDecimal01(toNumber(b?.powerPlay?.pct));
-    const pkPct = pctFromDecimal01(toNumber(b?.penaltyKill?.pct));
+    // choose A or B block depending on which matches ?team
+    const pick = String(data?.teams?.A || "").toUpperCase() === team ? "A" : "B";
+    const l5 = data?.last5?.[pick];
+
+    if (!l5) {
+      return NextResponse.json({ error: "Upstream missing last5 block" }, { status: 502 });
+    }
 
     return NextResponse.json({
-      team,
-      games: toNumber(b?.games) ?? 0,
-      record: b?.record ?? { w: 0, l: 0 },
-
-      goalsForPerGame: toNumber(b?.goalsForPerGame),
-      goalsAgainstPerGame: toNumber(b?.goalsAgainstPerGame),
-      shotsForPerGame: toNumber(b?.shotsForPerGame),
-      shotsAgainstPerGame: toNumber(b?.shotsAgainstPerGame),
-
+      team: l5.team,
+      games: num(l5.games),
+      record: {
+        w: num(l5.record?.w),
+        l: num(l5.record?.l),
+        otl: num(l5.record?.otl, 0), // backend has null sometimes
+      },
+      goalsForPerGame: +num(l5.goalsForPerGame).toFixed(2),
+      goalsAgainstPerGame: +num(l5.goalsAgainstPerGame).toFixed(2),
+      shotsForPerGame: +num(l5.shotsForPerGame).toFixed(2),
+      shotsAgainstPerGame: +num(l5.shotsAgainstPerGame).toFixed(2),
       powerPlay: {
-        goals: toNumber(b?.powerPlay?.goals) ?? 0,
-        opps: toNumber(b?.powerPlay?.opps) ?? 0,
-        pct: ppPct,
+        goals: num(l5.powerPlay?.goals),
+        opps: num(l5.powerPlay?.opps),
+        pct: pct100(l5.powerPlay?.pct),
       },
       penaltyKill: {
-        oppPPGoals: toNumber(b?.penaltyKill?.oppPPGoals) ?? 0,
-        oppPPOpps: toNumber(b?.penaltyKill?.oppPPOpps) ?? 0,
-        pct: pkPct,
+        oppPPGoals: num(l5.penaltyKill?.oppPPGoals),
+        oppPPOpps: num(l5.penaltyKill?.oppPPOpps),
+        pct: pct100(l5.penaltyKill?.pct),
       },
-
-      gameIds: Array.isArray(b?.gameIds) ? b.gameIds : [],
+      gameIds: Array.isArray(l5.gameIds) ? l5.gameIds : [],
       skippedPPGames: [],
-
-      note:
-        "DB-backed last 5 (this season). PP/PK computed from stored pp_goals/pp_opps and pk_goals_against/pk_opps.",
+      note: "Proxied from backend /v1/matchup/summary (last5).",
     });
   } catch (err: any) {
     return NextResponse.json(
-      { error: err?.message ?? "Unknown error" },
+      { error: "Proxy error", detail: String(err?.message ?? err) },
       { status: 500 }
     );
   }
