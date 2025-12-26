@@ -13,6 +13,7 @@ import useMatchupData from "@/hooks/useMatchupData";
 import { getTeamColor } from "@/lib/teamColours";
 import MatchupHistory from "@/components/matchupHistory";
 import { useMatchupHistory } from "@/hooks/useMatchupHistory";
+import CenterNav from "@/components/centerNav";
 
 
 function getOppFromGame(game: Game | null, teamAbbrev: string) {
@@ -73,6 +74,8 @@ export default function Home() {
         teamAbbrev={TEAM}
         onSelectFutureGame={(game) => setSelectedGame(game)}
       />
+
+      <CenterNav teamAbbrev={TEAM} oppAbbrev={oppAbbrev} />
 
       <MatchupHeader
         game={selectedGame}

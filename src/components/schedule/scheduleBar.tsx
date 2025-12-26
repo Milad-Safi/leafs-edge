@@ -2,12 +2,13 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { styles } from "@/components/schedule/scheduleBar.styles";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 export type Game = {
   id: number;
   gameDate: string;
   startTimeUTC: string;
-  gameState: string; 
+  gameState: string;
   homeAbbrev: string;
   awayAbbrev: string;
   homeScore: number | null;
@@ -15,9 +16,13 @@ export type Game = {
 };
 
 type Props = {
-  teamAbbrev?: string; 
-  onSelectFutureGame?: (game: Game) => void; 
+  teamAbbrev?: string;
+  onSelectFutureGame?: (game: Game) => void;
 };
+
+const LS_SELECTED_ID = "leafsEdge.schedule.selectedId";
+const LS_SCROLL_LEFT = "leafsEdge.schedule.scrollLeft";
+
 function normalizeGameState(state: string) {
   return (state || "").toUpperCase();
 }
@@ -30,15 +35,15 @@ function isFuture(gameState: string) {
   return s === "FUT";
 }
 
-function getResultLabel(leafsScore: number | null, oppScore: number | null, gameState: string) {
+function getResultLabel(
+  leafsScore: number | null,
+  oppScore: number | null,
+  gameState: string
+) {
   if (leafsScore == null || oppScore == null) return "";
 
-  if (leafsScore > oppScore) {
-    return "W";
-  }
-  if (leafsScore < oppScore) {
-    return "L";
-  }
+  if (leafsScore > oppScore) return "W";
+  if (leafsScore < oppScore) return "L";
   return "T";
 }
 
@@ -65,12 +70,47 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const cardRefs = useRef(new Map<number, HTMLButtonElement>());
 
+  const restoredOnceRef = useRef(false);
+  const lastSavedScrollRef = useRef<number>(0);
+
+  const router = useRouter();
+  const pathname = usePathname();
+  const search = useSearchParams();
+
+  function setOppParam(opp: string | null) {
+    const params = new URLSearchParams(search.toString());
+
+    if (opp) params.set("opp", opp.toUpperCase());
+    else params.delete("opp");
+
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }
+
   useEffect(() => {
     (async () => {
       const res = await fetch("/api/leafs/schedule");
       const data = await res.json();
       setGames(Array.isArray(data?.games) ? data.games : []);
     })();
+  }, []);
+
+  // Save scroll position while user scrolls the schedule bar
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+
+    const onScroll = () => {
+      const x = el.scrollLeft;
+      if (Math.abs(x - lastSavedScrollRef.current) < 2) return;
+      lastSavedScrollRef.current = x;
+      try {
+        sessionStorage.setItem(LS_SCROLL_LEFT, String(x));
+      } catch {}
+    };
+
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
   const nextGame = useMemo(() => {
@@ -81,29 +121,89 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
     if (fut) return fut;
 
     return (
-      games.find((g) => new Date(g.startTimeUTC).getTime() > now && !isFinished(g.gameState)) ?? null
+      games.find((g) => new Date(g.startTimeUTC).getTime() > now && !isFinished(g.gameState)) ??
+      null
     );
   }, [games]);
 
+  // Restore selection + scroll on mount/navigation so the bar doesn't "reset"
   useEffect(() => {
+    if (!games.length) return;
+    if (restoredOnceRef.current) return;
+
+    restoredOnceRef.current = true;
+
+    // Restore scroll position first (so we don't visibly jump)
+    try {
+      const rawX = sessionStorage.getItem(LS_SCROLL_LEFT);
+      const x = rawX != null ? Number(rawX) : null;
+      if (x != null && Number.isFinite(x)) {
+        requestAnimationFrame(() => {
+          if (scrollerRef.current) scrollerRef.current.scrollLeft = x;
+        });
+      }
+    } catch {}
+
+    // Restore selected game if possible (and if it still exists + isn't finished)
+    let restoredId: number | null = null;
+    try {
+      const raw = sessionStorage.getItem(LS_SELECTED_ID);
+      if (raw) {
+        const n = Number(raw);
+        restoredId = Number.isFinite(n) ? n : null;
+      }
+    } catch {}
+
+    const restoredGame =
+      restoredId != null ? games.find((g) => g.id === restoredId) ?? null : null;
+
+    if (restoredGame && !isFinished(restoredGame.gameState)) {
+      const leafsIsHome =
+        restoredGame.homeAbbrev?.toUpperCase() === teamAbbrev.toUpperCase();
+      const opp = leafsIsHome ? restoredGame.awayAbbrev : restoredGame.homeAbbrev;
+
+      setSelectedId(restoredGame.id);
+      onSelectFutureGame?.(restoredGame);
+      setOppParam(opp ?? null);
+      return;
+    }
+
+    // Fallback: normal behavior (select next game + center it)
     if (!nextGame) return;
+
+    const leafsIsHome = nextGame.homeAbbrev?.toUpperCase() === teamAbbrev.toUpperCase();
+    const opp = leafsIsHome ? nextGame.awayAbbrev : nextGame.homeAbbrev;
 
     setSelectedId(nextGame.id);
     onSelectFutureGame?.(nextGame);
+    setOppParam(opp ?? null);
+
+    try {
+      sessionStorage.setItem(LS_SELECTED_ID, String(nextGame.id));
+    } catch {}
 
     const el = cardRefs.current.get(nextGame.id);
     el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  }, [nextGame?.id]); 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [games.length]);
 
   function scrollByPx(px: number) {
     scrollerRef.current?.scrollBy({ left: px, behavior: "smooth" });
   }
 
   function handleSelect(game: Game) {
-    if (isFinished(game.gameState)) return; 
+    if (isFinished(game.gameState)) return;
+
+    const leafsIsHome = game.homeAbbrev?.toUpperCase() === teamAbbrev.toUpperCase();
+    const opp = leafsIsHome ? game.awayAbbrev : game.homeAbbrev;
 
     setSelectedId(game.id);
     onSelectFutureGame?.(game);
+    setOppParam(opp ?? null);
+
+    try {
+      sessionStorage.setItem(LS_SELECTED_ID, String(game.id));
+    } catch {}
   }
 
   return (
@@ -118,8 +218,8 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
           const selected = selectedId === g.id;
           const leafsIsHome = g.homeAbbrev?.toUpperCase() === teamAbbrev.toUpperCase();
           const opp = leafsIsHome ? g.awayAbbrev : g.homeAbbrev;
-          const topLine = formatDateShortFromUTC(g.startTimeUTC);
 
+          const topLine = formatDateShortFromUTC(g.startTimeUTC);
           const midLine = `${teamAbbrev} ${leafsIsHome ? "vs" : "@"} ${opp}`;
 
           let bottomLine = "";

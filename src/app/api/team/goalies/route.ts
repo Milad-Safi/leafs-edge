@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cleanStr, toNum } from "@/lib/nhl/parse";
-import { isoDate, diffDays, toUtcMs, torontoDateISO } from "@/lib/nhl/dates";
+import { isoDate, toUtcMs, torontoDateISO } from "@/lib/nhl/dates";
 import { toiToMinutes } from "@/lib/nhl/toi";
 
 export const runtime = "nodejs";
@@ -29,6 +29,7 @@ async function fetchRosterGoalies(team: string) {
 
   return map;
 }
+
 async function fetchInjuredIdsViaApi(team: string, reqUrl: string): Promise<Set<number>> {
   const u = new URL(reqUrl);
   const base = `${u.protocol}//${u.host}`;
@@ -188,6 +189,13 @@ async function computeLast5GoalieSplitsFromBoxes(team: string, goalieId: number,
   return { games, record: { w, l, ot }, svPct, gaa };
 }
 
+function addDaysISO(iso: string, deltaDays: number) {
+  // iso is "YYYY-MM-DD"
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + deltaDays);
+  return d.toISOString().slice(0, 10);
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
@@ -202,7 +210,8 @@ export async function GET(req: Request) {
     );
   }
 
-  const gameDate = isoDate(new Date(gameDateRaw));
+  // Treat input as ISO date string (avoid Date parsing quirks)
+  const gameDate = String(gameDateRaw).slice(0, 10);
 
   try {
     const [rosterMap, injuredIds, clubGoalies, seasonGames] = await Promise.all([
@@ -224,19 +233,27 @@ export async function GET(req: Request) {
       seasonById.set(id, g);
     }
 
-    const completedBefore = (seasonGames ?? [])
+    // Full schedule view (includes future + completed)
+    const scheduleAll = (seasonGames ?? [])
       .map((g: any) => {
         const torDate = torontoDateISO(g?.startTimeUTC);
         const startMs = toUtcMs(g?.startTimeUTC) ?? -1;
         return { ...g, _torDate: torDate, _startMs: startMs };
       })
+      .filter((g: any) => g._torDate && g._startMs > 0);
+
+    const gameOnDate = (d: string) =>
+      scheduleAll
+        .filter((g: any) => g._torDate === d)
+        .sort((a: any, b: any) => b._startMs - a._startMs)[0] ?? null;
+
+    const completedBefore = scheduleAll
       .filter((g: any) => g._torDate && g._torDate < gameDate)
       .filter((g: any) => isCompletedGameState(g?.gameState))
-      .filter((g: any) => g._startMs > 0)
       .sort((a: any, b: any) => b._startMs - a._startMs);
 
     const last5Games = completedBefore.slice(0, 5);
-    const prevGame = completedBefore[0] ?? null;
+    const prevCompleted = completedBefore[0] ?? null;
 
     const last5GameIds: number[] = last5Games
       .map((g: any) => toNum(g?.id))
@@ -286,25 +303,39 @@ export async function GET(req: Request) {
       return b.gamesPlayed - a.gamesPlayed;
     });
 
+    // Base projection: most starts in last 5, then most GP
     let projected = candidates[0];
 
-    const prevDate =
-      typeof prevGame?._torDate === "string"
-        ? prevGame._torDate
-        : typeof prevGame?.gameDate === "string"
-          ? prevGame.gameDate
-          : null;
+    // --- B2B (SECOND HALF, INCLUDING FUTURE): schedule-based detection ---
+    const yesterdayISO = addDaysISO(gameDate, -1);
 
-    const isBackToBack = prevDate ? diffDays(gameDate, prevDate) === 1 : false;
+    const todayGame = gameOnDate(gameDate);
+    const yesterdayGame = gameOnDate(yesterdayISO);
 
-    if (isBackToBack && prevGame) {
-      const prevId = toNum(prevGame?.id);
-      if (prevId) {
-        const prevStarterId = await fetchStarterIdFromBoxscore(team, prevId);
-        if (prevStarterId && projected.playerId === prevStarterId) {
-          const alt = candidates.find((c) => c.playerId !== prevStarterId);
-          if (alt) projected = alt;
-        }
+    const isBackToBack = Boolean(todayGame && yesterdayGame);
+
+    // Choose which game to reference to find the "starter we want to avoid":
+    // - If yesterday is completed, use yesterday starter
+    // - Else (future), use most recent completed game starter as best available signal
+    let referenceGameId: number | null = null;
+    if (isBackToBack) {
+      if (isCompletedGameState(yesterdayGame?.gameState)) referenceGameId = toNum(yesterdayGame?.id);
+      else referenceGameId = toNum(prevCompleted?.id);
+    }
+
+    let refStarterId: number | null = null;
+    if (referenceGameId) {
+      refStarterId = await fetchStarterIdFromBoxscore(team, referenceGameId);
+    }
+
+    // If second half B2B, always return the OTHER goalie (your requirement)
+    if (isBackToBack) {
+      if (refStarterId) {
+        const alt = candidates.find((c) => c.playerId !== refStarterId);
+        if (alt) projected = alt;
+      } else {
+        const alt = candidates.find((c) => c.playerId !== projected.playerId);
+        if (alt) projected = alt;
       }
     }
 
@@ -313,6 +344,13 @@ export async function GET(req: Request) {
       projected.playerId,
       last5Boxes
     );
+
+    const prevDate =
+      typeof prevCompleted?._torDate === "string"
+        ? prevCompleted._torDate
+        : typeof prevCompleted?.gameDate === "string"
+          ? prevCompleted.gameDate
+          : null;
 
     return NextResponse.json({
       team,
@@ -328,10 +366,16 @@ export async function GET(req: Request) {
         last5Splits,
       },
       meta: {
-        logic: "last5_starts → season_gp → b2b_override",
+        logic: "last5_starts → season_gp → b2b(schedule_yesterday+today)_override",
         gameDate,
-        prevGameDate: prevDate,
+        yesterdayISO,
         isBackToBack,
+        scheduledTodayGameId: todayGame ? toNum(todayGame?.id) : null,
+        scheduledYesterdayGameId: yesterdayGame ? toNum(yesterdayGame?.id) : null,
+        yesterdayGameState: yesterdayGame?.gameState ?? null,
+        referenceGameId,
+        referenceStarterId: refStarterId,
+        prevGameDate: prevDate,
         last5GameIds,
         last5StarterIds,
         startsMap: Object.fromEntries([...startsMap.entries()]),

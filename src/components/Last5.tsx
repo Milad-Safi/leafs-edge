@@ -120,7 +120,7 @@ export default function Last5Section({
             rightVal={higherBetterStrength(toPct100(rPP?.pct ?? null), 20, 0.05)}
             label="Power Play %"
             leftText={lPP?.pct != null ? `${toPct100(lPP.pct)?.toFixed(1)}% (${lPP.goals}/${lPP.opps})` : "—"}
-            rightText={rPP?.pct != null ? `${toPct100(rPP.pct)?.toFixed(1)}% (${rPP.goals}/${rPP.opps})` : "—"}
+            rightText={rPP?.pct != null ? `(${rPP.goals}/${rPP.opps}) ${toPct100(rPP.pct)?.toFixed(1)}%` : "—"}
             leftColor={leftColor}
             rightColor={rightColor}
           />
@@ -130,7 +130,7 @@ export default function Last5Section({
             rightVal={higherBetterStrength(toPct100(rPK?.pct ?? null), 80, 0.04)}
             label="Penalty Kill %"
             leftText={lPK?.pct != null ? `${toPct100(lPK.pct)?.toFixed(1)}% (${lPK.oppPPGoals}/${lPK.oppPPOpps})` : "—"}
-            rightText={rPK?.pct != null ? `${toPct100(rPK.pct)?.toFixed(1)}% (${rPK.oppPPGoals}/${rPK.oppPPOpps})` : "—"}
+            rightText={rPK?.pct != null ? `(${rPK.oppPPGoals}/${rPK.oppPPOpps}) ${toPct100(rPK.pct)?.toFixed(1)}% ` : "—"}
             leftColor={leftColor}
             rightColor={rightColor}
           />

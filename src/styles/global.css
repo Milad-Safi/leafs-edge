@@ -180,3 +180,9 @@ body {
     height: 0;
   }
 }
+
+@media (max-width: 640px) {
+  .centerNavCapsule {
+    border-radius: 16px !important; /* less “pill”, more “panel” */
+  }
+}

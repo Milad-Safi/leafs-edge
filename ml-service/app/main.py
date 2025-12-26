@@ -7,19 +7,14 @@ from typing import Any, Dict, Optional, Tuple
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# NOTE: ML trend code is intentionally left untouched; we only expose it via one endpoint here.
 from .trend_model import predict_team_trend
-
-from .stats_db import (
-    team_aggregate,
-    team_last_n,
-    team_latest_game_date,
-)
-
-# ✅ IMPORTANT: use the ALL-teams extractor
+from .nhlpy_proxy import nhl_client, capabilities as nhlpy_capabilities
+from .stats_db import team_aggregate, team_last_n, team_latest_game_date
 from .standings import fetch_standings_now, extract_all_summary_fields_from_standings
 from .hot_last5 import fetch_hot_last5, infer_current_season_id
 
+# ✅ EDGE routes live in app/routes_edge.py now
+from .routes_edge import router as edge_router
 
 app = FastAPI(title="Leafs Edge API", version="1.0")
 
@@ -31,10 +26,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 # ─────────────────────────────────────────────────────────────
 # Tiny in-memory TTL cache (dev-friendly, single-process)
-# NOTE: if you're running multiple workers, cache won't share across processes.
 # ─────────────────────────────────────────────────────────────
 _TTL_CACHE: Dict[str, Tuple[float, Any]] = {}
 
@@ -63,22 +56,29 @@ def _cached(key: str, ttl_seconds: int, fn):
     return v
 
 
+def _current_season_str() -> str:
+    return str(infer_current_season_id())
+
+
+def _teams_all_cached():
+    def build():
+        c = nhl_client()
+        return c.teams.teams()
+
+    return _cached("nhlpy_teams_all", 3600, build)
+
+
+# ─────────────────────────────────────────────────────────────
+# Core endpoints (unchanged)
+# ─────────────────────────────────────────────────────────────
 @app.get("/v1/trend/team")
 def trend_team(team: str):
-    """ML trend endpoint (kept separate). Only required param: team."""
     today = dt.date.today().isoformat()
     return predict_team_trend(team=team.upper(), as_of=today)
 
 
-# ─────────────────────────────────────────────────────────────
-# Standings extras: ALL teams map
-# ─────────────────────────────────────────────────────────────
 @app.get("/v1/standings/summary")
 def standings_summary():
-    """
-    Returns a dict keyed by team abbrev with extra UI fields.
-    Cached briefly because standings don't need to refresh per click.
-    """
     def build():
         standings = fetch_standings_now()
         return extract_all_summary_fields_from_standings(standings)
@@ -88,7 +88,6 @@ def standings_summary():
 
 
 def _merge_standings_extras(team: str, base: dict, extras_map: dict) -> dict:
-    """Injects a few standings fields into a payload dict for UI friendliness."""
     out = dict(base) if base is not None else {}
     extra = extras_map.get(team)
     if extra:
@@ -110,7 +109,6 @@ def _merge_standings_extras(team: str, base: dict, extras_map: dict) -> dict:
             if k in extra and extra[k] is not None:
                 out[k] = extra[k]
 
-    # small UI guards
     if out.get("otLosses") is None:
         out["otLosses"] = 0
     if out.get("points") is None and out.get("wins") is not None:
@@ -121,15 +119,8 @@ def _merge_standings_extras(team: str, base: dict, extras_map: dict) -> dict:
     return out
 
 
-# ─────────────────────────────────────────────────────────────
-# Hot leaders endpoint
-# ─────────────────────────────────────────────────────────────
 @app.get("/v1/hot/last5")
 def hot_last5(team: str):
-    """
-    Hot players (leaders) over last 5 for a team.
-    Cached per-team briefly to prevent repeated NHL API hits on rapid switching.
-    """
     t = team.strip().upper()
     season_id = infer_current_season_id()
 
@@ -140,27 +131,15 @@ def hot_last5(team: str):
     return {"ok": True, "seasonId": season_id, "team": t, "data": payload}
 
 
-# ─────────────────────────────────────────────────────────────
-# Matchup summary: DB stats + standings merge for W-L-OTL header
-# ─────────────────────────────────────────────────────────────
 @app.get("/v1/matchup/summary")
 def matchup_summary(teamA: str, teamB: str):
-    """
-    One-call summary payload for the UI.
-
-    - Season + last5 are DB-backed (fast)
-    - Standings record fields (W/L/OTL/PTS/etc) are merged in from standings/now
-      so the frontend header can show Season: W-L-OTL correctly.
-    """
     a = teamA.upper()
     b = teamB.upper()
     as_of = dt.date.today().isoformat()
 
-    # DB-backed season-to-date
     seasonA = team_aggregate(a)
     seasonB = team_aggregate(b)
 
-    # ✅ merge standings record fields so Season: W-L-OTL isn't "—"
     extras_map = _cached(
         "standings_extras",
         60,
@@ -169,14 +148,10 @@ def matchup_summary(teamA: str, teamB: str):
     seasonA = _merge_standings_extras(a, seasonA, extras_map)
     seasonB = _merge_standings_extras(b, seasonB, extras_map)
 
-    # DB-backed last 5
     lastA = team_last_n(a, as_of=as_of, n=5)
     lastB = team_last_n(b, as_of=as_of, n=5)
 
-    through = {
-        "A": team_latest_game_date(a),
-        "B": team_latest_game_date(b),
-    }
+    through = {"A": team_latest_game_date(a), "B": team_latest_game_date(b)}
 
     return {
         "ok": True,
@@ -186,3 +161,20 @@ def matchup_summary(teamA: str, teamB: str):
         "season": {"A": seasonA, "B": seasonB},
         "last5": {"A": lastA, "B": lastB},
     }
+
+
+# ─────────────────────────────────────────────────────────────
+# Minimal NHL proxy endpoints (unchanged)
+# ─────────────────────────────────────────────────────────────
+@app.get("/v1/nhl/capabilities")
+def nhl_capabilities():
+    return {"ok": True, **nhlpy_capabilities()}
+
+
+@app.get("/v1/nhl/teams/all")
+def nhl_teams_all():
+    return {"ok": True, "data": _teams_all_cached()}
+
+
+# ✅ Include EDGE router (moved out)
+app.include_router(edge_router)
