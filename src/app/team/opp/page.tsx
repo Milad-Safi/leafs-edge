@@ -8,6 +8,9 @@ import HardestShooters from "@/components/edge/HardestShooters";
 import OffensiveZoneHeatmap from "@/components/edge/OffensiveZoneHeatmap";
 import useTeamEdge from "@/hooks/useTeamEdge";
 
+import TeamTrend from "@/components/edge/TeamTrend";
+import { useTeamTrend } from "@/hooks/useTeamTrend";
+
 export default function OppPage() {
   const season = "20252026"; // keep hardcoded for now
 
@@ -15,33 +18,29 @@ export default function OppPage() {
   const opp = search.get("opp")?.toUpperCase() ?? null;
 
   const { data, loading, error, baseUrl } = useTeamEdge(opp, !!opp);
+  const trend = useTeamTrend(opp);
 
   return (
     <main style={{ minHeight: "100vh", color: "white", padding: 24 }}>
       <div style={{ display: "grid", gap: 14 }}>
-        <EdgeCard
-          title={opp ? `${opp} Edge` : "Opponent Edge"}
-          subtitle={
-            opp
-              ? `Live from ${baseUrl} — skating speed, shot speed, and shot-location areas.`
-              : "Pick a game from the schedule bar to set an opponent."
-          }
-        >
-          {!opp ? (
-            <div style={{ opacity: 0.75 }}>No opponent selected.</div>
-          ) : loading ? (
-            <div style={{ opacity: 0.75 }}>Loading…</div>
-          ) : error ? (
-            <div style={{ opacity: 0.75 }}>Error: {error}</div>
-          ) : data ? (
-            <div style={{ opacity: 0.85, fontSize: 13 }}>
-              Updated via backend: top speeds + area totals.
-            </div>
-          ) : (
-            <div style={{ opacity: 0.75 }}>No data.</div>
-          )}
-        </EdgeCard>
+        {/* ML Trend (TOP, above fastest/hardest) */}
+        {opp ? (
+          <TeamTrend
+            title={`${opp} ML Trend`}
+            data={trend.data}
+            loading={trend.loading}
+            error={trend.error}
+          />
+        ) : (
+          <TeamTrend
+            title="Opponent ML Trend"
+            data={null}
+            loading={false}
+            error={null}
+          />
+        )}
 
+        {/* Top cards row */}
         <div
           style={{
             display: "grid",
@@ -50,7 +49,7 @@ export default function OppPage() {
           }}
         >
           <EdgeCard
-            title="astest Skaters"
+            title="Fastest Skaters"
             subtitle="Fastest recorded skating speeds this season"
           >
             <FastestSkaters
@@ -72,6 +71,7 @@ export default function OppPage() {
           </EdgeCard>
         </div>
 
+        {/* Heatmaps row (ONLY 2 cards) */}
         <div
           style={{
             display: "grid",

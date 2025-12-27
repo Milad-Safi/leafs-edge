@@ -4,47 +4,11 @@ import React from "react";
 import StatRow from "@/components/StatRow";
 import { UI } from "@/styles/uiStyles";
 
-type RecordSplit = { w: number; l: number };
+import type { TeamRanks, TeamSummary } from "@/types/api";
+import { higherBetterStrength, lowerBetterStrength, toPct100 } from "@/lib/statsMath";
 
-export type TeamSummary = {
-  teamAbbrev: string;
-  teamFullName: string | null;
-  gamesPlayed: number | null;
-
-  goalsForPerGame: number | null;
-  goalsAgainstPerGame: number | null;
-
-  powerPlayPct: number | null;
-  penaltyKillPct: number | null;
-
-  shotsForPerGame: number | null;
-  shotsAgainstPerGame: number | null;
-
-  wins: number | null;
-  losses: number | null;
-  otLosses: number | null;
-  points: number | null;
-
-  homeRecord: RecordSplit;
-  awayRecord: RecordSplit;
-};
-
-type RanksForMetric = Record<string, number | null>;
-
-export type TeamRanks = {
-  seasonId: number;
-  teamsCount: number;
-  teamA: string;
-  teamB: string;
-  ranks: {
-    goalsForPerGame: RanksForMetric;
-    goalsAgainstPerGame: RanksForMetric;
-    powerPlayPct: RanksForMetric;
-    penaltyKillPct: RanksForMetric;
-    shotsForPerGame: RanksForMetric;
-    shotsAgainstPerGame: RanksForMetric;
-  };
-};
+// Re-export types for backwards-compat with existing imports.
+export type { TeamRanks, TeamSummary } from "@/types/api";
 
 function ordinal(n: number) {
   const mod100 = n % 100;
@@ -56,20 +20,7 @@ function ordinal(n: number) {
   return `${n}th`;
 }
 
-function toPct100(v: number | null | undefined) {
-  if (v == null || !Number.isFinite(v)) return null;
-  return v <= 1 ? v * 100 : v;
-}
 
-function higherBetterStrength(v: number | null | undefined, baseline: number, k: number) {
-  if (v == null || !Number.isFinite(v)) return null;
-  return Math.exp(k * (v - baseline));
-}
-
-function lowerBetterStrength(v: number | null | undefined, baseline: number, k: number) {
-  if (v == null || !Number.isFinite(v)) return null;
-  return Math.exp(k * (baseline - v));
-}
 
 export default function TeamComparisonSection({
   left,

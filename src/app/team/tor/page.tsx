@@ -7,32 +7,28 @@ import HardestShooters from "@/components/edge/HardestShooters";
 import OffensiveZoneHeatmap from "@/components/edge/OffensiveZoneHeatmap";
 import useTeamEdge from "@/hooks/useTeamEdge";
 
+import TeamTrend from "@/components/edge/TeamTrend";
+import { useTeamTrend } from "@/hooks/useTeamTrend";
+
 export default function TorPage() {
   const team = "TOR";
   const season = "20252026"; // keep hardcoded for now
 
   const { data, loading, error, baseUrl } = useTeamEdge(team, true);
+  const trend = useTeamTrend(team);
 
   return (
     <main style={{ minHeight: "100vh", color: "white", padding: 24 }}>
       <div style={{ display: "grid", gap: 14 }}>
-        <EdgeCard
-          title="TOR Edge"
-          subtitle={`Live from ${baseUrl} — skating speed, shot speed, and shot-location areas.`}
-        >
-          {loading ? (
-            <div style={{ opacity: 0.75 }}>Loading…</div>
-          ) : error ? (
-            <div style={{ opacity: 0.75 }}>Error: {error}</div>
-          ) : data ? (
-            <div style={{ opacity: 0.85, fontSize: 13 }}>
-              Updated via backend: top speeds + area totals.
-            </div>
-          ) : (
-            <div style={{ opacity: 0.75 }}>No data.</div>
-          )}
-        </EdgeCard>
+        {/* ML Trend (TOP, above fastest/hardest) */}
+        <TeamTrend
+          title="TOR ML Trend"
+          data={trend.data}
+          loading={trend.loading}
+          error={trend.error}
+        />
 
+        {/* Top cards row */}
         <div
           style={{
             display: "grid",
@@ -44,11 +40,7 @@ export default function TorPage() {
             title="Fastest Skaters"
             subtitle="Fastest recorded skating speeds this season"
           >
-            <FastestSkaters
-              rows={data?.skating.fastestSkaters ?? []}
-              team={team}
-              season={season}
-            />
+            <FastestSkaters rows={data?.skating.fastestSkaters ?? []} team={team} season={season} />
           </EdgeCard>
 
           <EdgeCard
@@ -63,6 +55,7 @@ export default function TorPage() {
           </EdgeCard>
         </div>
 
+        {/* Heatmaps row (ONLY 2 cards) */}
         <div
           style={{
             display: "grid",

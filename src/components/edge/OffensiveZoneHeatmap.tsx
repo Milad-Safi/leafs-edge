@@ -5,7 +5,8 @@ type Mode = "shots" | "goals";
 
 function safeNum(n: unknown) {
   const x = typeof n === "number" ? n : Number(n);
-  return Number.isFinite(x) ? x : 0;
+  // Round to the nearest whole number
+  return Number.isFinite(x) ? Math.round(x) : 0;
 }
 
 function valueFor(row: EdgeAreaRow | undefined, mode: Mode) {
@@ -74,6 +75,7 @@ export default function OffensiveZoneHeatmap({
     RED: "rgba(210, 97, 97, 1)",
     GREEN: "rgba(6, 219, 10, 1)",
     BLACK: "rgba(0, 0, 0, 1)",
+    BLUE_LINE: "#0033a0"
   };
 
   const lowSlotIsMax = maxArea === "Low Slot";
@@ -133,13 +135,9 @@ export default function OffensiveZoneHeatmap({
           <path
             d="M1.89018 0.909912C1.83305 1.26 1.81087 1.61491 1.82396 1.96939V3.02887C2.08446 6.65021 3.71573 10.036 6.38546 12.4966C9.05519 14.9572 12.5626 16.3075 16.1931 16.2723C17.3087 16.2749 18.4206 16.1414 19.5039 15.875C22.4491 15.2211 25.1117 13.6517 27.1101 11.3916C29.1084 9.13151 30.3401 6.29681 30.6284 3.29374C30.6284 2.89643 30.6946 2.56535 30.6946 2.16804V1.96939C30.7036 1.61497 30.6814 1.26045 30.6284 0.909912"
             stroke={COLORS.STROKE}
-            strokeWidth="2.99"
+            strokeWidth="2"
             strokeMiterlimit="10"
           />
-        </svg>
-
-        <svg viewBox="0 0 33 4" width="33" height="4" x="85" y="32">
-          <path d="M0.823242 0.435547L32.7559 0.435547V3.42923H0.823242V0.435547Z" fill="black" />
         </svg>
 
         {/* right wall */}
@@ -179,7 +177,7 @@ export default function OffensiveZoneHeatmap({
         </svg>
 
         {/* --- BLACK OUTLINES --- */}
-        <g stroke={COLORS.STROKE} strokeWidth="3" strokeMiterlimit="10" fill="none">
+        <g stroke={COLORS.STROKE} strokeWidth="2" strokeMiterlimit="10" fill="none">
           <path d="M201.243 181.978H2.32703" />
           <path d="M2.06226 77.0239V212.041L201.574 211.71V147.612L201.243 147.214L174.756 111.788C174.663 111.896 174.551 111.986 174.425 112.053L172.637 113.642C169.399 116.471 165.994 119.102 162.44 121.522C161.712 121.985 160.983 122.515 160.321 122.979L158.136 124.369C157.407 124.833 156.679 125.23 155.951 125.694C155.222 126.091 154.494 126.554 153.766 126.952C152.044 127.879 150.322 128.806 148.534 129.667C148.269 129.799 148.071 129.865 147.806 129.998C147.409 130.196 147.011 130.395 146.548 130.594C145.753 130.991 144.959 131.322 144.164 131.653C142.972 132.183 141.846 132.646 140.655 133.11C138.712 133.722 139.674 133.589 139.21 133.722M139.463 134.368V134.434L144.628 150.393L154.825 181.647L154.891 181.846L154.957 181.978V182.045" />
           <path d="M2.06226 148.141L28.4163 112.781C39.233 122.483 51.8876 129.914 65.6299 134.633" />
@@ -192,32 +190,42 @@ export default function OffensiveZoneHeatmap({
           <path d="M11.3983 33.9164H63.3788V2.13208C51.9534 2.90187 40.9278 6.64555 31.3959 12.9917C25.7999 16.7484 20.7999 21.3243 16.5633 26.5663C15.9673 27.2947 15.3713 28.0893 14.8416 28.8176C13.9808 30.0096 13.12 31.2677 12.3254 32.5258L11.3983 33.9164Z" />
           <path d="M140.329 33.9166H192.177C191.912 33.4531 191.581 32.9896 191.316 32.5261C190.522 31.2679 189.661 30.0098 188.8 28.8179C188.204 28.0233 187.674 27.2949 187.012 26.5665C182.618 21.101 177.389 16.3633 171.517 12.5284C162.188 6.43841 151.446 2.85769 140.329 2.13232V33.9166Z" />
           <path d="M140.327 2.13219C139.467 2.06597 138.539 1.99976 137.679 1.99976H65.9642C65.1034 1.99976 64.2426 2.06597 63.3817 2.13219V33.9827H87.4852" />
-          <path d="M2.06228 77.024V67.7535C2.05214 56.1703 5.1139 44.7915 10.9354 34.7773L11.4651 33.9165H33.7803C33.8465 34.1814 33.9127 34.5125 33.9789 34.7773C37.8613 48.432 45.7779 60.5955 56.6914 69.6738L58.4793 71.0644C58.7441 71.2631 58.9428 71.3955 59.2077 71.5941L28.4167 112.715" />
+          <path d="M2.06228 77.024V67.7535C2.05214 56.1703 5.1139 44.7915 10.9354 34.7773L11.4651 33.9165H33.7803C33.8465 34.1814 33.9127 34.5125 33.9789 34.7773C37.8613 48.4320 45.7779 60.5955 56.6914 69.6738L58.4793 71.0644C58.7441 71.2631 58.9428 71.3955 59.2077 71.5941L28.4167 112.715" />
         </g>
+
+        <line
+          x1="3"
+          y1="180"
+          x2="200"
+          y2="180"
+          stroke={COLORS.BLUE_LINE}
+          strokeWidth="2"
+          strokeLinecap="butt"
+        />
 
         {/* left corner */}
         <rect x="39.02734375" y="13" width="11.9453125" height="15" fill={COLORS.PLAIN_WHITE} rx="2" />
-        <text x="45" y="25" textAnchor="middle" style={{ fontWeight: 600, fontSize: 11 }}>
+        <text x="45" y="25" textAnchor="middle" style={{ fontWeight: 600, fontSize: 10 }}>
           {vals["L Corner"]}
         </text>
 
         {/* behind net  */}
         <rect x="96.45703125" y="10" width="9.0859375" height="15" fill={COLORS.PLAIN_WHITE} rx="2" />
-        <text x="101" y="22" textAnchor="middle" style={{ fontWeight: 600, fontSize: 11 }}>
+        <text x="101" y="22" textAnchor="middle" style={{ fontWeight: 600, fontSize: 10 }}>
           {vals["Behind the Net"]}
         </text>
 
         <rect x="154.02734375" y="13" width="11.9453125" height="15" fill={COLORS.PLAIN_WHITE} rx="2" />
-        <text x="160" y="25" textAnchor="middle" style={{ fontWeight: 600, fontSize: 11 }}>
+        <text x="160" y="25" textAnchor="middle" style={{ fontWeight: 600, fontSize: 10 }}>
           {vals["R Corner"]}
         </text>
 
         <rect x="15.51171875" y="63" width="18.9765625" height="15" fill={COLORS.PLAIN_WHITE} rx="2" />
-        <text x="25" y="75" textAnchor="middle" style={{ fontWeight: 600, fontSize: 11 }}>
+        <text x="25" y="75" textAnchor="middle" style={{ fontWeight: 600, fontSize: 10 }}>
           {vals["Outside L"]}
         </text>
 
-        <text x="58" y="52" textAnchor="middle" style={{ fontWeight: 600, fontSize: 11 }}>
+        <text x="58" y="52" textAnchor="middle" style={{ fontWeight: 600, fontSize: 10 }}>
           {vals["L Net Side"]}
         </text>
 
@@ -225,59 +233,59 @@ export default function OffensiveZoneHeatmap({
           x="101"
           y="69"
           textAnchor="middle"
-          style={{ fontWeight: 600, fontSize: 11, fill: COLORS.STROKE }}
+          style={{ fontWeight: 600, fontSize: 10, fill: COLORS.STROKE }}
         >
           {vals["Low Slot"]}
         </text>
 
         {/* --- CREASE TEXT --- */}
         <rect x="95" y="38" width="13" height="8" fill={COLORS.CREASE} rx="2" />
-        <text x="101" y="44" textAnchor="middle" style={{ fontWeight: 600, fontSize: 8 }}>
+        <text x="101" y="44" textAnchor="middle" style={{ fontWeight: 600, fontSize: 7 }}>
           {vals["Crease"]}
         </text>
 
-        <text x="145" y="52" textAnchor="middle" style={{ fontWeight: 600, fontSize: 11 }}>
+        <text x="145" y="52" textAnchor="middle" style={{ fontWeight: 600, fontSize: 10}}>
           {vals["R Net Side"]}
         </text>
 
         <rect x="170.40625" y="63" width="19.1875" height="15" fill={COLORS.PLAIN_WHITE} rx="2" />
-        <text x="180" y="75" textAnchor="middle" style={{ fontWeight: 600, fontSize: 11 }}>
+        <text x="180" y="75" textAnchor="middle" style={{ fontWeight: 600, fontSize: 10 }}>
           {vals["Outside R"]}
         </text>
 
         <rect x="47.3359375" y="93" width="19.328125" height="15" fill={COLORS.RED} rx="2" />
-        <text x="57" y="105" textAnchor="middle" style={{ fontWeight: 600, fontSize: 11 }}>
+        <text x="57" y="105" textAnchor="middle" style={{ fontWeight: 600, fontSize: 10 }}>
           {vals["L Circle"]}
         </text>
 
         <rect x="92.63671875" y="104" width="16.7265625" height="15" fill={COLORS.RED} rx="2" />
-        <text x="101" y="116" textAnchor="middle" style={{ fontWeight: 600, fontSize: 11 }}>
+        <text x="101" y="116" textAnchor="middle" style={{ fontWeight: 600, fontSize: 10 }}>
           {vals["High Slot"]}
         </text>
 
         <rect x="135.46484375" y="93" width="19.0703125" height="15" fill={COLORS.RED} rx="2" />
-        <text x="145" y="105" textAnchor="middle" style={{ fontWeight: 600, fontSize: 11 }}>
+        <text x="145" y="105" textAnchor="middle" style={{ fontWeight: 600, fontSize: 10 }}>
           {vals["R Circle"]}
         </text>
 
         <rect x="18.5" y="146" width="22" height="15" fill={COLORS.PLAIN_WHITE} rx="2" />
-        <text x="30" y="155" textAnchor="middle" style={{ fontWeight: 600, fontSize: 11 }}>
+        <text x="30" y="155" textAnchor="middle" style={{ fontWeight: 600, fontSize: 10 }}>
           {vals["L Point"]}
         </text>
 
         <rect x="91.875" y="153" width="18.25" height="15" fill={COLORS.PLAIN_WHITE} rx="2" />
-        <text x="101" y="165" textAnchor="middle" style={{ fontWeight: 600, fontSize: 11 }}>
+        <text x="101" y="165" textAnchor="middle" style={{ fontWeight: 600, fontSize: 10 }}>
           {vals["Center Point"]}
         </text>
 
         <rect x="160.20703125" y="143" width="19.5859375" height="15" fill={COLORS.PLAIN_WHITE} rx="2" />
-        <text x="170" y="155" textAnchor="middle" style={{ fontWeight: 600, fontSize: 11 }}>
+        <text x="170" y="155" textAnchor="middle" style={{ fontWeight: 600, fontSize: 10}}>
           {vals["R Point"]}
         </text>
 
         {/* --- Bottom Badge Area --- */}
         <rect x="92" y="193" width="18" height="14" fill={COLORS.PLAIN_WHITE} rx="2" />
-        <text x="101" y="201" textAnchor="middle" style={{ fontWeight: 600, fontSize: 11 }}>
+        <text x="101" y="201" textAnchor="middle" style={{ fontWeight: 600, fontSize: 10 }}>
           {vals["Offensive Neutral Zone"]}
         </text>
       </svg>
@@ -288,7 +296,7 @@ export default function OffensiveZoneHeatmap({
           justifyContent: "space-between",
           marginTop: 8,
           opacity: 0.75,
-          fontSize: 11,
+          fontSize: 10,
         }}
       >
         <span>

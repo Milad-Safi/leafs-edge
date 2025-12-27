@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { TeamSummary } from "@/components/TeamComparisons";
-import type { TeamLast5 } from "@/components/Last5";
-import type { HotL5Payload } from "@/components/HotPlayers";
+import type { HotL5Payload, TeamLast5, TeamRanks, TeamSummary } from "@/types/api";
+import { fetchJson } from "@/lib/fetchJson";
 
 type MatchupData = {
   torSummary: TeamSummary | null;
@@ -14,7 +13,7 @@ type MatchupData = {
   oppLast5: TeamLast5 | null;
   loadingLast5: boolean;
 
-  teamRanks: any | null;
+  teamRanks: TeamRanks | null;
 
   torHot: HotL5Payload | null;
   oppHot: HotL5Payload | null;
@@ -36,7 +35,7 @@ export default function useMatchupData({
   const [oppLast5, setOppLast5] = useState<TeamLast5 | null>(null);
   const [loadingLast5, setLoadingLast5] = useState(false);
 
-  const [teamRanks, setTeamRanks] = useState<any | null>(null);
+  const [teamRanks, setTeamRanks] = useState<TeamRanks | null>(null);
 
   const [torHot, setTorHot] = useState<HotL5Payload | null>(null);
   const [oppHot, setOppHot] = useState<HotL5Payload | null>(null);
@@ -67,12 +66,12 @@ export default function useMatchupData({
       try {
         setLoadingSummary(true);
         const [tor, opp] = await Promise.all([
-          fetch(`/api/team/summary?team=${teamAbbrev}`, {
+          fetchJson<TeamSummary>(`/api/team/summary?team=${teamAbbrev}`, {
             signal: ctrl.signal,
-          }).then((r) => r.json()),
-          fetch(`/api/team/summary?team=${oppAbbrev}`, {
+          }),
+          fetchJson<TeamSummary>(`/api/team/summary?team=${oppAbbrev}`, {
             signal: ctrl.signal,
-          }).then((r) => r.json()),
+          }),
         ]);
 
         if (requestSeq.current !== seq) return;
@@ -90,12 +89,12 @@ export default function useMatchupData({
       try {
         setLoadingLast5(true);
         const [tor, opp] = await Promise.all([
-          fetch(`/api/team/last5?team=${teamAbbrev}`, {
+          fetchJson<TeamLast5>(`/api/team/last5?team=${teamAbbrev}`, {
             signal: ctrl.signal,
-          }).then((r) => r.json()),
-          fetch(`/api/team/last5?team=${oppAbbrev}`, {
+          }),
+          fetchJson<TeamLast5>(`/api/team/last5?team=${oppAbbrev}`, {
             signal: ctrl.signal,
-          }).then((r) => r.json()),
+          }),
         ]);
 
         if (requestSeq.current !== seq) return;
@@ -110,10 +109,10 @@ export default function useMatchupData({
       }
 
       try {
-        const j = await fetch(
+        const j = await fetchJson<TeamRanks>(
           `/api/team/ranks?teamA=${teamAbbrev}&teamB=${oppAbbrev}`,
           { signal: ctrl.signal }
-        ).then((r) => r.json());
+        );
 
         if (requestSeq.current !== seq) return;
         setTeamRanks(j?.ranks ? j : null);
@@ -125,12 +124,12 @@ export default function useMatchupData({
       try {
         setLoadingHot(true);
         const [tor, opp] = await Promise.all([
-          fetch(`/api/team/hotLast5?team=${teamAbbrev}`, {
+          fetchJson<HotL5Payload>(`/api/team/hotLast5?team=${teamAbbrev}`, {
             signal: ctrl.signal,
-          }).then((r) => r.json()),
-          fetch(`/api/team/hotLast5?team=${oppAbbrev}`, {
+          }),
+          fetchJson<HotL5Payload>(`/api/team/hotLast5?team=${oppAbbrev}`, {
             signal: ctrl.signal,
-          }).then((r) => r.json()),
+          }),
         ]);
 
         if (requestSeq.current !== seq) return;

@@ -2,6 +2,8 @@
 
 import * as React from "react";
 
+import { fetchJson } from "@/lib/fetchJson";
+
 type RosterPlayer = {
   id?: number;
   headshot?: string;
@@ -43,18 +45,10 @@ export default function useRosterHeadshots(team: string, season: string) {
       setError(null);
 
       try {
-        const res = await fetch(
-          `/api/team/roster?team=${encodeURIComponent(team)}&season=${encodeURIComponent(
-            season
-          )}`,
+        const json = await fetchJson<any>(
+          `/api/team/roster?team=${encodeURIComponent(team)}&season=${encodeURIComponent(season)}`,
           { cache: "no-store" }
         );
-
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-
-        const json = await res.json();
         const players = collectRosterPlayers(json);
 
         const m = new Map<number, string>();

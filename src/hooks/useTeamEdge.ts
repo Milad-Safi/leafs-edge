@@ -2,80 +2,32 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-export type EdgeFastestSkater = {
-  playerId: number;
-  name: string;
-  mph: number;
-  kph: number;
-  gameDate: string;
-  gameCenterLink?: string;
-  period?: number;
-  time?: string;
-};
+import { fetchJson } from "@/lib/fetchJson";
+import type {
+  TeamEdgeBundle,
+  TeamSkatingSpeedResponse,
+  TeamShotLocationResponse,
+  TeamShotSpeedResponse,
+  EdgeAreaRow,
+  EdgeFastestSkater,
+  EdgeHardestShooter,
+} from "@/types/api";
 
-export type EdgeHardestShooter = {
-  playerId: number;
-  name: string;
-  mph: number;
-  kph: number;
-  gameDate: string;
-  time?: string;
-};
-
-export type EdgeAreaRow = {
-  area: string;
-  sog: number;
-  goals: number;
-  shootingPctg: number;
-};
-
-export type TeamSkatingSpeedResponse = {
-  ok: boolean;
-  team: string;
-  season: string | null;
-  fastestSkaters: EdgeFastestSkater[];
-};
-
-export type TeamShotSpeedResponse = {
-  ok: boolean;
-  team: string;
-  season: string | null;
-  hardestShooters: EdgeHardestShooter[];
-};
-
-export type TeamShotLocationResponse = {
-  ok: boolean;
-  team: string;
-  season: string | null;
-  areas: EdgeAreaRow[];
-  scale?: { maxSog: number; maxGoals: number };
-};
-
-export type TeamEdgeBundle = {
-  skating: TeamSkatingSpeedResponse;
-  shotSpeed: TeamShotSpeedResponse;
-  shotLocation: TeamShotLocationResponse;
-};
+// Re-export types for backwards-compat with existing imports.
+export type {
+  TeamEdgeBundle,
+  TeamSkatingSpeedResponse,
+  TeamShotLocationResponse,
+  TeamShotSpeedResponse,
+  EdgeAreaRow,
+  EdgeFastestSkater,
+  EdgeHardestShooter,
+} from "@/types/api";
 
 function buildUrl(baseUrl: string, path: string, team: string) {
   const u = new URL(path, baseUrl);
   u.searchParams.set("team", team);
   return u.toString();
-}
-
-async function fetchJson<T>(url: string, signal: AbortSignal): Promise<T> {
-  const res = await fetch(url, {
-    method: "GET",
-    headers: { Accept: "application/json" },
-    signal,
-    // If your backend sets cookies you can switch to "include".
-    credentials: "omit",
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`${res.status} ${res.statusText}${text ? ` — ${text}` : ""}`);
-  }
-  return (await res.json()) as T;
 }
 
 export default function useTeamEdge(team: string | null, enabled = true) {
@@ -108,9 +60,9 @@ export default function useTeamEdge(team: string | null, enabled = true) {
     setError(null);
 
     Promise.all([
-      fetchJson<TeamSkatingSpeedResponse>(urls.skating, ac.signal),
-      fetchJson<TeamShotSpeedResponse>(urls.shotSpeed, ac.signal),
-      fetchJson<TeamShotLocationResponse>(urls.shotLocation, ac.signal),
+      fetchJson<TeamSkatingSpeedResponse>(urls.skating, { signal: ac.signal }),
+      fetchJson<TeamShotSpeedResponse>(urls.shotSpeed, { signal: ac.signal }),
+      fetchJson<TeamShotLocationResponse>(urls.shotLocation, { signal: ac.signal }),
     ])
       .then(([skating, shotSpeed, shotLocation]) => {
         setData({ skating, shotSpeed, shotLocation });

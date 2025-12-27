@@ -4,23 +4,12 @@ import React from "react";
 import StatRow from "@/components/StatRow";
 import { UI } from "@/styles/uiStyles";
 
-type Leader = {
-  playerId: number;
-  name: string;
-  goals: number;
-  assists: number;
-  points: number;
-  shots: number;
-};
+import type { HotL5Payload, HotLeader } from "@/types/api";
 
-export type HotL5Payload = {
-  team: string;
-  leaders: {
-    goals: Leader | null;
-    points: Leader | null;
-    shots: Leader | null;
-  };
-};
+// Re-export types for backwards-compat with existing imports.
+export type { HotL5Payload } from "@/types/api";
+
+type Leader = HotLeader;
 
 function shortName(full: string) {
   const parts = full.trim().split(/\s+/);

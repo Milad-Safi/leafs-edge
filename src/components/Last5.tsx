@@ -2,38 +2,14 @@
 
 import React from "react";
 import StatRow from "@/components/StatRow";
-import HotPlayersRows, { type HotL5Payload } from "@/components/HotPlayers";
+import HotPlayersRows from "@/components/HotPlayers";
 import { UI } from "@/styles/uiStyles";
 
-export type TeamLast5 = {
-  team: string;
-  games: number;
-  record: { w: number; l: number; otl: number };
-  goalsForPerGame: number;
-  goalsAgainstPerGame: number;
-  shotsForPerGame: number;
-  shotsAgainstPerGame: number;
-  powerPlay: { goals: number; opps: number; pct: number | null };
-  penaltyKill: { oppPPGoals: number; oppPPOpps: number; pct: number | null };
-  gameIds: number[];
-  skippedPPGames?: number[];
-  note?: string;
-};
+import type { HotL5Payload, TeamLast5 } from "@/types/api";
+import { higherBetterStrength, lowerBetterStrength, toPct100 } from "@/lib/statsMath";
 
-function higherBetterStrength(v: number | null | undefined, baseline: number, k: number) {
-  if (v == null || !Number.isFinite(v)) return null;
-  return Math.exp(k * (v - baseline));
-}
-
-function toPct100(v: number | null | undefined) {
-  if (v == null || !Number.isFinite(v)) return null;
-  return v <= 1 ? v * 100 : v;
-}
-
-function lowerBetterStrength(v: number | null | undefined, baseline: number, k: number) {
-  if (v == null || !Number.isFinite(v)) return null;
-  return Math.exp(k * (baseline - v));
-}
+// Re-export types for backwards-compat with existing imports.
+export type { TeamLast5 } from "@/types/api";
 
 export default function Last5Section({
   left,

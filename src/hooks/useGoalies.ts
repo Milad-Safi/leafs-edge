@@ -2,36 +2,22 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export type GoalieRecord = { wins: number; losses: number; ot: number };
+import { fetchJson } from "@/lib/fetchJson";
+import type {
+  GoalieApiPayload,
+  GoalieRecord,
+  Last5GoalieSplits,
+  ProjectedStarter,
+} from "@/types/api";
 
-export type Last5GoalieSplits = {
-  games: number;
-  record: { w: number; l: number; ot: number };
-  svPct: number | null;
-  gaa: number | null;
-};
+// Re-export types for backwards-compat with existing imports.
+export type {
+  GoalieApiPayload,
+  GoalieRecord,
+  Last5GoalieSplits,
+  ProjectedStarter,
+} from "@/types/api";
 
-export type ProjectedStarter = {
-  playerId: number;
-  name: string;
-  headshot: string | null;
-
-  record: GoalieRecord;
-  gamesPlayed: number;
-
-  savePct: number | null;
-  gaa: number | null;
-
-  last5Starts?: number | null;
-  last5Splits?: Last5GoalieSplits | null;
-};
-
-export type GoalieApiPayload = {
-  team: string;
-  projectedStarter: ProjectedStarter | null;
-  meta?: any;
-  error?: string;
-};
 
 export default function useGoalies({
   leftTeam,
@@ -63,14 +49,14 @@ export default function useGoalies({
       setLoading(true);
       try {
         const [a, b] = await Promise.all([
-          fetch(`/api/team/goalies?team=${leftTeam}&gameDate=${gameDate}`, {
-            cache: "no-store",
-            signal: ctrl.signal,
-          }).then((r) => r.json()),
-          fetch(`/api/team/goalies?team=${rightTeam}&gameDate=${gameDate}`, {
-            cache: "no-store",
-            signal: ctrl.signal,
-          }).then((r) => r.json()),
+          fetchJson<GoalieApiPayload>(
+            `/api/team/goalies?team=${leftTeam}&gameDate=${gameDate}`,
+            { cache: "no-store", signal: ctrl.signal }
+          ),
+          fetchJson<GoalieApiPayload>(
+            `/api/team/goalies?team=${rightTeam}&gameDate=${gameDate}`,
+            { cache: "no-store", signal: ctrl.signal }
+          ),
         ]);
 
         if (seqRef.current !== seq) return;

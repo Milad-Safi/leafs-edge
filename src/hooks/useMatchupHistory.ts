@@ -2,28 +2,11 @@
 
 import { useEffect, useState } from "react";
 
-export type HistoryLeader = {
-  playerId: number;
-  name: string;
-  goals: number;
-  points: number;
-  sog: number;
-};
+import { fetchJson } from "@/lib/fetchJson";
+import type { MatchupHistoryPayload } from "@/types/api";
 
-export type MatchupHistoryPayload = {
-  team: string;
-  opp: string;
-  seasons: number[];
-  gamesFound: number;
-  leaders: Record<
-    string,
-    {
-      topGoals: HistoryLeader | null;
-      topPoints: HistoryLeader | null;
-      topSog: HistoryLeader | null;
-    }
-  >;
-};
+// Re-export types for backwards-compat with existing imports.
+export type { MatchupHistoryPayload } from "@/types/api";
 
 export function useMatchupHistory(team: string | null, opp: string | null) {
   const [data, setData] = useState<MatchupHistoryPayload | null>(null);
@@ -40,17 +23,10 @@ export function useMatchupHistory(team: string | null, opp: string | null) {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(
+        const json = await fetchJson<MatchupHistoryPayload>(
           `/api/matchups/history?team=${encodeURIComponent(team)}&opp=${encodeURIComponent(opp)}`,
           { signal: controller.signal }
         );
-
-        if (!res.ok) {
-          const text = await res.text().catch(() => "");
-          throw new Error(`HTTP ${res.status}: ${text || res.statusText}`);
-        }
-
-        const json = (await res.json()) as MatchupHistoryPayload;
         setData(json);
       } catch (e: any) {
         if (e?.name !== "AbortError") setError(e?.message ?? "Failed to load matchup history");
