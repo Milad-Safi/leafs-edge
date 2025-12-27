@@ -10,7 +10,7 @@ function normalizeTeam(input: string): TeamAbbrev {
 
 function backendBaseUrl() {
   // frontend .env.local: NHL_BACKEND_URL=http://localhost:8000
-  return process.env.NHL_BACKEND_URL || "https://leafs-edge-api.onrender.com/docs";
+  return process.env.NHL_BACKEND_URL || "https://leafs-edge-api.onrender.com";
 }
 
 function num(n: unknown, fallback = 0): number {
