@@ -6,8 +6,7 @@ import type { TeamTrendResponse } from "@/types/api";
 // Re-export types for backwards-compat with existing imports.
 export type { TeamTrendResponse } from "@/types/api";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_EDGE_API_BASE ?? "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_EDGE_API_BASE ?? "https://leafs-edge-api.onrender.com";
 
 export function useTeamTrend(team: string | null) {
   const [data, setData] = useState<TeamTrendResponse | null>(null);

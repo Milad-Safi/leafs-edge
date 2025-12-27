@@ -31,8 +31,7 @@ function buildUrl(baseUrl: string, path: string, team: string) {
 }
 
 export default function useTeamEdge(team: string | null, enabled = true) {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_EDGE_API_BASE ?? "http://localhost:8000";
+  const baseUrl = process.env.NEXT_PUBLIC_EDGE_API_BASE ?? "https://leafs-edge-api.onrender.com";
 
   const urls = useMemo(() => {
     if (!team) return null;
