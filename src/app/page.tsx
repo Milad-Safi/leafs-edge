@@ -15,6 +15,7 @@ import MatchupHistory from "@/components/matchupHistory";
 import { useMatchupHistory } from "@/hooks/useMatchupHistory";
 import CenterNav from "@/components/centerNav";
 
+export const dynamic = "force-dynamic";
 
 function getOppFromGame(game: Game | null, teamAbbrev: string) {
   if (!game) return null;
