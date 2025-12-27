@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export const revalidate = 60;
 
 function backendBaseUrl() {
-  return process.env.NHL_BACKEND_URL || "https://leafs-edge-api.onrender.com";
+  return process.env.NHL_BACKEND_URL || "https://leafs-edge-api.onrender.com/docs";
 
 }
 
