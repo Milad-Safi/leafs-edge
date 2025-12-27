@@ -89,10 +89,10 @@ export default function useMatchupData({
       try {
         setLoadingLast5(true);
         const [tor, opp] = await Promise.all([
-          fetchJson<TeamLast5>(`/api/team/last5?team=${teamAbbrev}`, {
+          fetchJson<TeamLast5>(`/api/team/last5?team=${teamAbbrev}&opp=${oppAbbrev}`, {
             signal: ctrl.signal,
           }),
-          fetchJson<TeamLast5>(`/api/team/last5?team=${oppAbbrev}`, {
+          fetchJson<TeamLast5>(`/api/team/last5?team=${oppAbbrev}&opp=${teamAbbrev}`, {
             signal: ctrl.signal,
           }),
         ]);
