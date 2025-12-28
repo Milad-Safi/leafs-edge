@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 type ScheduleGame = {
   id: number;
   gameType: number;
+  gameState?: string; // filter FUT without boxscore
   homeTeam: { abbrev: string };
   awayTeam: { abbrev: string };
 };
@@ -33,7 +34,8 @@ type Boxscore = {
 
 type Agg = { playerId: number; name: string; goals: number; points: number; sog: number };
 
-const REVALIDATE = 3600;
+// Cache for 24h
+const REVALIDATE = 86400;
 const CONCURRENCY = 5;
 
 async function fetchJson<T>(url: string): Promise<T> {
@@ -45,6 +47,7 @@ async function fetchJson<T>(url: string): Promise<T> {
 async function mapLimit<T, R>(items: T[], limit: number, fn: (x: T) => Promise<R>) {
   const out: R[] = new Array(items.length);
   let i = 0;
+
   async function worker() {
     while (true) {
       const idx = i++;
@@ -52,6 +55,7 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (x: T) => Promise<R
       out[idx] = await fn(items[idx]);
     }
   }
+
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
   return out;
 }
@@ -69,7 +73,13 @@ function add(agg: Map<number, Agg>, p: Skater) {
   const id = Number(p.playerId);
   if (!Number.isFinite(id)) return;
 
-  const row = agg.get(id) ?? { playerId: id, name: nameOf(p.name), goals: 0, points: 0, sog: 0 };
+  const row = agg.get(id) ?? {
+    playerId: id,
+    name: nameOf(p.name),
+    goals: 0,
+    points: 0,
+    sog: 0,
+  };
 
   row.goals += num(p.goals);
 
@@ -84,44 +94,6 @@ function add(agg: Map<number, Agg>, p: Skater) {
 function topBy(list: Agg[], key: keyof Pick<Agg, "goals" | "points" | "sog">): Agg | null {
   if (!list.length) return null;
   return list.reduce((best, cur) => (cur[key] > best[key] ? cur : best), list[0]);
-}
-
-/**
- * Current roster filtering (B)
- * NHL roster payload can vary; this attempts to pull playerIds from common fields.
- */
-function collectRosterIds(rosterJson: any): Set<number> {
-  const ids = new Set<number>();
-
-  const visitArray = (arr: any) => {
-    if (!Array.isArray(arr)) return;
-    for (const p of arr) {
-      const id = num(p?.playerId ?? p?.id);
-      if (id) ids.add(id);
-    }
-  };
-
-  // Common groups
-  visitArray(rosterJson?.forwards);
-  visitArray(rosterJson?.defensemen);
-  visitArray(rosterJson?.goalies);
-
-  // Nested variants
-  if (rosterJson && typeof rosterJson === "object") {
-    for (const k of Object.keys(rosterJson)) {
-      const v = rosterJson[k];
-      if (Array.isArray(v)) visitArray(v);
-      if (v && typeof v === "object") {
-        visitArray(v?.forwards);
-        visitArray(v?.defensemen);
-        visitArray(v?.goalies);
-        visitArray(v?.players);
-        visitArray(v?.roster);
-      }
-    }
-  }
-
-  return ids;
 }
 
 export async function GET(req: Request) {
@@ -145,10 +117,9 @@ export async function GET(req: Request) {
     // Requirement: last 2 seasons only
     const seasons = [seed.currentSeason, seed.previousSeason];
 
-    // Fix A: schedule is source of truth for home/away mapping per gameId
+    // schedule is source of truth for home/away mapping per gameId
     const isTeamHomeByGameId = new Map<number, boolean>();
 
-    // We'll build perSeason now (raw), then later we'll also produce perSeasonPlayed
     const perSeason: { season: number; gameIds: number[] }[] = [];
 
     for (const season of seasons) {
@@ -159,8 +130,11 @@ export async function GET(req: Request) {
       const gameIds =
         (sched.games ?? [])
           .filter((g) => {
-            // Requirement: regular season only
+            // regular season only
             if (g.gameType !== 2) return false;
+
+            // skip future games before boxscore fetch
+            if (g.gameState === "FUT") return false;
 
             const ht = (g.homeTeam?.abbrev || "").toUpperCase();
             const at = (g.awayTeam?.abbrev || "").toUpperCase();
@@ -195,26 +169,9 @@ export async function GET(req: Request) {
       });
     }
 
-    // B: only count players currently on each team (best-effort)
-    let teamRosterIds: Set<number> | null = null;
-    let oppRosterIds: Set<number> | null = null;
-
-    try {
-      const [teamRosterRaw, oppRosterRaw] = await Promise.all([
-        fetchJson<any>(`https://api-web.nhle.com/v1/roster/${team}/current`),
-        fetchJson<any>(`https://api-web.nhle.com/v1/roster/${opp}/current`),
-      ]);
-      teamRosterIds = collectRosterIds(teamRosterRaw);
-      oppRosterIds = collectRosterIds(oppRosterRaw);
-    } catch {
-      teamRosterIds = null;
-      oppRosterIds = null;
-    }
-
     const aggTeam = new Map<number, Agg>();
     const aggOpp = new Map<number, Agg>();
 
-    // Fix: schedule includes FUTURE games. Only count games that have skater stats.
     const playedGameIds: number[] = [];
     const playedSet = new Set<number>();
 
@@ -230,34 +187,20 @@ export async function GET(req: Request) {
         ...(box.playerByGameStats?.awayTeam?.defense ?? []),
       ];
 
-      // ✅ skip unplayed matchups (future schedule items)
-      if (homeSkaters.length === 0 && awaySkaters.length === 0) {
-        return true;
-      }
+      // Skip unplayed / missing stats
+      if (homeSkaters.length === 0 && awaySkaters.length === 0) return true;
 
       playedGameIds.push(gameId);
       playedSet.add(gameId);
 
       const isTeamHome = isTeamHomeByGameId.get(gameId);
-      if (typeof isTeamHome !== "boolean") {
-        // If mapping missing, skip to avoid corrupting totals
-        return true;
-      }
+      if (typeof isTeamHome !== "boolean") return true;
 
       const homeAgg = isTeamHome ? aggTeam : aggOpp;
       const awayAgg = isTeamHome ? aggOpp : aggTeam;
 
-      const homeRoster = isTeamHome ? teamRosterIds : oppRosterIds;
-      const awayRoster = isTeamHome ? oppRosterIds : teamRosterIds;
-
-      for (const p of homeSkaters) {
-        const pid = num(p.playerId);
-        if (!homeRoster || homeRoster.has(pid)) add(homeAgg, p);
-      }
-      for (const p of awaySkaters) {
-        const pid = num(p.playerId);
-        if (!awayRoster || awayRoster.has(pid)) add(awayAgg, p);
-      }
+      for (const p of homeSkaters) add(homeAgg, p);
+      for (const p of awaySkaters) add(awayAgg, p);
 
       return true;
     });
@@ -265,7 +208,6 @@ export async function GET(req: Request) {
     const teamList = Array.from(aggTeam.values());
     const oppList = Array.from(aggOpp.values());
 
-    // Helpful: per-season list of ONLY played games (so UI/tooling can use the right counts)
     const perSeasonPlayed = perSeason.map((x) => ({
       season: x.season,
       gameIds: x.gameIds.filter((id) => playedSet.has(id)),

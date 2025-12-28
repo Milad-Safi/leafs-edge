@@ -51,6 +51,11 @@ export type TeamLast5 = {
   team: string;
   games: number;
   record: { w: number; l: number; otl: number };
+
+  // ✅ NEW totals over last 5 window
+  goalsFor: number;
+  goalsAgainst: number;
+
   goalsForPerGame: number;
   goalsAgainstPerGame: number;
   shotsForPerGame: number;
@@ -61,6 +66,7 @@ export type TeamLast5 = {
   skippedPPGames?: number[];
   note?: string;
 };
+
 
 export type HotLeader = {
   playerId: number;

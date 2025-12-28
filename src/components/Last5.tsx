@@ -43,7 +43,7 @@ export default function Last5Section({
         {/* TITLE */}
         <div
           style={{
-            paddingTop: 3,       
+            paddingTop: 3,
             paddingBottom: 14,
             fontWeight: 900,
             opacity: 0.92,
@@ -72,6 +72,27 @@ export default function Last5Section({
           />
 
           <StatRow
+            leftVal={higherBetterStrength(left?.goalsForPerGame ?? null, 3.0, 1.5)}
+            rightVal={higherBetterStrength(right?.goalsForPerGame ?? null, 3.0, 1.5)}
+            label="Goals For / Game"
+            leftText={left?.goalsForPerGame != null ? left.goalsForPerGame.toFixed(2) : "—"}
+            rightText={right?.goalsForPerGame != null ? right.goalsForPerGame.toFixed(2) : "—"}
+            leftColor={leftColor}
+            rightColor={rightColor}
+          />
+
+          <StatRow
+            leftVal={lowerBetterStrength(left?.goalsAgainstPerGame ?? null, 3.0, 1.7)}
+            rightVal={lowerBetterStrength(right?.goalsAgainstPerGame ?? null, 3.0, 1.7)}
+            label="Goals Against / Game"
+            leftText={left?.goalsAgainstPerGame != null ? left.goalsAgainstPerGame.toFixed(2) : "—"}
+            rightText={right?.goalsAgainstPerGame != null ? right.goalsAgainstPerGame.toFixed(2) : "—"}
+            leftColor={leftColor}
+            rightColor={rightColor}
+          />
+
+
+          <StatRow
             leftVal={higherBetterStrength(left?.shotsForPerGame ?? null, 30, 0.12)}
             rightVal={higherBetterStrength(right?.shotsForPerGame ?? null, 30, 0.12)}
             label="Shots For / Game"
@@ -95,8 +116,16 @@ export default function Last5Section({
             leftVal={higherBetterStrength(toPct100(lPP?.pct ?? null), 20, 0.05)}
             rightVal={higherBetterStrength(toPct100(rPP?.pct ?? null), 20, 0.05)}
             label="Power Play %"
-            leftText={lPP?.pct != null ? `${toPct100(lPP.pct)?.toFixed(1)}% (${lPP.goals}/${lPP.opps})` : "—"}
-            rightText={rPP?.pct != null ? `(${rPP.goals}/${rPP.opps}) ${toPct100(rPP.pct)?.toFixed(1)}%` : "—"}
+            leftText={
+              lPP?.pct != null
+                ? `${toPct100(lPP.pct)?.toFixed(1)}% (${lPP.goals}/${lPP.opps})`
+                : "—"
+            }
+            rightText={
+              rPP?.pct != null
+                ? `(${rPP.goals}/${rPP.opps}) ${toPct100(rPP.pct)?.toFixed(1)}%`
+                : "—"
+            }
             leftColor={leftColor}
             rightColor={rightColor}
           />
@@ -105,12 +134,19 @@ export default function Last5Section({
             leftVal={higherBetterStrength(toPct100(lPK?.pct ?? null), 80, 0.04)}
             rightVal={higherBetterStrength(toPct100(rPK?.pct ?? null), 80, 0.04)}
             label="Penalty Kill %"
-            leftText={lPK?.pct != null ? `${toPct100(lPK.pct)?.toFixed(1)}% (${lPK.oppPPGoals}/${lPK.oppPPOpps})` : "—"}
-            rightText={rPK?.pct != null ? `(${rPK.oppPPGoals}/${rPK.oppPPOpps}) ${toPct100(rPK.pct)?.toFixed(1)}% ` : "—"}
+            leftText={
+              lPK?.pct != null
+                ? `${toPct100(lPK.pct)?.toFixed(1)}% (${lPK.oppPPGoals}/${lPK.oppPPOpps})`
+                : "—"
+            }
+            rightText={
+              rPK?.pct != null
+                ? `(${rPK.oppPPGoals}/${rPK.oppPPOpps}) ${toPct100(rPK.pct)?.toFixed(1)}% `
+                : "—"
+            }
             leftColor={leftColor}
             rightColor={rightColor}
           />
-
         </div>
 
         <div style={{ height: 18 }} />

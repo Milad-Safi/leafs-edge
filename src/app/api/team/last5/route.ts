@@ -26,7 +26,6 @@ function todayISO_UTC(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-// keep consistent with your backend logic
 const SEASON_START = "2025-10-05";
 
 export async function GET(req: Request) {
@@ -40,8 +39,6 @@ export async function GET(req: Request) {
   }
 
   try {
-    // Regular season filter: YYYYTTNNNN where TT==02
-    // Same as your python: (CAST(game_id / 10000 AS INTEGER) % 100) = 2
     const r = await query<{
       game_id: string | number;
       game_date: string;
@@ -86,10 +83,14 @@ export async function GET(req: Request) {
         team,
         games: 0,
         record: { w: 0, l: 0, otl: 0 },
-        goalsForPerGame: null,
-        goalsAgainstPerGame: null,
-        shotsForPerGame: null,
-        shotsAgainstPerGame: null,
+
+        goalsFor: 0,
+        goalsAgainst: 0,
+
+        goalsForPerGame: 0,
+        goalsAgainstPerGame: 0,
+        shotsForPerGame: 0,
+        shotsAgainstPerGame: 0,
         powerPlay: { goals: 0, opps: 0, pct: null },
         penaltyKill: { oppPPGoals: 0, oppPPOpps: 0, pct: null },
         gameIds: [],
@@ -101,7 +102,7 @@ export async function GET(req: Request) {
     let games = 0;
     let w = 0;
     let l = 0;
-    let otl = 0; // your DB doesn’t store OTL; keep 0 so UI won’t break
+    let otl = 0;
 
     let gf = 0;
     let ga = 0;
@@ -140,6 +141,10 @@ export async function GET(req: Request) {
       team,
       games,
       record: { w, l, otl },
+
+      goalsFor: gf,
+      goalsAgainst: ga,
+
       goalsForPerGame: +(gf / games).toFixed(2),
       goalsAgainstPerGame: +(ga / games).toFixed(2),
       shotsForPerGame: +(sf / games).toFixed(2),
