@@ -3,6 +3,10 @@ import { cleanStr, toNum } from "@/lib/nhl/parse";
 
 export const runtime = "nodejs";
 
+// Force this route to be dynamic (no Next static/cached route behavior)
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const INJURY_SOURCE =
   "https://datacrunch.9c9media.ca/statsapi/sports/hockey/leagues/nhl/playerInjuries?type=json";
 
@@ -32,6 +36,7 @@ async function fetchRosterHeadshots(team: string): Promise<{
 }> {
   const url = `https://api-web.nhle.com/v1/roster/${team}/current`;
 
+  // Roster headshots are safe to cache daily
   const res = await fetch(url, {
     next: { revalidate: 86400 },
     headers: { accept: "application/json" },
@@ -76,8 +81,9 @@ export async function GET(req: Request) {
 
   try {
     const [injRes, roster] = await Promise.all([
+      // IMPORTANT: disable Next fetch caching for injuries (always fresh)
       fetch(INJURY_SOURCE, {
-        next: { revalidate: 86400 },
+        cache: "no-store",
         headers: {
           "user-agent": "Mozilla/5.0 (leafs-edge)",
           accept: "application/json,text/plain,*/*",
@@ -97,7 +103,7 @@ export async function GET(req: Request) {
           injuries: [],
           error: `Injury source HTTP ${injRes.status}`,
         },
-        { status: 502 }
+        { status: 502, headers: { "Cache-Control": "no-store" } }
       );
     }
 
@@ -113,14 +119,17 @@ export async function GET(req: Request) {
     );
 
     if (!block) {
-      return NextResponse.json({
-        team,
-        teamName: null,
-        teamSeo: null,
-        source: INJURY_SOURCE,
-        lastUpdated: new Date().toISOString(),
-        injuries: [],
-      });
+      return NextResponse.json(
+        {
+          team,
+          teamName: null,
+          teamSeo: null,
+          source: INJURY_SOURCE,
+          lastUpdated: new Date().toISOString(),
+          injuries: [],
+        },
+        { headers: { "Cache-Control": "no-store" } }
+      );
     }
 
     const injuries: InjuryOut[] = (block?.playerInjuries ?? []).map((pi: any) => {
@@ -135,7 +144,10 @@ export async function GET(req: Request) {
         status: cleanStr(pi?.status),
         date: cleanStr(pi?.date),
         description: cleanStr(pi?.description),
-        headshot: (pid !== null && roster.byId.get(pid)) || roster.byName.get(nameKey) || null,
+        headshot:
+          (pid !== null && roster.byId.get(pid)) ||
+          roster.byName.get(nameKey) ||
+          null,
       };
     });
 
@@ -148,7 +160,9 @@ export async function GET(req: Request) {
       injuries,
     };
 
-    return NextResponse.json(payload);
+    return NextResponse.json(payload, {
+      headers: { "Cache-Control": "no-store" },
+    });
   } catch (e: any) {
     return NextResponse.json(
       {
@@ -160,7 +174,7 @@ export async function GET(req: Request) {
         injuries: [],
         error: e?.message ?? "Fetch failed",
       },
-      { status: 500 }
+      { status: 500, headers: { "Cache-Control": "no-store" } }
     );
   }
 }
