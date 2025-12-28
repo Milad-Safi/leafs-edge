@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { query } from "@/lib/db";
 
 export const revalidate = 60;
 
@@ -22,79 +23,11 @@ function isISODate(s: string | null): s is string {
 }
 
 function todayISO_UTC(): string {
-  // good enough for “as_of”; you can pass as_of=YYYY-MM-DD if you want exact cutoffs
   return new Date().toISOString().slice(0, 10);
 }
 
-const NHL_BASE = "https://api-web.nhle.com";
-
-async function fetchNhlJson(url: string, signal?: AbortSignal) {
-  const r = await fetch(url, {
-    signal,
-    // keep Next caching behavior consistent:
-    next: { revalidate },
-  });
-
-  if (!r.ok) {
-    const t = await r.text().catch(() => "");
-    throw new Error(`NHL fetch failed ${r.status}: ${t.slice(0, 300)}`);
-  }
-  return r.json();
-}
-
-// Parse strings like "1/4"
-function parseRatio(s: unknown): { goals: number; opps: number } | null {
-  if (typeof s !== "string") return null;
-  const m = s.match(/^(\d+)\s*\/\s*(\d+)$/);
-  if (!m) return null;
-  return { goals: Number(m[1]), opps: Number(m[2]) };
-}
-
-// Try hard to extract PP conversion from various possible boxscore shapes.
-// We keep it defensive because NHL JSON fields can shift.
-function extractPP(box: any, side: "home" | "away"): { goals: number; opps: number } | null {
-  const candidates: unknown[] = [
-    box?.summary?.teamGameStats?.[`${side}Team`]?.powerPlayConversion,
-    box?.summary?.teamGameStats?.[side]?.powerPlayConversion,
-    box?.teamGameStats?.[`${side}Team`]?.powerPlayConversion,
-    box?.teamGameStats?.[side]?.powerPlayConversion,
-    box?.gameStats?.[`${side}Team`]?.powerPlayConversion,
-    box?.gameStats?.[side]?.powerPlayConversion,
-  ];
-
-  for (const c of candidates) {
-    const parsed = parseRatio(c);
-    if (parsed) return parsed;
-  }
-
-  // Another common pattern is explicit numbers:
-  const goals =
-    box?.summary?.teamGameStats?.[`${side}Team`]?.powerPlayGoals ??
-    box?.teamGameStats?.[`${side}Team`]?.powerPlayGoals ??
-    box?.[`${side}Team`]?.powerPlayGoals;
-
-  const opps =
-    box?.summary?.teamGameStats?.[`${side}Team`]?.powerPlayOpportunities ??
-    box?.teamGameStats?.[`${side}Team`]?.powerPlayOpportunities ??
-    box?.[`${side}Team`]?.powerPlayOpportunities;
-
-  if (typeof goals === "number" && typeof opps === "number") {
-    return { goals, opps };
-  }
-
-  return null;
-}
-
-function finishedGame(g: any): boolean {
-  // In the schedule payload, future games are "FUT".
-  // Finished games typically show "OFF" or similar.
-  return typeof g?.gameState === "string" && g.gameState !== "FUT";
-}
-
-function regularSeasonGame(g: any): boolean {
-  // gameType 2 == regular season in NHL gamecenter payloads
-  return num(g?.gameType) === 2;
-}
+// keep consistent with your backend logic
+const SEASON_START = "2025-10-05";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -107,75 +40,68 @@ export async function GET(req: Request) {
   }
 
   try {
-    // Walk backwards week-by-week until we collect 5 finished games (regular season).
-    const gameIds: number[] = [];
-    const seen = new Set<number>();
-
-    let cursorDate = asOf;
-    let guard = 0;
-
-    while (gameIds.length < 5 && guard < 12) {
-      guard++;
-
-      const weekUrl = `${NHL_BASE}/v1/club-schedule/${team}/week/${cursorDate}`;
-      const week = await fetchNhlJson(weekUrl);
-
-      const games: any[] = Array.isArray(week?.games) ? week.games : [];
-
-      // Filter finished + regular season + <= asOf
-      const finished = games
-        .filter((g) => finishedGame(g) && regularSeasonGame(g))
-        .filter((g) => typeof g?.gameDate === "string" && g.gameDate <= asOf)
-        .sort((a, b) => {
-          // newest first
-          if (a.gameDate !== b.gameDate) return b.gameDate.localeCompare(a.gameDate);
-          return num(b.id) - num(a.id);
-        });
-
-      for (const g of finished) {
-        const id = num(g?.id);
-        if (!id || seen.has(id)) continue;
-        seen.add(id);
-        gameIds.push(id);
-        if (gameIds.length >= 5) break;
-      }
-
-      const prev = week?.previousStartDate;
-      if (!prev || typeof prev !== "string") break;
-      cursorDate = prev;
-    }
-
-    if (gameIds.length === 0) {
-      return NextResponse.json(
-        {
-          team,
-          games: 0,
-          record: { w: 0, l: 0, otl: 0 },
-          goalsForPerGame: null,
-          goalsAgainstPerGame: null,
-          shotsForPerGame: null,
-          shotsAgainstPerGame: null,
-          powerPlay: { goals: 0, opps: 0, pct: null },
-          penaltyKill: { oppPPGoals: 0, oppPPOpps: 0, pct: null },
-          gameIds: [],
-          skippedPPGames: [],
-          note: "Computed from NHL schedule + boxscore.",
-        },
-        { status: 200 }
-      );
-    }
-
-    // Fetch boxscores for the last 5 game IDs
-    const picked = gameIds.slice(0, 5);
-
-    const boxscores = await Promise.all(
-      picked.map((id) => fetchNhlJson(`${NHL_BASE}/v1/gamecenter/${id}/boxscore`))
+    // Regular season filter: YYYYTTNNNN where TT==02
+    // Same as your python: (CAST(game_id / 10000 AS INTEGER) % 100) = 2
+    const r = await query<{
+      game_id: string | number;
+      game_date: string;
+      goals_for: number;
+      goals_against: number;
+      shots_for: number;
+      shots_against: number;
+      pp_goals: number | null;
+      pp_opps: number | null;
+      pk_goals_against: number | null;
+      pk_opps: number | null;
+      win: boolean | null;
+    }>(
+      `
+      SELECT
+        tg.game_id,
+        tg.game_date,
+        tg.goals_for,
+        tg.goals_against,
+        tg.shots_for,
+        tg.shots_against,
+        COALESCE(tg.pp_goals,0) AS pp_goals,
+        COALESCE(tg.pp_opps,0) AS pp_opps,
+        COALESCE(tg.pk_goals_against,0) AS pk_goals_against,
+        COALESCE(tg.pk_opps,0) AS pk_opps,
+        tg.win
+      FROM team_games tg
+      WHERE tg.team = $1
+        AND tg.game_date >= $2
+        AND tg.game_date < $3
+        AND ((CAST(tg.game_id / 10000 AS INTEGER) % 100) = 2)
+      ORDER BY tg.game_date DESC, tg.game_id DESC
+      LIMIT 5
+      `,
+      [team, SEASON_START, asOf]
     );
+
+    const rows = r.rows ?? [];
+
+    if (rows.length === 0) {
+      return NextResponse.json({
+        team,
+        games: 0,
+        record: { w: 0, l: 0, otl: 0 },
+        goalsForPerGame: null,
+        goalsAgainstPerGame: null,
+        shotsForPerGame: null,
+        shotsAgainstPerGame: null,
+        powerPlay: { goals: 0, opps: 0, pct: null },
+        penaltyKill: { oppPPGoals: 0, oppPPOpps: 0, pct: null },
+        gameIds: [],
+        skippedPPGames: [],
+        note: "Computed from Supabase team_games (no backend).",
+      });
+    }
 
     let games = 0;
     let w = 0;
     let l = 0;
-    let otl = 0;
+    let otl = 0; // your DB doesn’t store OTL; keep 0 so UI won’t break
 
     let gf = 0;
     let ga = 0;
@@ -185,68 +111,30 @@ export async function GET(req: Request) {
     let ppGoals = 0;
     let ppOpps = 0;
 
-    let oppPPGoals = 0;
-    let oppPPOpps = 0;
+    let pkGA = 0;
+    let pkOpps = 0;
 
-    for (const box of boxscores) {
-      const awayAbbrev = String(box?.awayTeam?.abbrev || "").toUpperCase();
-      const homeAbbrev = String(box?.homeTeam?.abbrev || "").toUpperCase();
-
-      const isAway = awayAbbrev === team;
-      const isHome = homeAbbrev === team;
-      if (!isAway && !isHome) continue;
-
-      const my = isAway ? box?.awayTeam : box?.homeTeam;
-      const opp = isAway ? box?.homeTeam : box?.awayTeam;
-
-      const myGoals = num(my?.score);
-      const oppGoals = num(opp?.score);
-
-      const myShots = num(my?.sog);
-      const oppShots = num(opp?.sog);
-
-      gf += myGoals;
-      ga += oppGoals;
-      sf += myShots;
-      sa += oppShots;
-
+    for (const g of rows) {
       games++;
 
-      const won = myGoals > oppGoals;
+      gf += num(g.goals_for);
+      ga += num(g.goals_against);
+      sf += num(g.shots_for);
+      sa += num(g.shots_against);
+
+      const won = !!g.win;
       if (won) w++;
       else l++;
 
-      // OTL detection: if you lost and the game went beyond regulation.
-      // In boxscore, periodDescriptor.periodType may be "OT" or "SO".
-      const pType = String(box?.periodDescriptor?.periodType || "").toUpperCase();
-      const wentExtra = pType === "OT" || pType === "SO";
-      if (!won && wentExtra) otl++;
+      ppGoals += num(g.pp_goals);
+      ppOpps += num(g.pp_opps);
 
-      const mySide: "home" | "away" = isAway ? "away" : "home";
-      const oppSide: "home" | "away" = isAway ? "home" : "away";
-
-      const myPP = extractPP(box, mySide);
-      if (myPP) {
-        ppGoals += myPP.goals;
-        ppOpps += myPP.opps;
-      }
-
-      const oppPP = extractPP(box, oppSide);
-      if (oppPP) {
-        oppPPGoals += oppPP.goals;
-        oppPPOpps += oppPP.opps;
-      }
-    }
-
-    if (games === 0) {
-      return NextResponse.json(
-        { error: "Could not match team abbrev inside boxscores", team, gameIds: picked },
-        { status: 502 }
-      );
+      pkGA += num(g.pk_goals_against);
+      pkOpps += num(g.pk_opps);
     }
 
     const ppPct = pct100(ppGoals, ppOpps);
-    const pkPct = oppPPOpps > 0 ? +(100 - (oppPPGoals / oppPPOpps) * 100).toFixed(1) : null;
+    const pkPct = pkOpps > 0 ? +(100 - (pkGA / pkOpps) * 100).toFixed(1) : null;
 
     return NextResponse.json({
       team,
@@ -257,14 +145,14 @@ export async function GET(req: Request) {
       shotsForPerGame: +(sf / games).toFixed(2),
       shotsAgainstPerGame: +(sa / games).toFixed(2),
       powerPlay: { goals: ppGoals, opps: ppOpps, pct: ppPct },
-      penaltyKill: { oppPPGoals, oppPPOpps, pct: pkPct },
-      gameIds: picked,
+      penaltyKill: { oppPPGoals: pkGA, oppPPOpps: pkOpps, pct: pkPct },
+      gameIds: rows.map((x) => Number(x.game_id)).filter((n) => Number.isFinite(n)),
       skippedPPGames: [],
-      note: "Computed from NHL /club-schedule week + /gamecenter boxscore (no backend).",
+      note: "Computed from Supabase team_games (no backend).",
     });
   } catch (err: any) {
     return NextResponse.json(
-      { error: "NHL proxy error", detail: String(err?.message ?? err) },
+      { error: "DB last5 error", detail: String(err?.message ?? err) },
       { status: 500 }
     );
   }
