@@ -93,8 +93,8 @@ export default function Last5Section({
 
 
           <StatRow
-            leftVal={higherBetterStrength(left?.shotsForPerGame ?? null, 30, 0.12)}
-            rightVal={higherBetterStrength(right?.shotsForPerGame ?? null, 30, 0.12)}
+            leftVal={higherBetterStrength(left?.shotsForPerGame ?? null, 30, 1)}
+            rightVal={higherBetterStrength(right?.shotsForPerGame ?? null, 30, 1)}
             label="Shots For / Game"
             leftText={left?.shotsForPerGame != null ? `${left.shotsForPerGame}` : "—"}
             rightText={right?.shotsForPerGame != null ? `${right.shotsForPerGame}` : "—"}
@@ -103,8 +103,8 @@ export default function Last5Section({
           />
 
           <StatRow
-            leftVal={lowerBetterStrength(left?.shotsAgainstPerGame ?? null, 30, 0.12)}
-            rightVal={lowerBetterStrength(right?.shotsAgainstPerGame ?? null, 30, 0.12)}
+            leftVal={lowerBetterStrength(left?.shotsAgainstPerGame ?? null, 30, 1)}
+            rightVal={lowerBetterStrength(right?.shotsAgainstPerGame ?? null, 30, 1)}
             label="Shots Against / Game"
             leftText={left?.shotsAgainstPerGame != null ? `${left.shotsAgainstPerGame}` : "—"}
             rightText={right?.shotsAgainstPerGame != null ? `${right.shotsAgainstPerGame}` : "—"}
