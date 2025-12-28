@@ -2,8 +2,6 @@
 __pycache__/
 *.pyc
 .env
-app/models/*.json
-
 
 # Python
 __pycache__/
