@@ -1,11 +1,14 @@
 from sqlalchemy import text
 from .db import engine
 
+# Migration function to safely modify db schema and keep team-game rows unique
 def migrate_v1_add_game_id():
+    # Open transaction
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE team_games ADD COLUMN IF NOT EXISTS game_id BIGINT;"))
         conn.execute(text("ALTER TABLE team_games ADD COLUMN IF NOT EXISTS game_date DATE;"))
 
+        # PostGres PL/pgSQL , only add constraint if missing
         conn.execute(text("""
             DO $$
             BEGIN

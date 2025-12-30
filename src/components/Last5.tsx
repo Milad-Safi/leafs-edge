@@ -72,8 +72,8 @@ export default function Last5Section({
           />
 
           <StatRow
-            leftVal={higherBetterStrength(left?.goalsForPerGame ?? null, 3.0, 1.5)}
-            rightVal={higherBetterStrength(right?.goalsForPerGame ?? null, 3.0, 1.5)}
+            leftVal={higherBetterStrength(left?.goalsForPerGame ?? null, 3.0, 1)}
+            rightVal={higherBetterStrength(right?.goalsForPerGame ?? null, 3.0, 1)}
             label="Goals For / Game"
             leftText={left?.goalsForPerGame != null ? left.goalsForPerGame.toFixed(2) : "—"}
             rightText={right?.goalsForPerGame != null ? right.goalsForPerGame.toFixed(2) : "—"}
@@ -82,8 +82,8 @@ export default function Last5Section({
           />
 
           <StatRow
-            leftVal={lowerBetterStrength(left?.goalsAgainstPerGame ?? null, 3.0, 1.7)}
-            rightVal={lowerBetterStrength(right?.goalsAgainstPerGame ?? null, 3.0, 1.7)}
+            leftVal={lowerBetterStrength(left?.goalsAgainstPerGame ?? null, 3.0, 1.4)}
+            rightVal={lowerBetterStrength(right?.goalsAgainstPerGame ?? null, 3.0, 1.4)}
             label="Goals Against / Game"
             leftText={left?.goalsAgainstPerGame != null ? left.goalsAgainstPerGame.toFixed(2) : "—"}
             rightText={right?.goalsAgainstPerGame != null ? right.goalsAgainstPerGame.toFixed(2) : "—"}
@@ -93,8 +93,8 @@ export default function Last5Section({
 
 
           <StatRow
-            leftVal={higherBetterStrength(left?.shotsForPerGame ?? null, 30, 1)}
-            rightVal={higherBetterStrength(right?.shotsForPerGame ?? null, 30, 1)}
+            leftVal={higherBetterStrength(left?.shotsForPerGame ?? null, 30, 0.4)}
+            rightVal={higherBetterStrength(right?.shotsForPerGame ?? null, 30, 0.4)}
             label="Shots For / Game"
             leftText={left?.shotsForPerGame != null ? `${left.shotsForPerGame}` : "—"}
             rightText={right?.shotsForPerGame != null ? `${right.shotsForPerGame}` : "—"}
@@ -103,8 +103,8 @@ export default function Last5Section({
           />
 
           <StatRow
-            leftVal={lowerBetterStrength(left?.shotsAgainstPerGame ?? null, 30, 1)}
-            rightVal={lowerBetterStrength(right?.shotsAgainstPerGame ?? null, 30, 1)}
+            leftVal={lowerBetterStrength(left?.shotsAgainstPerGame ?? null, 30, 0.25)}
+            rightVal={lowerBetterStrength(right?.shotsAgainstPerGame ?? null, 30, 0.25)}
             label="Shots Against / Game"
             leftText={left?.shotsAgainstPerGame != null ? `${left.shotsAgainstPerGame}` : "—"}
             rightText={right?.shotsAgainstPerGame != null ? `${right.shotsAgainstPerGame}` : "—"}

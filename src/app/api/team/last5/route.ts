@@ -68,8 +68,8 @@ export async function GET(req: Request) {
       FROM team_games tg
       WHERE tg.team = $1
         AND tg.game_date >= $2
-        AND tg.game_date < $3
-        AND ((CAST(tg.game_id / 10000 AS INTEGER) % 100) = 2)
+        AND tg.game_date <= $3
+        AND SUBSTRING(tg.game_id::text, 5, 2) = '02'
       ORDER BY tg.game_date DESC, tg.game_id DESC
       LIMIT 5
       `,

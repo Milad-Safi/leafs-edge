@@ -10,36 +10,30 @@ from sqlalchemy import text
 
 from .db import engine
 
+# NHL API baseline used to pull info from 
 API = "https://api-web.nhle.com/v1"
 
-# --- Rate limit / retry tuning (safe defaults)
+# Rate limit / retry tuning 
 REQUEST_TIMEOUT = 30
 MAX_RETRIES = 10
 
-# Base sleep between requests (helps avoid 429)
-BASE_THROTTLE_SEC = 0.15  # increase to 0.25-0.5 if you still get 429
+# Base sleep between requests ( to avoid timeout )
+BASE_THROTTLE_SEC = 0.15 
 
 # Exponential backoff parameters for retries
 BACKOFF_BASE = 0.7
 BACKOFF_CAP = 20.0
 
-
+# Prevents all requests from syncing at the same time
 def _sleep_with_jitter(seconds: float):
     if seconds <= 0:
         return
-    # small jitter to de-sync bursts
+
     jitter = random.uniform(0.0, 0.25)
     time.sleep(seconds + jitter)
 
 
 def get_json(url: str) -> dict:
-    """
-    Robust GET that handles NHL API rate limits and transient failures.
-
-    - Retries on 429 with Retry-After (if available) else backoff.
-    - Retries on 5xx and network timeouts.
-    - Applies a small throttle on all successful calls.
-    """
     last_err: Exception | None = None
 
     for attempt in range(MAX_RETRIES):
