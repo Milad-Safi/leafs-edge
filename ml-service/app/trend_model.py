@@ -53,10 +53,10 @@ def predict_team_trend(
     as_of_date = as_of
 
     # baselines (team / league)
-    league_baseline = get_league_baseline_asof(as_of_date, m=10)
+    league_baseline = get_league_baseline_asof(as_of_date)
 
     def opp_provider(opp: str) -> Dict[str, Any]:
-        return get_team_baseline_asof_with_fallback(opp, as_of_date, m=10)
+        return get_team_baseline_asof_with_fallback(opp, as_of_date)
 
     feats, meta = window_features(
         rows,
