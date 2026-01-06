@@ -235,12 +235,12 @@ def build_trend_dataset(
 
 def train_trend(
     n: int = 10,
-    k: int = 7,
+    k: int = 5,
     eps: float = 0.13,
     through: Optional[str] = None,
     steps: int = 3000,
     lr: float = 0.05,
-    l2: float = 0.1,
+    l2: float = 0.2,
 ) -> Dict[str, Any]:
     ds = build_trend_dataset(n=n, k=k, eps=eps, through=through)
     fit = _train_softmax_lr(ds.X, ds.y, steps=steps, lr=lr, l2=l2)
@@ -272,3 +272,7 @@ def train_trend(
         json.dump(model, f, indent=2)
 
     return {"ok": True, "saved_to": path, "model": model}
+
+if __name__ == "__main__":
+    out = train_trend()
+    print(out["saved_to"])
