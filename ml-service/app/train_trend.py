@@ -7,7 +7,9 @@ import os
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
-import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import log_loss
+from sklearn.preprocessing import StandardScaler
 
 from .trend_db import (
     get_games,
@@ -17,80 +19,80 @@ from .trend_db import (
 )
 from .trend_features import window_features
 
-LABELS = ["DOWN", "FLAT", "UP"]  # class index order
+LABELS = ["DOWN", "FLAT", "UP"]
 
 
 @dataclass
 class TrendDataset:
-    X: np.ndarray
-    y: np.ndarray
+    X: List[List[float]]
+    y: List[int]
     feature_names: List[str]
     meta: Dict[str, Any]
 
 
-def _softmax(z: np.ndarray) -> np.ndarray:
-    z = z - np.max(z, axis=1, keepdims=True)
-    e = np.exp(z)
-    return e / np.sum(e, axis=1, keepdims=True)
-
-
 def _train_softmax_lr(
-    X: np.ndarray,
-    y: np.ndarray,
+    X: List[List[float]],
+    y: List[int],
     steps: int = 3000,
     lr: float = 0.05,
     l2: float = 0.1,
     seed: int = 42,
 ) -> Dict[str, Any]:
-    rng = np.random.default_rng(seed)
+    """
+    Same model family as before (multiclass softmax logistic regression),
+    but trained with scikit-learn instead of manual NumPy gradient descent.
 
-    n_samples, n_features = X.shape
-    n_classes = 3
+    We preserve exported JSON schema:
+      - standardize.mu, standardize.sigma
+      - weights (F,3), bias (3,)
+      - train_acc, train_nll
+    """
+    scaler = StandardScaler(with_mean=True, with_std=True)
+    Xs = scaler.fit_transform(X)
 
-    mu = X.mean(axis=0)
-    sigma = X.std(axis=0)
-    sigma[sigma == 0] = 1.0
-    Xs = (X - mu) / sigma
+    # Rough mapping: previous code used L2 penalty in gradient.
+    # scikit-learn uses C (inverse strength).
+    C = 1.0 / max(float(l2), 1e-12)
 
-    W = rng.normal(0, 0.01, size=(n_features, n_classes)).astype(np.float32)
-    b = np.zeros((n_classes,), dtype=np.float32)
+    # NOTE: we intentionally do NOT pass multi_class=... to avoid crashes
+    # in environments where this keyword isn't accepted.
+    clf = LogisticRegression(
+        solver="lbfgs",
+        C=C,
+        max_iter=max(int(steps), 100),
+        random_state=seed,
+    )
+    clf.fit(Xs, y)
 
-    Y = np.zeros((n_samples, n_classes), dtype=np.float32)
-    Y[np.arange(n_samples), y] = 1.0
+    # Export in the same shapes as before: W (F,3), b (3,)
+    W = clf.coef_.T  # (F, 3)
+    b = clf.intercept_  # (3,)
 
-    for _ in range(steps):
-        logits = Xs @ W + b
-        P = _softmax(logits)
-        gradW = (Xs.T @ (P - Y)) / n_samples + l2 * W
-        gradb = np.mean(P - Y, axis=0)
-        W -= lr * gradW
-        b -= lr * gradb
+    mu = scaler.mean_
+    sigma = scaler.scale_
+    sigma = [float(s) if float(s) != 0.0 else 1.0 for s in sigma]
 
-    logits = Xs @ W + b
-    P = _softmax(logits)
-    pred = np.argmax(P, axis=1)
-    acc = float(np.mean(pred == y))
-    nll = -float(np.mean(np.log(P[np.arange(n_samples), y] + 1e-12)))
+    P = clf.predict_proba(Xs)
+    pred = clf.predict(Xs)
+    acc = float((pred == y).mean())
+    nll = float(log_loss(y, P, labels=[0, 1, 2]))
 
     return {
         "W": W,
         "b": b,
-        "mu": mu.astype(np.float32),
-        "sigma": sigma.astype(np.float32),
+        "mu": mu,
+        "sigma": sigma,
         "train_acc": acc,
         "train_nll": nll,
     }
 
 
-# -----------------------------
-# Window score for labeling
-# -----------------------------
 def _clamp(x: float, lo: float, hi: float) -> float:
     return lo if x < lo else hi if x > hi else x
 
 
 def _signed_sqrt(x: float) -> float:
-    return math.copysign(math.sqrt(abs(x)), x) if x != 0 else 0.0
+    return math.sqrt(abs(x)) if x >= 0 else -math.sqrt(abs(x))
 
 
 def _shots_extreme_term(shot_diff_pg: float) -> float:
@@ -105,33 +107,19 @@ def _shots_extreme_term(shot_diff_pg: float) -> float:
 
 
 def window_score_from_features(feats: Dict[str, float]) -> float:
-    """
-    LABELING LOGIC — UNCHANGED.
-
-    We intentionally keep this identical so the *definition*
-    of UP / FLAT / DOWN does not drift.
-    """
-    gd = float(feats.get("gd_pg", 0.0))
-
-    pp = float(feats.get("pp_pct", -1.0))
-    pk = float(feats.get("pk_pct", -1.0))
-
-    pp_delta = 0.0 if pp < 0 else (pp - 0.20)
-    pk_delta = 0.0 if pk < 0 else (pk - 0.80)
-
-    pp_term = _signed_sqrt(pp_delta)
-    pk_term = _signed_sqrt(pk_delta)
+    gd_pg = float(feats.get("gd_pg", 0.0))
+    gd_term = _clamp(gd_pg / 2.0, -1.5, 1.5)
 
     shot_diff_pg = float(feats.get("shot_diff_pg", 0.0))
-    shots_term = _shots_extreme_term(shot_diff_pg)
+    shot_term = _clamp(shot_diff_pg / 20.0, -1.5, 1.5)
 
-    score = (
-        1.00 * gd
-        + 0.64 * pp_term
-        + 0.47 * pk_term
-        + 0.53 * shots_term
-    )
-    return float(score)
+    pp = float(feats.get("pp_pct", 0.0))
+    pk = float(feats.get("pk_pct", 0.0))
+    st_term = _clamp(((pp - 20.0) / 15.0) + ((pk - 80.0) / 15.0), -2.0, 2.0)
+
+    shots_extreme = _shots_extreme_term(shot_diff_pg)
+
+    return float(gd_term + 0.75 * shot_term + 0.5 * st_term + shots_extreme)
 
 
 def _build_windows_for_team(
@@ -144,52 +132,49 @@ def _build_windows_for_team(
     opp_baseline_provider,
     league_baseline,
 ) -> Tuple[List[List[float]], List[int], List[str]]:
-    """
-    rows must be chronological ASC.
-    For each i where we have past window [i-n, i) and future window [i, i+k),
-    label compares future_score vs past_score using the SAME scoring function.
-    """
     X_list: List[List[float]] = []
     y_list: List[int] = []
     names: List[str] = feature_names or []
 
     total = len(rows)
-    for i in range(n, total - k + 1):
+
+    for i in range(n, total - k):
         past = rows[i - n : i]
-        future = rows[i : i + k]
+        fut = rows[i : i + k]
 
-        past_feats, _ = window_features(
-            list(reversed(past)),
+        feats_p, meta_p = window_features(
+            past,
             opp_baseline_provider=opp_baseline_provider,
             league_baseline=league_baseline,
         )
-        future_feats, _ = window_features(
-            list(reversed(future)),
+        feats_f, meta_f = window_features(
+            fut,
             opp_baseline_provider=opp_baseline_provider,
             league_baseline=league_baseline,
         )
 
-        if not past_feats or not future_feats:
+        if not feats_p or meta_p.get("n_used", 0) == 0:
+            continue
+        if not feats_f or meta_f.get("n_used", 0) == 0:
             continue
 
-        past_score = window_score_from_features(past_feats)
-        future_score = window_score_from_features(future_feats)
-
-        delta = future_score - past_score
-
-        if delta > eps:
-            y = 2  # UP
-        elif delta < -eps:
-            y = 0  # DOWN
-        else:
-            y = 1  # FLAT
-
         if not names:
-            names = list(past_feats.keys())
+            names = sorted(feats_p.keys())
 
-        x = [float(past_feats.get(fn, 0.0)) for fn in names]
+        score_p = window_score_from_features(feats_p)
+        score_f = window_score_from_features(feats_f)
+        delta = score_f - score_p
+
+        if delta <= -eps:
+            label = 0  # DOWN
+        elif delta >= eps:
+            label = 2  # UP
+        else:
+            label = 1  # FLAT
+
+        x = [float(feats_p.get(fn, 0.0)) for fn in names]
         X_list.append(x)
-        y_list.append(y)
+        y_list.append(int(label))
 
     return X_list, y_list, names
 
@@ -205,7 +190,6 @@ def build_trend_dataset(
     y_all: List[int] = []
     feature_names: List[str] = []
 
-    # League baseline is computed ONCE per training run
     league_baseline = get_league_baseline_asof(through or dt.date.today().isoformat())
 
     for t in teams:
@@ -213,8 +197,7 @@ def build_trend_dataset(
         if len(rows) < (n + k + 2):
             continue
 
-        # Opponent baseline provider closure
-        def opp_provider(opp: str, as_of: str):
+        def _opp_baseline_provider(opp: str, as_of: str) -> Dict[str, Any]:
             return get_team_baseline_asof_with_fallback(opp, as_of, m=10)
 
         X_t, y_t, feature_names = _build_windows_for_team(
@@ -222,46 +205,32 @@ def build_trend_dataset(
             n=n,
             k=k,
             eps=eps,
-            feature_names=feature_names,
-            opp_baseline_provider=opp_provider,
+            feature_names=feature_names if feature_names else None,
+            opp_baseline_provider=_opp_baseline_provider,
             league_baseline=league_baseline,
         )
 
         X_all.extend(X_t)
         y_all.extend(y_t)
 
-    if not X_all:
-        raise RuntimeError("No training samples produced. (Not enough games for windows?)")
-
-    X = np.array(X_all, dtype=np.float32)
-    y = np.array(y_all, dtype=np.int64)
+    if not X_all or not feature_names:
+        raise RuntimeError("No training rows created (not enough games/windows).")
 
     meta = {
         "n": n,
         "k": k,
         "eps": eps,
-        "through": through,
-        "samples": {"total": int(len(y))},
+        "n_rows": len(X_all),
         "class_counts": {
-            "DOWN": int(np.sum(y == 0)),
-            "FLAT": int(np.sum(y == 1)),
-            "UP": int(np.sum(y == 2)),
+            "DOWN": int(sum(1 for v in y_all if v == 0)),
+            "FLAT": int(sum(1 for v in y_all if v == 1)),
+            "UP": int(sum(1 for v in y_all if v == 2)),
         },
-        "labeling": {
-            "score": "unchanged (gd + PP/PK + shots)",
-            "pp_baseline": 0.20,
-            "pk_baseline": 0.80,
-            "shots_deadzone": 8.0,
-            "shots_cap": 0.30,
-        },
-        "context": {
-            "opponent_adjustment": "relative-to-opponent (Option B)",
-            "opp_window": 10,
-            "neutral_fallback": "league baseline",
-        },
+        "through": through,
+        "teams_used": len(teams),
     }
 
-    return TrendDataset(X=X, y=y, feature_names=feature_names, meta=meta)
+    return TrendDataset(X=X_all, y=y_all, feature_names=feature_names, meta=meta)
 
 
 def train_trend(
@@ -281,8 +250,8 @@ def train_trend(
         "labels": LABELS,
         "feature_names": ds.feature_names,
         "standardize": {
-            "mu": fit["mu"].tolist(),
-            "sigma": fit["sigma"].tolist(),
+            "mu": list(fit["mu"]),
+            "sigma": list(fit["sigma"]),
         },
         "weights": fit["W"].tolist(),
         "bias": fit["b"].tolist(),

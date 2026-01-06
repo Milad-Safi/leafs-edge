@@ -4,8 +4,6 @@ import json
 from pathlib import Path
 from typing import Any, Dict
 
-import numpy as np
-
 from .trend_db import (
     get_last_n,
     get_team_baseline_asof_with_fallback,
@@ -13,11 +11,15 @@ from .trend_db import (
 )
 from .trend_features import window_features
 
+from sklearn.utils.extmath import softmax
 
-def _softmax1(z: np.ndarray) -> np.ndarray:
-    z = z - np.max(z)
-    e = np.exp(z)
-    return e / np.sum(e)
+
+def _softmax1(z: list[float]) -> list[float]:
+    """Softmax for a single 1D vector.
+
+    Uses scikit-learn's numerically-stable softmax implementation.
+    """
+    return softmax([z])[0].tolist()
 
 
 def load_trend_model(path: str = "app/models/trend_model.json") -> Dict[str, Any]:
@@ -27,7 +29,6 @@ def load_trend_model(path: str = "app/models/trend_model.json") -> Dict[str, Any
     Keeps the original function signature, but resolves the default path
     relative to this file so it works on Render (cwd may differ).
     """
-    # If caller passes a custom absolute/relative path, respect it.
     p = Path(path)
 
     # If it's the default "app/models/..." style OR doesn't exist as given,
@@ -48,13 +49,13 @@ def predict_team_trend(
 ) -> Dict[str, Any]:
     model = load_trend_model(model_path)
 
-    rows = get_last_n(team, as_of=as_of, n=n)
+    rows = get_last_n(team, as_of, n=n)
+    as_of_date = as_of
 
-    # League baseline once (neutral fallback)
-    league_baseline = get_league_baseline_asof(as_of)
+    # baselines (team / league)
+    league_baseline = get_league_baseline_asof(as_of_date, m=10)
 
-    # Opponent baseline provider (same as training)
-    def opp_provider(opp: str, as_of_date: str):
+    def opp_provider(opp: str) -> Dict[str, Any]:
         return get_team_baseline_asof_with_fallback(opp, as_of_date, m=10)
 
     feats, meta = window_features(
@@ -78,20 +79,26 @@ def predict_team_trend(
         }
 
     feature_names = model["feature_names"]
-    x = np.array([float(feats.get(fn, 0.0)) for fn in feature_names], dtype=np.float32)
 
-    mu = np.array(model["standardize"]["mu"], dtype=np.float32)
-    sigma = np.array(model["standardize"]["sigma"], dtype=np.float32)
-    xs = (x - mu) / sigma
+    x = [float(feats.get(fn, 0.0)) for fn in feature_names]
 
-    W = np.array(model["weights"], dtype=np.float32)  # (F, 3)
-    b = np.array(model["bias"], dtype=np.float32)  # (3,)
+    mu = [float(v) for v in model["standardize"]["mu"]]
+    sigma = [float(v) for v in model["standardize"]["sigma"]]
+    xs = [(xi - mi) / si for xi, mi, si in zip(x, mu, sigma)]
 
-    logits = xs @ W + b
+    # Stored as (F, 3) and (3,) in the JSON
+    W = model["weights"]
+    b = model["bias"]
+
+    # logits[j] = sum_i xs[i] * W[i][j] + b[j]
+    logits = [
+        sum(xs[i] * float(W[i][j]) for i in range(len(xs))) + float(b[j])
+        for j in range(3)
+    ]
     p = _softmax1(logits)
 
     labels = model["labels"]
-    idx = int(np.argmax(p))
+    idx = int(max(range(len(p)), key=lambda i: p[i]))
     trend = labels[idx]
     confidence = float(p[idx])
 

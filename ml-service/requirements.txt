@@ -6,3 +6,4 @@ psycopg2-binary
 requests
 numpy
 nhl-api-py
+scikit-learn

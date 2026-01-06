@@ -12,7 +12,6 @@ from .routes_edge import router as edge_router
 # Use shared helper cache file
 from .cache import cached
 
-
 app = FastAPI(title="Leafs Edge API", version="1.0")
 
 app.add_middleware(
