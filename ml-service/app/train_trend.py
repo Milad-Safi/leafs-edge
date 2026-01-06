@@ -234,11 +234,11 @@ def build_trend_dataset(
 
 
 def train_trend(
-    n: int = 10,
+    n: int = 9,
     k: int = 5,
-    eps: float = 0.13,
+    eps: float = 0.11,
     through: Optional[str] = None,
-    steps: int = 3000,
+    steps: int = 4000,
     lr: float = 0.05,
     l2: float = 0.2,
 ) -> Dict[str, Any]:
