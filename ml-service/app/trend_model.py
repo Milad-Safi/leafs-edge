@@ -55,10 +55,13 @@ def predict_team_trend(
     # baselines (team / league)
     league_baseline = get_league_baseline_asof(as_of_date)
 
-    # ✅ IMPORTANT: window_features calls opp_baseline_provider(opp, game_date)
-    # so this must accept TWO args: (opp, as_of)
-    def opp_provider(opp: str, as_of: str) -> Dict[str, Any]:
-        return get_team_baseline_asof_with_fallback(opp, as_of)
+    # window_features calls opp_baseline_provider(opp, game_date)
+    # so provider must accept (opp, as_of_date)
+    #
+    # IMPORTANT: your DB helper REQUIRES m, and prod is crashing because it wasn't passed.
+    def opp_provider(opp: str, as_of_for_opp: str) -> Dict[str, Any]:
+        # Use same m as training to keep behavior consistent
+        return get_team_baseline_asof_with_fallback(opp, as_of_for_opp, m=10)
 
     feats, meta = window_features(
         rows,
