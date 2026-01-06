@@ -4,14 +4,14 @@ import json
 from pathlib import Path
 from typing import Any, Dict
 
+from sklearn.utils.extmath import softmax
+
 from .trend_db import (
     get_last_n,
     get_team_baseline_asof_with_fallback,
     get_league_baseline_asof,
 )
 from .trend_features import window_features
-
-from sklearn.utils.extmath import softmax
 
 
 def _softmax1(z: list[float]) -> list[float]:
@@ -55,8 +55,10 @@ def predict_team_trend(
     # baselines (team / league)
     league_baseline = get_league_baseline_asof(as_of_date)
 
-    def opp_provider(opp: str) -> Dict[str, Any]:
-        return get_team_baseline_asof_with_fallback(opp, as_of_date)
+    # ✅ IMPORTANT: window_features calls opp_baseline_provider(opp, game_date)
+    # so this must accept TWO args: (opp, as_of)
+    def opp_provider(opp: str, as_of: str) -> Dict[str, Any]:
+        return get_team_baseline_asof_with_fallback(opp, as_of)
 
     feats, meta = window_features(
         rows,
@@ -79,7 +81,6 @@ def predict_team_trend(
         }
 
     feature_names = model["feature_names"]
-
     x = [float(feats.get(fn, 0.0)) for fn in feature_names]
 
     mu = [float(v) for v in model["standardize"]["mu"]]
