@@ -138,8 +138,8 @@ def window_features(
                 }
 
             # Expectations:
-            # - opponent ga_pg/sa_pg are "allowed" -> expected your gf/sf
-            # - opponent gf_pg/sf_pg are "generated" -> expected your ga/sa
+            # - opponent ga_pg/sa_pg are "allowed" -> expected  gf/sf
+            # - opponent gf_pg/sf_pg are "generated" -> expected  ga/sa
             exp_gf = use.get("ga_pg")
             exp_ga = use.get("gf_pg")
             exp_sf = use.get("sa_pg")

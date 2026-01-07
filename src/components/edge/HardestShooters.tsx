@@ -38,44 +38,24 @@ export default function HardestShooters({
   }
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
-        gap: 16,
-      }}
-    >
-      {rows.slice(0, 3).map((r) => {
+    <div className="leEdgeCards" role="list" aria-label="Hardest shooters">
+      {rows.slice(0, 3).map((r, idx) => {
         const pid = toNumId((r as any).playerId);
         const headshot = pid != null ? headshotById.get(pid) : undefined;
         const showImg = !!headshot && pid != null && !imgFailed.has(pid);
 
         return (
           <div
-            key={(r as any).playerId}
-            style={{
-              background: "rgba(255,255,255,0.03)",
-              borderRadius: 14,
-              padding: "16px 14px 14px",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              textAlign: "center",
-              border: "1px solid rgba(255,255,255,0.06)",
-            }}
+            key={`${(r as any).playerId ?? r.name}-${idx}`}
+            className="leEdgeCard"
+            role="listitem"
           >
             {showImg ? (
               <img
+                className="leEdgeCardImg"
                 src={headshot}
                 alt={r.name}
-                style={{
-                  width: 72,
-                  height: 72,
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  marginBottom: 10,
-                  display: "block",
-                }}
+                loading="lazy"
                 onError={() => {
                   if (pid == null) return;
                   setImgFailed((prev) => {
@@ -86,37 +66,14 @@ export default function HardestShooters({
                 }}
               />
             ) : (
-              <div
-                style={{
-                  width: 72,
-                  height: 72,
-                  borderRadius: "50%",
-                  background:
-                    "linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))",
-                  marginBottom: 10,
-                }}
-              />
+              <div className="leEdgeCardImgFallback" aria-hidden="true" />
             )}
 
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>
-              {r.name}
-            </div>
+            <div className="leEdgeCardName">{r.name}</div>
 
-            <div
-              style={{
-                fontSize: 34,
-                fontWeight: 900,
-                lineHeight: 1,
-                fontVariantNumeric: "tabular-nums",
-                marginBottom: 4,
-              }}
-            >
-              {fmt(r.mph)}
-            </div>
+            <div className="leEdgeCardValue">{fmt(r.mph)}</div>
 
-            <div style={{ fontSize: 12, opacity: 0.65, letterSpacing: 0.3 }}>
-              Hardest Shot · MPH
-            </div>
+            <div className="leEdgeCardLabel">Hardest Shot · MPH</div>
           </div>
         );
       })}

@@ -1230,27 +1230,441 @@ body {
     padding: 0;
   }
 
-  /* Legacy stat row layout (idk: kept from older stat row implementation) */
-  .statRowContent {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 6px !important;
-    text-align: center !important;
-    padding: 12px 10px;
+
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Matchup Header 
+   ───────────────────────────────────────────────────────────── */
+
+.leMH {
+  padding: 22px 24px 30px;
+}
+
+.leMHTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.leMHKicker {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: var(--le-mh-kicker);
+}
+
+.leMHMeta {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--le-mh-meta);
+  white-space: nowrap;
+}
+
+.leMHMainRow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 18px;
+}
+
+.leMHTeam {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.leMHTeamRight {
+  justify-content: flex-end;
+}
+
+.leMHTeamText {
+  min-width: 0;
+}
+
+.leMHTeamTextRight {
+  text-align: right;
+}
+
+.leMHLogo {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  filter: var(--le-mh-logo-shadow);
+}
+
+.leMHAbbrev {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  line-height: 1.05;
+  color: var(--le-mh-abbrev);
+}
+
+.leMHRecordLine {
+  font-size: 12px;
+  margin-top: 4px;
+  color: var(--le-mh-record-line);
+}
+
+.leMHRecordLabel {
+  color: var(--le-mh-record-label);
+}
+
+.leMHRecordValue {
+  font-weight: 850;
+  color: var(--le-mh-record-value);
+}
+
+.leMHCenter {
+  text-align: center;
+  padding: 0 8px;
+}
+
+.leMHMatchup {
+  font-size: 28px;
+  font-weight: 950;
+  letter-spacing: 0.5px;
+  color: var(--le-mh-matchup);
+  line-height: 1.05;
+}
+
+.leMHCenterSub {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--le-mh-center-sub);
+}
+
+@media (max-width: 640px) {
+  .leMH {
+    padding: 18px 14px 22px;
   }
 
-  .statRowLeft,
-  .statRowRight {
-    width: 100% !important;
-    display: flex !important;
-    justify-content: space-between !important;
-    font-weight: 700 !important;
-    font-size: 15px !important;
+  .leMHTopRow {
+    margin-bottom: 12px;
   }
 
-  .statRowLabel {
-    order: -1 !important;
-    font-size: 12px !important;
-    opacity: 0.62 !important;
+  .leMHMainRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .leMHCenter {
+    order: 0;
+    padding: 0;
+  }
+
+  .leMHMatchup {
+    font-size: 30px; /* big but not overlapping now */
+  }
+
+  .leMHTeamLeft {
+    order: 1;
+    justify-content: flex-start;
+  }
+
+  .leMHTeamRight {
+    order: 2;
+    justify-content: flex-start; /* IMPORTANT: don’t shove right on mobile */
+  }
+
+  .leMHTeamTextRight {
+    text-align: left; /* IMPORTANT: prevent narrow right-column crunch */
+  }
+
+  .leMHLogo {
+    width: 58px;
+    height: 58px;
+  }
+
+  .leMHAbbrev {
+    font-size: 22px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Matchup Header — Mobile layout (TOR stuff VS OPP stuff)
+   ───────────────────────────────────────────────────────────── */
+
+.mhDesktop { display: block; }
+.mhMobile { display: none; }
+
+@media (max-width: 640px) {
+  .mhDesktop { display: none; }
+  .mhMobile { display: block; }
+
+  .mhMobileTitle {
+    text-align: center;
+    font-weight: 950;
+    letter-spacing: 0.5px;
+    font-size: 34px;
+    color: var(--le-heading);
+  }
+
+  .mhMobileSub {
+    text-align: center;
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 650;
+    color: var(--le-heading-muted);
+  }
+
+  .mhMobileTeams {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 14px;
+    align-items: center;
+  }
+
+  .mhMobileTeam {
+    text-align: center;
+    min-width: 0;
+  }
+
+  .mhMobileLogo {
+    width: 54px;
+    height: 54px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto 10px;
+    filter: var(--le-mh-logo-shadow);
+  }
+
+  .mhMobileAbbrev {
+    font-weight: 950;
+    font-size: 22px;
+    letter-spacing: 1px;
+    color: var(--le-heading);
+    margin-bottom: 8px;
+  }
+
+  .mhMobileLine {
+    font-size: 13px;
+    line-height: 1.25;
+    margin-top: 4px;
+    color: var(--le-heading-muted);
+  }
+
+  .mhMobileLabel {
+    opacity: 0.9;
+  }
+
+  .mhMobileValue {
+    font-weight: 900;
+    color: var(--le-heading);
+  }
+
+  .mhMobileVs {
+    font-weight: 950;
+    font-size: 18px;
+    letter-spacing: 2px;
+    color: var(--le-heading);
+    opacity: 0.9;
+    transform: translateY(-4px);
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   Nav bar — mobile polish
+   ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .leNavInner {
+    padding: 10px 12px;
+  }
+
+  .leNavLinks {
+    gap: 18px;
+  }
+
+  .leNavLink {
+    font-size: 12px;
+    padding: 10px 0;
+    letter-spacing: 0.11em;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Edge Cards (Fastest Skaters / Hardest Shooters)
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  /* Card surface */
+  --le-edge-card-bg: rgba(255, 255, 255, 0.06);
+  --le-edge-card-border: rgba(255, 255, 255, 0.12);
+
+  /* Fallback circle */
+  --le-edge-img-fallback: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.12),
+    rgba(255, 255, 255, 0.04)
+  );
+
+  /* Text */
+  --le-edge-name: rgba(255, 255, 255, 0.92);
+  --le-edge-value: rgba(255, 255, 255, 0.96);
+  --le-edge-label: rgba(255, 255, 255, 0.62);
+}
+
+html[data-theme="dark"] {
+  --le-edge-card-bg: rgba(255, 255, 255, 0.06);
+  --le-edge-card-border: rgba(255, 255, 255, 0.12);
+}
+
+/* Light mode (your panels are light-ish there) */
+html:not([data-theme="dark"]) {
+  --le-edge-card-bg: rgba(255, 255, 255, 0.55);
+  --le-edge-card-border: rgba(0, 0, 0, 0.12);
+
+  --le-edge-name: rgba(11, 13, 18, 0.92);
+  --le-edge-value: rgba(11, 13, 18, 0.96);
+  --le-edge-label: rgba(11, 13, 18, 0.60);
+
+  --le-edge-img-fallback: linear-gradient(
+    145deg,
+    rgba(0, 0, 0, 0.06),
+    rgba(0, 0, 0, 0.02)
+  );
+}
+
+/* Container: desktop grid */
+.leEdgeCards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* Card */
+.leEdgeCard {
+  background: var(--le-edge-card-bg);
+  border: 1px solid var(--le-edge-card-border);
+  border-radius: 14px;
+  padding: 16px 14px 14px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.leEdgeCardImg,
+.leEdgeCardImgFallback {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.leEdgeCardImg {
+  object-fit: cover;
+}
+
+.leEdgeCardImgFallback {
+  background: var(--le-edge-img-fallback);
+}
+
+.leEdgeCardName {
+  font-weight: 800;
+  font-size: 15px;
+  margin-bottom: 6px;
+  color: var(--le-edge-name);
+
+  /* prevent ugly overflow on long names */
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leEdgeCardValue {
+  font-size: 34px;
+  font-weight: 950;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 6px;
+  color: var(--le-edge-value);
+}
+
+.leEdgeCardLabel {
+  font-size: 12px;
+  letter-spacing: 0.3px;
+  color: var(--le-edge-label);
+}
+
+/* Mobile: horizontal scroll, smaller cards, NO stacking */
+@media (max-width: 640px) {
+  .leEdgeCards {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* hide scrollbars but keep scrolling */
+  .leEdgeCards::-webkit-scrollbar {
+    display: none;
+  }
+  .leEdgeCards {
+    scrollbar-width: none;
+  }
+
+  .leEdgeCard {
+    flex: 0 0 auto;
+    width: 210px;             
+    scroll-snap-align: start;
+    padding: 14px 12px 12px;
+    border-radius: 16px;
+  }
+
+  .leEdgeCardImg,
+  .leEdgeCardImgFallback {
+    width: 62px;
+    height: 62px;
+    margin-bottom: 10px;
+  }
+
+  .leEdgeCardName {
+    font-size: 14px;
+    max-width: 180px;
+  }
+
+  .leEdgeCardValue {
+    font-size: 30px;
+    margin-bottom: 6px;
+  }
+
+  .leEdgeCardLabel {
+    font-size: 11px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   StatRow — Mobile text tuning
+   ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .leStatRowContent {
+    padding: 10px 10px;
+  }
+
+  .leStatRowValue {
+    font-size: 10px;     /* was 14 */
+    font-weight: 700;
+  }
+
+  .leStatRowLabel {
+    font-size: 11px;     /* was 13 */
+    letter-spacing: 0.15px;
   }
 }

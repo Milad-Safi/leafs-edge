@@ -21,7 +21,7 @@ function shortName(full: string) {
 }
 
 function fmtGoals(p: Leader | null) {
-  return p ? `${shortName(p.name)} — ${p.goals} G` : "—";
+  return p ? `${shortName(p.name)} — ${p.goals} G` : "-";
 }
 function fmtPoints(p: Leader | null) {
   return p ? `${shortName(p.name)} — ${p.points} P` : "—";
@@ -85,7 +85,7 @@ export default function HotPlayersRows({
         <StatRow
           leftVal={lg ? lg.goals : null}
           rightVal={rg ? rg.goals : null}
-          label="Goals Leader (L5)"
+          label="Goals Leader"
           leftText={fmtGoals(lg)}
           rightText={fmtGoals(rg)}
           leftColor={leftColor}
@@ -95,7 +95,7 @@ export default function HotPlayersRows({
         <StatRow
           leftVal={lp ? lp.points : null}
           rightVal={rp ? rp.points : null}
-          label="Points Leader (L5)"
+          label="Points Leader"
           leftText={fmtPoints(lp)}
           rightText={fmtPoints(rp)}
           leftColor={leftColor}
@@ -105,7 +105,7 @@ export default function HotPlayersRows({
         <StatRow
           leftVal={ls ? ls.shots : null}
           rightVal={rs ? rs.shots : null}
-          label="SOG Leader (L5)"
+          label="SOG Leader"
           leftText={fmtShots(ls)}
           rightText={fmtShots(rs)}
           leftColor={leftColor}

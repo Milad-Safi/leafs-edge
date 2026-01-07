@@ -52,7 +52,6 @@ export type TeamLast5 = {
   games: number;
   record: { w: number; l: number; otl: number };
 
-  // ✅ NEW totals over last 5 window
   goalsFor: number;
   goalsAgainst: number;
 

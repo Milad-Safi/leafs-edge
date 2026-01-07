@@ -21,9 +21,6 @@ function pct(conf: number) {
   return Math.round(clamp01(conf) * 100);
 }
 
-/**
- * ENGLISH COPY ONLY — updated wording
- */
 function trendText(t: string) {
   const key = String(t || "").toUpperCase();
   if (key === "UP") return "improve";
