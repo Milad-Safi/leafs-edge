@@ -1,4 +1,18 @@
+/* ─────────────────────────────────────────────────────────────
+   GLOBAL.CSS (Leafs Edge) — CLEANED + CONSOLIDATED
+   Goals:
+   - ONE :root block for LIGHT tokens (default)
+   - ONE html[data-theme="dark"] block for DARK overrides
+   - Remove duplicate rules (ex: leChevron was defined twice before)
+   - Keep backwards-compat classNames  
+   - Components should prefer tokens, not hard-coded rgba() in-line
 
+   If a token’s purpose is unclear, it’s marked "idk".
+   ───────────────────────────────────────────────────────────── */
+
+/* ─────────────────────────────────────────────────────────────
+   00) Base resets
+   ───────────────────────────────────────────────────────────── */
 
 * {
   box-sizing: border-box;
@@ -12,64 +26,1211 @@ body {
   overflow-x: hidden;
 }
 
-body {
-  background: #000;
-  color: #fff;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Helvetica, Arial, sans-serif;
+/* ─────────────────────────────────────────────────────────────
+   01) TOKENS — LIGHT THEME (default)
+   Everything here is safe to tweak without breaking logic.
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  /* ───────────────
+     Core shell / page
+     ─────────────── */
+
+  /* Page gutters/background (dark outer frame around the slab) */
+  --le-page: #1a1d21;
+
+  /* NAV BAR  */
+  --le-nav-bg: rgba(0, 0, 0, 0.92);
+
+  /* Schedule bar strip (idk: kept from earlier iterations) */
+  --le-topbar-bg: rgba(20, 22, 26, 0.94);
+  --le-topbar-border: rgba(255, 255, 255, 0.10);
+
+  /* Main slab surface (the center panel) */
+  --le-surface-top: #efefef;
+  --le-surface-bot: #fffcfc;
+  --le-surface-border: rgba(0, 0, 0, 0.12);
+  --le-divider: rgba(0, 0, 0, 0.10);
+
+  /* Default text colors */
+  --le-text: #0b0d12;
+  --le-text-muted: rgba(11, 13, 18, 0.62);
+
+  /* Global shadow used by cards/modules */
+  --le-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
+
+  /* General radii (idk: used by some components) */
+  --le-radius-lg: 18px;
+
+  /* Headings (Collapsible headers etc.) */
+  --le-heading: rgba(11, 13, 18, 0.92);
+  --le-heading-muted: rgba(11, 13, 18, 0.72);
+
+  /* Module wrapper surface (UI.moduleWrapper) */
+  --le-module-bg: rgba(255, 255, 255, 0.72);
+
+  /* ───────────────
+     StatRow (new component: .leStatRow*)
+     ─────────────── */
+  --le-statrow-radius: 12px;
+  --le-statrow-border: rgba(0, 0, 0, 0.12);
+  --le-statrow-bg: #ffffff;
+
+  /* Fill opacity of the team colors inside the bar */
+  --le-statrow-fill-opacity: 0.46;
+
+  /* Layout metrics */
+  --le-statrow-gap: 12px;
+  --le-statrow-pad-y: 12px;
+  --le-statrow-pad-x: 12px;
+
+  /* Typography */
+  --le-stat-value-weight: 700;
+  --le-stat-label-weight: 700;
+  --le-stat-value-size: 14px;
+  --le-stat-label-size: 13px;
+  --le-stat-value-color: rgba(11, 13, 18, 0.95);
+  --le-stat-label-color: rgba(11, 13, 18, 0.80);
+
+  /* ───────────────
+     Team Comparisons section (title/subtitle/loading)
+     ─────────────── */
+  --le-tc-title-weight: 900;
+  --le-tc-title-color: rgba(11, 13, 18, 0.96);
+
+  --le-tc-sub-size: 12px;
+  --le-tc-sub-color: rgba(11, 13, 18, 0.72);
+
+  --le-tc-loading-size: 12px;
+  --le-tc-loading-color: rgba(11, 13, 18, 0.72);
+
+  --le-tc-title-pad-top: 3px;
+  --le-tc-title-pad-bottom: 14px;
+
+  --le-tc-sub-mt: -8px;
+  --le-tc-sub-mb: 12px;
+
+  --le-tc-loading-mb: 12px;
+
+  /* ───────────────
+     Matchup Header tokens (matchupHeader.styles.ts)
+     ─────────────── */
+  --le-mh-kicker: rgba(11, 13, 18, 0.92);
+  --le-mh-meta: rgba(11, 13, 18, 0.90);
+
+  --le-mh-abbrev: rgba(11, 13, 18, 0.96);
+
+  --le-mh-record-line: rgba(11, 13, 18, 0.90);
+  --le-mh-record-label: rgba(11, 13, 18, 0.72);
+  --le-mh-record-value: rgba(11, 13, 18, 0.94);
+
+  --le-mh-matchup: rgba(11, 13, 18, 0.98);
+  --le-mh-center-sub: rgba(11, 13, 18, 0.82);
+
+  --le-mh-divider: rgba(0, 0, 0, 0.10);
+
+  /* Logo shadow (idk: purely aesthetic) */
+  --le-mh-logo-shadow: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.55));
+
+  /* ───────────────
+     Schedule Bar tokens (scheduleBar.styles.ts)
+     ─────────────── */
+  --le-sched-wrap-bg: #f4f5f7;
+  --le-sched-wrap-border: rgba(0, 0, 0, 0.12);
+  --le-sched-wrap-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+
+  --le-sched-arrow-bg: #ffffff;
+  --le-sched-arrow-border: rgba(0, 0, 0, 0.16);
+  --le-sched-arrow-text: rgba(11, 13, 18, 0.88);
+  --le-sched-arrow-hover-bg: #eef0f3;
+  --le-sched-arrow-hover-border: rgba(0, 0, 0, 0.28);
+
+  --le-sched-card-bg: #ffffff;
+  --le-sched-card-border: rgba(0, 0, 0, 0.14);
+  --le-sched-card-text: rgba(11, 13, 18, 0.92);
+
+  --le-sched-card-hover-bg: #f0f2f5;
+  --le-sched-card-hover-border: rgba(0, 0, 0, 0.28);
+
+  --le-sched-card-selected-bg: #eef1f5;
+  --le-sched-card-selected-border: rgba(0, 0, 0, 0.40);
+
+  /* Past/inaccessible game style (locked look, not faded) */
+  --le-sched-card-disabled-bg: rgba(0, 0, 0, 0.06);
+  --le-sched-card-disabled-border: rgba(0, 0, 0, 0.22);
+  --le-sched-card-disabled-text: rgba(11, 13, 18, 0.58);
+  --le-sched-card-disabled-filter: grayscale(0.35) contrast(0.96);
+
+  --le-sched-top-text: rgba(11, 13, 18, 0.72);
+  --le-sched-mid-text: rgba(11, 13, 18, 0.92);
+  --le-sched-bot-text: rgba(11, 13, 18, 0.72);
+
+  --le-sched-badge-bg: #ffffff;
+  --le-sched-badge-border: rgba(0, 0, 0, 0.18);
+
+  --le-sched-win-border: rgba(22, 163, 74, 0.70);
+  --le-sched-win-bg: rgba(22, 163, 74, 0.22);
+  --le-sched-win-text: rgba(12, 108, 47, 0.95);
+
+  --le-sched-loss-border: rgba(220, 38, 38, 0.70);
+  --le-sched-loss-bg: rgba(220, 38, 38, 0.20);
+  --le-sched-loss-text: rgba(150, 20, 20, 0.95);
+
+  /* ───────────────
+     Theme Toggle (pill switch)
+     Used by <ThemeToggle /> in navbar
+     ─────────────── */
+  --le-toggle-w: 56px;
+  --le-toggle-h: 28px;
+  --le-toggle-pad: 3px;
+  --le-toggle-knob: 22px;
+
+  /* Toggle colors (on the black nav) */
+  --le-toggle-track: rgba(255, 255, 255, 0.12);
+  --le-toggle-track-border: rgba(255, 255, 255, 0.18);
+  --le-toggle-track-hover: rgba(255, 255, 255, 0.16);
+
+  --le-toggle-knob-bg: rgba(255, 255, 255, 0.92);
+  --le-toggle-knob-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+
+  --le-toggle-icon-off: rgba(0, 0, 0, 0.65); /* sun */
+  --le-toggle-icon-on: rgba(0, 0, 0, 0.75);  /* moon */
+
+  --le-toggle-focus: rgba(255, 255, 255, 0.35);
+
+  /* ───────────────
+     Collapsible chevron button (theme-safe)
+     ─────────────── */
+  --le-chevron-bg: rgba(0, 0, 0, 0.03);
+  --le-chevron-border: rgba(0, 0, 0, 0.12);
+  --le-chevron-fg: rgba(11, 13, 18, 0.86);
+
+  --le-chevron-hover-bg: rgba(0, 0, 0, 0.06);
+  --le-chevron-hover-border: rgba(0, 0, 0, 0.18);
+
+  /* Collapsible header hover background */
+  --le-section-hover-bg: rgba(0, 0, 0, 0.03);
+
+  /* ───────────────
+     Goalies section (Projected Starters)
+     NOTE: styles ONLY the cards/shell, NOT StatRow bars
+     ─────────────── */
+  --le-goalies-shell-bg: rgba(255, 255, 255, 0.62);
+  --le-goalies-shell-border: rgba(0, 0, 0, 0.12);
+  --le-goalies-shell-shadow: 0 18px 60px rgba(0, 0, 0, 0.18);
+  --le-goalies-divider: rgba(0, 0, 0, 0.10);
+
+  --le-goalie-card-bg: rgba(255, 255, 255, 0.78);
+  --le-goalie-card-border: rgba(0, 0, 0, 0.12);
+  --le-goalie-card-shadow: 0 12px 36px rgba(0, 0, 0, 0.14);
+
+  --le-goalie-title: rgba(11, 13, 18, 0.92);
+  --le-goalie-name: rgba(11, 13, 18, 0.96);
+  --le-goalie-muted: rgba(11, 13, 18, 0.62);
+  --le-goalie-value: rgba(11, 13, 18, 0.92);
+
+  --le-goalie-headshot-bg: rgba(0, 0, 0, 0.04);
+  --le-goalie-headshot-border: rgba(0, 0, 0, 0.10);
+
+  --le-goalie-stat-label: rgba(11, 13, 18, 0.60);
+  --le-goalie-stat-value: rgba(11, 13, 18, 0.92);
+
+  --le-goalie-footnote: rgba(11, 13, 18, 0.55);
+
+  /* ───────────────
+     Injuries section
+     Theme-safe. Tokenized.
+     ─────────────── */
+  --le-inj-card-bg: rgba(255, 255, 255, 0.62);
+  --le-inj-card-border: rgba(0, 0, 0, 0.12);
+  --le-inj-card-shadow: 0 18px 60px rgba(0, 0, 0, 0.18);
+
+  --le-inj-title: rgba(11, 13, 18, 0.92);
+  --le-inj-updated: rgba(11, 13, 18, 0.58);
+  --le-inj-muted: rgba(11, 13, 18, 0.62);
+
+  --le-inj-name: rgba(11, 13, 18, 0.92);
+  --le-inj-sub: rgba(11, 13, 18, 0.60);
+
+  --le-inj-headshot-bg: rgba(0, 0, 0, 0.04);
+  --le-inj-headshot-border: rgba(0, 0, 0, 0.10);
+  --le-inj-initials: rgba(11, 13, 18, 0.86);
+
+  --le-inj-pill-bg: rgba(239, 68, 68, 1);
+  --le-inj-pill-text: #ffffff;
+  --le-inj-pill-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
 }
 
+/* ─────────────────────────────────────────────────────────────
+   02) THEME OVERRIDE — DARK
+   Use by setting: <html data-theme="dark">
+   ───────────────────────────────────────────────────────────── */
 
-.statRowContent {
+html[data-theme="dark"] {
+  /* Core */
+  --le-page: #0b0f14;
+
+  /* NAV BAR — DO NOT CHANGE */
+  --le-nav-bg: rgba(0, 0, 0, 0.92);
+
+  /* Schedule bar tokens (idk: kept for compatibility) */
+  --le-topbar-bg: rgba(20, 22, 26, 0.94);
+  --le-topbar-border: rgba(255, 255, 255, 0.10);
+
+  /* Main slab surface */
+  --le-surface-top: #11161d;
+  --le-surface-bot: #0d1117;
+  --le-surface-border: rgba(255, 255, 255, 0.10);
+  --le-divider: rgba(255, 255, 255, 0.10);
+
+  /* Text */
+  --le-text: rgba(255, 255, 255, 0.92);
+  --le-text-muted: rgba(255, 255, 255, 0.65);
+
+  /* Shadow */
+  --le-shadow: 0 18px 50px rgba(0, 0, 0, 0.60);
+
+  /* Headings */
+  --le-heading: rgba(255, 255, 255, 0.92);
+  --le-heading-muted: rgba(255, 255, 255, 0.70);
+
+  /* Module background */
+  --le-module-bg: rgba(10, 14, 20, 0.72);
+
+  /* StatRow dark */
+  --le-statrow-bg: rgba(255, 255, 255, 0.06);
+  --le-statrow-border: rgba(255, 255, 255, 0.14);
+  --le-statrow-fill-opacity: 0.30;
+  --le-stat-value-color: rgba(255, 255, 255, 0.92);
+  --le-stat-label-color: rgba(255, 255, 255, 0.80);
+
+  /* Team Comparisons */
+  --le-tc-title-color: rgba(255, 255, 255, 0.94);
+  --le-tc-sub-color: rgba(255, 255, 255, 0.70);
+  --le-tc-loading-color: rgba(255, 255, 255, 0.70);
+
+  /* Matchup Header */
+  --le-mh-kicker: rgba(255, 255, 255, 0.92);
+  --le-mh-meta: rgba(255, 255, 255, 0.80);
+
+  --le-mh-abbrev: rgba(255, 255, 255, 0.95);
+
+  --le-mh-record-line: rgba(255, 255, 255, 0.84);
+  --le-mh-record-label: rgba(255, 255, 255, 0.66);
+  --le-mh-record-value: rgba(255, 255, 255, 0.92);
+
+  --le-mh-matchup: rgba(255, 255, 255, 0.96);
+  --le-mh-center-sub: rgba(255, 255, 255, 0.74);
+
+  --le-mh-divider: rgba(255, 255, 255, 0.12);
+  --le-mh-logo-shadow: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.75));
+
+  /* Schedule Bar — DARK */
+  --le-sched-wrap-bg: rgba(10, 14, 20, 0.96);
+  --le-sched-wrap-border: rgba(255, 255, 255, 0.10);
+  --le-sched-wrap-shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
+
+  --le-sched-arrow-bg: rgba(255, 255, 255, 0.06);
+  --le-sched-arrow-border: rgba(255, 255, 255, 0.14);
+  --le-sched-arrow-text: rgba(255, 255, 255, 0.86);
+  --le-sched-arrow-hover-bg: rgba(255, 255, 255, 0.10);
+  --le-sched-arrow-hover-border: rgba(255, 255, 255, 0.22);
+
+  --le-sched-card-bg: rgba(255, 255, 255, 0.06);
+  --le-sched-card-border: rgba(255, 255, 255, 0.14);
+  --le-sched-card-text: rgba(255, 255, 255, 0.90);
+
+  --le-sched-card-hover-bg: rgba(255, 255, 255, 0.10);
+  --le-sched-card-hover-border: rgba(255, 255, 255, 0.24);
+
+  --le-sched-card-selected-bg: rgba(255, 255, 255, 0.12);
+  --le-sched-card-selected-border: rgba(255, 255, 255, 0.32);
+
+  --le-sched-card-disabled-bg: rgba(255, 255, 255, 0.04);
+  --le-sched-card-disabled-border: rgba(255, 255, 255, 0.12);
+  --le-sched-card-disabled-text: rgba(255,  255, 255, 0.52);
+  --le-sched-card-disabled-filter: grayscale(0.30) contrast(0.92);
+
+  --le-sched-top-text: rgba(255, 255, 255, 0.68);
+  --le-sched-mid-text: rgba(255, 255, 255, 0.88);
+  --le-sched-bot-text: rgba(255, 255, 255, 0.66);
+
+  --le-sched-badge-bg: rgba(255, 255, 255, 0.06);
+  --le-sched-badge-border: rgba(255, 255, 255, 0.16);
+
+  --le-sched-win-border: rgba(34, 197, 94, 0.70);
+  --le-sched-win-bg: rgba(34, 197, 94, 0.18);
+  --le-sched-win-text: rgba(187, 255, 215, 0.92);
+
+  --le-sched-loss-border: rgba(239, 68, 68, 0.70);
+  --le-sched-loss-bg: rgba(239, 68, 68, 0.16);
+  --le-sched-loss-text: rgba(255, 205, 205, 0.92);
+
+  /* Toggle (dark) — still on the black nav */
+  --le-toggle-track: rgba(255, 255, 255, 0.10);
+  --le-toggle-track-border: rgba(255, 255, 255, 0.16);
+  --le-toggle-track-hover: rgba(255, 255, 255, 0.14);
+  --le-toggle-knob-bg: rgba(255, 255, 255, 0.90);
+  --le-toggle-knob-shadow: 0 8px 18px rgba(0, 0, 0, 0.55);
+  --le-toggle-icon-off: rgba(0, 0, 0, 0.70);
+  --le-toggle-icon-on: rgba(0, 0, 0, 0.80);
+
+  /* Chevron (dark) */
+  --le-chevron-bg: rgba(255, 255, 255, 0.06);
+  --le-chevron-border: rgba(255, 255, 255, 0.14);
+  --le-chevron-fg: rgba(255, 255, 255, 0.86);
+  --le-chevron-hover-bg: rgba(255, 255, 255, 0.10);
+  --le-chevron-hover-border: rgba(255, 255, 255, 0.22);
+
+  /* Collapsible header hover (dark) */
+  --le-section-hover-bg: rgba(255, 255, 255, 0.06);
+
+  /* Goalies (dark) */
+  --le-goalies-shell-bg: rgba(10, 14, 20, 0.72);
+  --le-goalies-shell-border: rgba(255, 255, 255, 0.12);
+  --le-goalies-shell-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+  --le-goalies-divider: rgba(255, 255, 255, 0.10);
+
+  --le-goalie-card-bg: rgba(255, 255, 255, 0.06);
+  --le-goalie-card-border: rgba(255, 255, 255, 0.12);
+  --le-goalie-card-shadow: 0 12px 40px rgba(0, 0, 0, 0.40);
+
+  --le-goalie-title: rgba(255, 255, 255, 0.92);
+  --le-goalie-name: rgba(255, 255, 255, 0.96);
+  --le-goalie-muted: rgba(255, 255, 255, 0.62);
+  --le-goalie-value: rgba(255, 255, 255, 0.92);
+
+  --le-goalie-headshot-bg: rgba(255, 255, 255, 0.06);
+  --le-goalie-headshot-border: rgba(255, 255, 255, 0.12);
+
+  --le-goalie-stat-label: rgba(255, 255, 255, 0.62);
+  --le-goalie-stat-value: rgba(255, 255, 255, 0.92);
+
+  --le-goalie-footnote: rgba(255, 255, 255, 0.50);
+
+  /* Injuries (dark) */
+  --le-inj-card-bg: rgba(10, 14, 20, 0.72);
+  --le-inj-card-border: rgba(255, 255, 255, 0.12);
+  --le-inj-card-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+
+  --le-inj-title: rgba(255, 255, 255, 0.92);
+  --le-inj-updated: rgba(255, 255, 255, 0.55);
+  --le-inj-muted: rgba(255, 255, 255, 0.65);
+
+  --le-inj-name: rgba(255, 255, 255, 0.92);
+  --le-inj-sub: rgba(255, 255, 255, 0.62);
+
+  --le-inj-headshot-bg: rgba(255, 255, 255, 0.06);
+  --le-inj-headshot-border: rgba(255, 255, 255, 0.12);
+  --le-inj-initials: rgba(255, 255, 255, 0.85);
+
+  --le-inj-pill-shadow: 0 6px 18px rgba(0, 0, 0, 0.40);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   03) Body / page background
+   ───────────────────────────────────────────────────────────── */
+
+body {
+  background: var(--le-page);
+  color: var(--le-text);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   04) Layout shell + surface
+   ───────────────────────────────────────────────────────────── */
+
+.leShell {
+  min-height: 100vh;
+  background: var(--le-page);
+  padding: 0 0 28px !important;
+  margin: 0 !important;
+}
+
+/* MAIN SLAB (center panel) */
+.leSurface {
+  max-width: 1300px;
+  margin: 0 auto;
+  background: linear-gradient(180deg, var(--le-surface-top), var(--le-surface-bot));
+  border: 1px solid var(--le-surface-border);
+  border-radius: 14px;
+  box-shadow: var(--le-shadow);
+}
+
+/* padding INSIDE the slab */
+.leContentPad {
+  padding: 0 18px 18px;
+}
+
+/* Full-bleed sections (hero) */
+.leFullBleed {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+}
+
+.leFullBleedInner {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 18px;
+}
+
+/* Middle content container (idk: older naming, kept for compatibility) */
+.leDarkPanel {
+  background: transparent;
+  color: var(--le-text);
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.leDarkPanelSoft {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Spacing helpers */
+.leSectionGap {
+  margin-top: 14px;
+}
+
+.leStackMd {
+  display: grid;
+  gap: 14px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   05) StatRow (new component) — SINGLE SOURCE OF TRUTH
+   Uses: .leStatRow, .leStatRowFill, .leStatRowContent, etc.
+   ───────────────────────────────────────────────────────────── */
+
+.leStatRow {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--le-statrow-radius);
+  border: 1px solid var(--le-statrow-border);
+  background: var(--le-statrow-bg);
+}
+
+.leStatRowFill {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  opacity: var(--le-statrow-fill-opacity);
+}
+
+.leStatRowContent {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
+  gap: var(--le-statrow-gap);
+  align-items: center;
+  padding: var(--le-statrow-pad-y) var(--le-statrow-pad-x);
 }
 
-.statRowLeft {
+.leStatRowValue {
+  font-size: var(--le-stat-value-size);
+  font-weight: var(--le-stat-value-weight);
+  color: var(--le-stat-value-color);
+}
+
+.leStatRowValue.left {
   text-align: left;
 }
 
-.statRowLabel {
-  text-align: center;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-}
-
-.statRowRight {
+.leStatRowValue.right {
   text-align: right;
 }
 
-
-.stackOnMobile {
-  display: grid;
+.leStatRowLabel {
+  text-align: center;
+  font-size: var(--le-stat-label-size);
+  font-weight: var(--le-stat-label-weight);
+  color: var(--le-stat-label-color);
+  letter-spacing: 0.2px;
 }
 
+/* ─────────────────────────────────────────────────────────────
+   06) Team Comparisons (text blocks)
+   ───────────────────────────────────────────────────────────── */
+
+.leTC_Title {
+  padding-top: var(--le-tc-title-pad-top);
+  padding-bottom: var(--le-tc-title-pad-bottom);
+  font-weight: var(--le-tc-title-weight);
+  color: var(--le-tc-title-color);
+  text-align: center;
+}
+
+.leTC_Subtitle {
+  font-size: var(--le-tc-sub-size);
+  color: var(--le-tc-sub-color);
+  margin-top: var(--le-tc-sub-mt);
+  margin-bottom: var(--le-tc-sub-mb);
+  text-align: center;
+}
+
+.leTC_Loading {
+  font-size: var(--le-tc-loading-size);
+  color: var(--le-tc-loading-color);
+  margin-bottom: var(--le-tc-loading-mb);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   07) NHL-style top nav (unchanged)
+   ───────────────────────────────────────────────────────────── */
+
+.leNavBar {
+  width: 100%;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  background: var(--le-nav-bg);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.leNavInner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.leNavLinks {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.leNavLink {
+  position: relative;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.82);
+  font-weight: 750;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 10px 2px;
+  transition: color 140ms ease;
+}
+
+.leNavLink:hover {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.leNavLinkActive {
+  color: rgba(255, 255, 255, 0.98);
+}
+
+.leNavLinkActive::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.90);
+  border-radius: 999px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   08) Schedule scroller (behavior unchanged)
+   ───────────────────────────────────────────────────────────── */
+
+.scheduleScroller {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+}
+
+@media (min-width: 768px) {
+  .scheduleScroller {
+    scrollbar-width: none;
+  }
+
+  .scheduleScroller::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Legacy schedule strip (idk: older class, kept for compatibility) */
+.leScheduleBar {
+  background: #f4f5f7;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.leScheduleBarTopLine {
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.leScheduleBar,
+.leScheduleBar * {
+  color: rgba(11, 13, 18, 0.92);
+}
+
+.leScheduleBar .gameCard {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.10);
+}
+
+.leScheduleBar .gameCard .muted,
+.leScheduleBar .gameCard .subtext {
+  color: rgba(11, 13, 18, 0.60);
+}
+
+.leScheduleBar .scheduleScroller {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   09) Accessory section (Last 5 Games) — legacy helpers
+   NOTE: these are for old stat rows (statRowContent...), not the new leStatRow.
+   ───────────────────────────────────────────────────────────── */
+
+.leAccessory {
+  opacity: 1;
+}
+
+.leAccessory .statRowContent {
+  min-height: 42px;
+}
+
+.leAccessory .statRowLabel {
+  font-size: 13px;
+  opacity: 1;
+  color: rgba(11, 13, 18, 0.74);
+}
+
+.leAccessory .statRowLeft,
+.leAccessory .statRowRight {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(11, 13, 18, 0.88);
+}
+
+.leAccessory .statBarTrack {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* Dropdown group frame (top + bottom dividers) */
+.leSectionGroup {
+  border-top: 1px solid var(--le-divider);
+  border-bottom: 1px solid var(--le-divider);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   10) Collapsible sections (theme-safe)
+   ───────────────────────────────────────────────────────────── */
+
+.leSection {
+  padding: 10px 10px 0;
+  border-top: none;
+}
+
+/* Divider ONLY between sections */
+.leSection + .leSection {
+  border-top: 1px solid var(--le-divider);
+  margin-top: 6px;
+  padding-top: 16px;
+}
+
+.leSectionHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: transparent;
+  border: none;
+  padding: 12px 10px;
+  margin: 0;
+
+  cursor: pointer;
+  color: var(--le-heading);
+}
+
+.leSectionHeader:hover {
+  background: var(--le-section-hover-bg);
+}
+
+.leSectionHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.leSectionTitle {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  opacity: 1;
+
+  color: var(--le-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leSectionHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.leSectionSubRight {
+  color: var(--le-heading-muted);
+}
+
+.leChevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+
+  border: 1px solid var(--le-chevron-border);
+  background: var(--le-chevron-bg);
+  color: var(--le-chevron-fg);
+
+  font-size: 12px;
+  line-height: 1;
+
+  transform: rotate(0deg);
+  transition: transform 160ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.leChevron.isOpen {
+  transform: rotate(180deg);
+}
+
+.leSectionHeader:hover .leChevron {
+  background: var(--le-chevron-hover-bg);
+  border-color: var(--le-chevron-hover-border);
+}
+
+/* Just in case the glyph is inheriting some other color rule */
+.leChevron * {
+  color: inherit;
+}
+
+.leSectionBody {
+  padding: 8px 6px 12px;
+}
+
+/* Collapsible body visibility */
+.leSectionBodyHidden {
+  display: none;
+}
+
+.leSectionBodyShown {
+  display: block;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   11) Theme Toggle (pill switch)
+   Used by <ThemeToggle /> in navbar
+   ───────────────────────────────────────────────────────────── */
+
+.leThemeToggle {
+  width: var(--le-toggle-w);
+  height: var(--le-toggle-h);
+  padding: 0;
+  border-radius: 999px;
+
+  border: 1px solid var(--le-toggle-track-border);
+  background: var(--le-toggle-track);
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+
+  transition: background 140ms ease, border-color 140ms ease, transform 120ms ease;
+}
+
+.leThemeToggle:hover {
+  background: var(--le-toggle-track-hover);
+}
+
+.leThemeToggle:active {
+  transform: translateY(1px);
+}
+
+.leThemeToggle:focus-visible {
+  outline: 2px solid var(--le-toggle-focus);
+  outline-offset: 2px;
+}
+
+.leThemeToggleKnob {
+  width: var(--le-toggle-knob);
+  height: var(--le-toggle-knob);
+  border-radius: 999px;
+
+  background: var(--le-toggle-knob-bg);
+  box-shadow: var(--le-toggle-knob-shadow);
+
+  position: absolute;
+  top: var(--le-toggle-pad);
+  left: var(--le-toggle-pad);
+
+  display: grid;
+  place-items: center;
+
+  transition: transform 180ms ease;
+}
+
+.leThemeToggle[data-on="true"] .leThemeToggleKnob {
+  transform: translateX(
+    calc(
+      var(--le-toggle-w) - (var(--le-toggle-pad) * 2) - var(--le-toggle-knob)
+    )
+  );
+}
+
+/* Icons inside knob */
+.leThemeToggleIcon {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  transition: opacity 140ms ease;
+}
+
+.leThemeToggleIcon.sun {
+  opacity: 1;
+  color: var(--le-toggle-icon-off);
+}
+
+.leThemeToggleIcon.moon {
+  opacity: 0;
+  color: var(--le-toggle-icon-on);
+}
+
+.leThemeToggle[data-on="true"] .leThemeToggleIcon.sun {
+  opacity: 0;
+}
+
+.leThemeToggle[data-on="true"] .leThemeToggleIcon.moon {
+  opacity: 1;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   12) Goalies section (Projected Starters cards)
+   NOTE: styles ONLY the goalie cards + section shell.
+   StatRow stays exactly as-is.
+   ───────────────────────────────────────────────────────────── */
+
+.leGoaliesShell {
+  border-radius: 18px;
+  border: 1px solid var(--le-goalies-shell-border);
+  box-shadow: var(--le-goalies-shell-shadow);
+  overflow: hidden;
+  background: var(--le-goalies-shell-bg);
+}
+
+.leGoaliesDivider {
+  height: 1px;
+  background: var(--le-goalies-divider);
+}
+
+/* Grid for the two goalie cards */
+.goaliesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+@media (max-width: 720px) {
+  .goaliesGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.leGoalieCard {
+  border-radius: 18px;
+  border: 1px solid var(--le-goalie-card-border);
+  background: var(--le-goalie-card-bg);
+  box-shadow: var(--le-goalie-card-shadow);
+  overflow: hidden;
+}
+
+.leGoalieCardInner {
+  padding: 18px;
+}
+
+.leGoalieCardTitle {
+  font-weight: 900;
+  font-size: 16px;
+  color: var(--le-goalie-title);
+}
+
+.leGoalieLoading,
+.leGoalieEmpty {
+  margin-top: 12px;
+  color: var(--le-goalie-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* main content layout */
+.leGoalieMain {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 16px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.leGoalieHeadshot {
+  width: 92px;
+  height: 92px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--le-goalie-headshot-border);
+  background: var(--le-goalie-headshot-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.leGoalieInitials {
+  font-weight: 900;
+  font-size: 24px;
+  color: var(--le-goalie-value);
+}
+
+.leGoalieName {
+  font-weight: 900;
+  font-size: 18px;
+  color: var(--le-goalie-name);
+}
+
+.leGoalieStats {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.leGoalieStatLine {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.leGoalieStatLabel {
+  width: 90px;
+  color: var(--le-goalie-stat-label);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.leGoalieStatValue {
+  color: var(--le-goalie-stat-value);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.leGoalieMeta {
+  margin-top: 10px;
+  color: var(--le-goalie-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Last 5 title + footnote (NOT StatRow) */
+.leGoaliesLast5Title {
+  font-weight: 900;
+  font-size: 16px;
+  color: var(--le-goalie-title);
+}
+
+.leGoaliesFootnote {
+  margin-top: 10px;
+  color: var(--le-goalie-footnote);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   13) Injuries section (two columns + rows)
+   Theme-safe. Tokenized.
+   ───────────────────────────────────────────────────────────── */
+
+.injuriesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+
+@media (max-width: 900px) {
+  .injuriesGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.leInjCol {
+  padding: 22px;
+  border-radius: 18px;
+  border: 1px solid var(--le-inj-card-border);
+  background: var(--le-inj-card-bg);
+  box-shadow: var(--le-inj-card-shadow);
+}
+
+.leInjHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.leInjTitle {
+  font-weight: 900;
+  font-size: 18px;
+  color: var(--le-inj-title);
+}
+
+.leInjUpdated {
+  font-size: 12px;
+  color: var(--le-inj-updated);
+  font-weight: 600;
+}
+
+.leInjList {
+  margin-top: 18px;
+  display: grid;
+  gap: 16px;
+}
+
+.leInjEmpty {
+  color: var(--le-inj-muted);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.leInjRow {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.leInjHeadshot {
+  width: 88px;
+  height: 88px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--le-inj-headshot-border);
+  background: var(--le-inj-headshot-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.leInjInitials {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--le-inj-initials);
+}
+
+.leInjRowRight {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.leInjText {
+  min-width: 0;
+}
+
+.leInjName {
+  font-weight: 800;
+  font-size: 16px;
+  line-height: 1.15;
+  color: var(--le-inj-name);
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 360px;
+}
+
+.leInjSub {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.25;
+  color: var(--le-inj-sub);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 440px;
+}
+
+.leInjPillWrap {
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+.leInjPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  background: var(--le-inj-pill-bg);
+  color: var(--le-inj-pill-text);
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+  box-shadow: var(--le-inj-pill-shadow);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   99) Mobile adjustments (general)
+   ───────────────────────────────────────────────────────────── */
 
 @media (max-width: 640px) {
   body {
     font-size: 14px;
   }
 
-  main {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+  .leShell {
+    padding: 0 !important;
   }
 
-  main > div {
-    max-width: 100% !important;
-    margin: 0 auto !important;
+  .leSurface {
+    max-width: 100%;
+    margin: 0;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
   }
 
-  section {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
+  .leContentPad {
+    padding: 0;
   }
 
-  section > div {
-    border-radius: 14px !important;
-  }
-
-  /* StatRow becomes vertical */
+  /* Legacy stat row layout (idk: kept from older stat row implementation) */
   .statRowContent {
     display: flex !important;
     flex-direction: column !important;
@@ -90,99 +1251,6 @@ body {
   .statRowLabel {
     order: -1 !important;
     font-size: 12px !important;
-    opacity: 0.65 !important;
-  }
-
-  .statRowBars {
-    opacity: 0.32 !important;
-  }
-
-  .mhRow {
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-    gap: 14px !important;
-    text-align: center !important;
-  }
-
-  .mhRow > div {
-    justify-content: center !important;
-    text-align: center !important;
-  }
-
-  .mhRow img {
-    width: 46px !important;
-    height: 46px !important;
-  }
-
-  .mhTitle {
-    font-size: 30px !important;
-    line-height: 1.05 !important;
-    letter-spacing: 0.4px !important;
-  }
-
-  .goaliesGrid {
-    grid-template-columns: 1fr !important;
-  }
-
-  .goaliesGrid > div {
-    padding: 16px !important;
-  }
-
-  .goaliesGrid > div div[style*="grid-template-columns: 92px 1fr"] {
-    grid-template-columns: 1fr !important;
-    justify-items: center !important;
-    text-align: center !important;
-    gap: 12px !important;
-  }
-
-  .goaliesGrid img {
-    width: 110px !important;
-    height: 110px !important;
-  }
-
-  .goaliesGrid > div div[style*="font-size: 18px"] {
-    font-size: 20px !important;
-  }
-
-  .goaliesGrid > div div[style*="display: grid"][style*="gap: 8px"] {
-    gap: 10px !important;
-  }
-
-  .injuriesGrid {
-    grid-template-columns: 1fr !important;
-    gap: 14px !important;
-    padding-inline: 16px !important;
-  }
-
-  .injuriesGrid > div {
-    padding: 16px !important;
-  }
-
-  .injuriesGrid > div > div[style*="grid-template-columns: 88px 1fr"] {
-    grid-template-columns: 76px 1fr !important;
-    gap: 12px !important;
-  }
-
-  .injuriesGrid img {
-    width: 76px !important;
-    height: 76px !important;
-  }
-}
-
-@media (min-width: 768px) {
-  .scheduleScroller {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* old Edge/IE */
-  }
-
-  .scheduleScroller::-webkit-scrollbar {
-    display: none; /* Chrome/Safari */
-    height: 0;
-  }
-}
-
-@media (max-width: 640px) {
-  .centerNavCapsule {
-    border-radius: 16px !important; /* less “pill”, more “panel” */
+    opacity: 0.62 !important;
   }
 }

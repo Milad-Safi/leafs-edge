@@ -4,23 +4,27 @@ import type React from "react";
 export const UI = {
   moduleWrapper: (): React.CSSProperties => ({
     borderRadius: 18,
-    border: "1px solid rgba(255,255,255,0.10)",
-    boxShadow: "0 18px 60px rgba(0,0,0,0.30)",
+    border: "1px solid var(--le-surface-border)",
+    boxShadow: "var(--le-shadow)",
+    background: "var(--le-module-bg)",
     overflow: "hidden",
   }),
 
   pad: (n = 18): React.CSSProperties => ({
-  paddingTop: n,
-  paddingRight: n,
-  paddingBottom: n,
-  paddingLeft: n, }),
-  
+    paddingTop: n,
+    paddingRight: n,
+    paddingBottom: n,
+    paddingLeft: n,
+  }),
+
   hairline: (alpha = 0.08): React.CSSProperties => ({
-  height: 1,
-  background: `rgba(255,255,255,${alpha})`, }),
-  
+    height: 1,
+    background: `rgba(255,255,255,${alpha})`,
+  }),
+
   spacer: (h = 10): React.CSSProperties => ({
-  height: h, }),
+    height: h,
+  }),
 
   headerRow: (): React.CSSProperties => ({
     display: "flex",
@@ -45,4 +49,3 @@ export const UI = {
     gap,
   }),
 };
-

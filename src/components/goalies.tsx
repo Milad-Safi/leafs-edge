@@ -43,20 +43,9 @@ function inversePositive(v: number | null | undefined): number | null {
 
 function StatLine({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-      <div
-        style={{
-          width: 90,
-          color: "rgba(255,255,255,0.55)",
-          fontSize: 13,
-          fontWeight: 800,
-        }}
-      >
-        {label}
-      </div>
-      <div style={{ color: "rgba(255,255,255,0.92)", fontSize: 15, fontWeight: 950 }}>
-        {value}
-      </div>
+    <div className="leGoalieStatLine">
+      <div className="leGoalieStatLabel">{label}</div>
+      <div className="leGoalieStatValue">{value}</div>
     </div>
   );
 }
@@ -71,83 +60,49 @@ function GoalieCard({
   starter: ProjectedStarter | null;
 }) {
   return (
-    <div
-      style={{
-        borderRadius: 18,
-        border: "1px solid rgba(255,255,255,0.10)",
-        background: "rgba(0,0,0,0.22)",
-        boxShadow: "0 12px 40px rgba(0,0,0,0.30)",
-        overflow: "hidden",
-      }}
-    >
-      <div style={{ padding: 18 }}>
-        <div style={{ fontWeight: 950, fontSize: 18, color: "rgba(255,255,255,0.92)" }}>
-          {title}
-        </div>
+    <div className="leGoalieCard">
+      <div className="leGoalieCardInner">
+        <div className="leGoalieCardTitle">{title}</div>
 
-        <div style={{ marginTop: 14 }}>
-          {loading ? (
-            <div style={{ color: "rgba(255,255,255,0.65)" }}>Loading projected starter…</div>
-          ) : !starter ? (
-            <div style={{ color: "rgba(255,255,255,0.65)" }}>No projected starter.</div>
-          ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "92px 1fr",
-                gap: 16,
-                alignItems: "center",
-                marginTop: 8,
-              }}
-            >
-              <div
-                style={{
-                  width: 92,
-                  height: 92,
-                  borderRadius: 16,
-                  overflow: "hidden",
-                  border: "1px solid rgba(255,255,255,0.10)",
-                  background: "rgba(255,255,255,0.04)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                {starter.headshot ? (
-                  <img
-                    src={starter.headshot}
-                    alt={starter.name}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  />
-                ) : (
-                  <div style={{ fontWeight: 950, fontSize: 24 }}>
-                    {initials(starter.name)}
-                  </div>
-                )}
+        {loading ? (
+          <div className="leGoalieLoading">Loading projected starter…</div>
+        ) : !starter ? (
+          <div className="leGoalieEmpty">No projected starter.</div>
+        ) : (
+          <div className="leGoalieMain">
+            <div className="leGoalieHeadshot">
+              {starter.headshot ? (
+                <img
+                  src={starter.headshot}
+                  alt={starter.name}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              ) : (
+                <div className="leGoalieInitials">{initials(starter.name)}</div>
+              )}
+            </div>
+
+            <div>
+              <div className="leGoalieName">{starter.name}</div>
+
+              <div className="leGoalieStats">
+                <StatLine
+                  label="Record"
+                  value={`${starter.record.wins}-${starter.record.losses}-${starter.record.ot}`}
+                />
+                <StatLine label="SV%" value={fmtSvDecimal(starter.savePct)} />
+                <StatLine label="GAA" value={fmtNum(starter.gaa, 2)} />
               </div>
 
-              <div>
-                <div style={{ fontWeight: 950, fontSize: 18 }}>{starter.name}</div>
-
-                <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
-                  <StatLine
-                    label="Record"
-                    value={`${starter.record.wins}-${starter.record.losses}-${starter.record.ot}`}
-                  />
-                  <StatLine label="SV%" value={fmtSvDecimal(starter.savePct)} />
-                  <StatLine label="GAA" value={fmtNum(starter.gaa, 2)} />
-                </div>
-
-                <div style={{ marginTop: 10, color: "rgba(255,255,255,0.55)", fontSize: 12 }}>
-                  GP: {starter.gamesPlayed}
-                  {typeof starter.last5Starts === "number"
-                    ? ` • Last 5 starts: ${starter.last5Starts}`
-                    : ""}
-                </div>
+              <div className="leGoalieMeta">
+                GP: {starter.gamesPlayed}
+                {typeof starter.last5Starts === "number"
+                  ? ` • Last 5 starts: ${starter.last5Starts}`
+                  : ""}
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -175,37 +130,20 @@ export default function GoaliesSection({
   const l5Right = rStarter?.last5Splits ?? null;
 
   return (
-    <section style={{ width: "100%", marginTop: 26 }}>
+    <section style={{ width: "100%", marginTop: 34 }}>
       <div style={{ padding: "0 18px 18px" }}>
-        <div
-          style={{
-            borderRadius: 18,
-            border: "1px solid rgba(255,255,255,0.10)",
-            boxShadow: "0 18px 60px rgba(0,0,0,0.30)",
-            overflow: "hidden",
-          }}
-        >
+        <div className="leGoaliesShell">
           <div style={{ padding: 18, paddingBottom: 16 }}>
-            <div
-              className="goaliesGrid"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 16,
-                alignItems: "stretch",
-              }}
-            >
+            <div className="goaliesGrid">
               <GoalieCard title="Projected Starter:" loading={loading} starter={lStarter} />
               <GoalieCard title="Projected Starter:" loading={loading} starter={rStarter} />
             </div>
           </div>
 
-          <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
+          <div className="leGoaliesDivider" />
 
           <div style={{ padding: 18, paddingTop: 16 }}>
-            <div style={{ fontWeight: 950, fontSize: 16 }}>
-              Last 5 Splits (Projected Starters)
-            </div>
+            <div className="leGoaliesLast5Title">Last 5 Splits (Projected Starters)</div>
 
             <div style={{ marginTop: 12, display: "grid", gap: 12 }}>
               <StatRow
@@ -243,7 +181,7 @@ export default function GoaliesSection({
               />
             </div>
 
-            <div style={{ marginTop: 10, color: "rgba(255,255,255,0.45)", fontSize: 12 }}>
+            <div className="leGoaliesFootnote">
               *Splits computed from last 5 team games where the projected goalie played (TOI &gt; 0).
             </div>
           </div>

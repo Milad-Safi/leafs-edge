@@ -67,6 +67,10 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
   const [games, setGames] = useState<Game[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
+  const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const [hoverPrev, setHoverPrev] = useState(false);
+  const [hoverNext, setHoverNext] = useState(false);
+
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const cardRefs = useRef(new Map<number, HTMLButtonElement>());
 
@@ -208,7 +212,13 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
 
   return (
     <div style={styles.wrap}>
-      <button style={styles.arrowBtn} onClick={() => scrollByPx(-520)} aria-label="Previous games">
+      <button
+        style={{ ...styles.arrowBtn, ...(hoverPrev ? (styles as any).arrowBtnHover : null) }}
+        onMouseEnter={() => setHoverPrev(true)}
+        onMouseLeave={() => setHoverPrev(false)}
+        onClick={() => scrollByPx(-520)}
+        aria-label="Previous games"
+      >
         ◀
       </button>
 
@@ -216,6 +226,8 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
         {games.map((g) => {
           const finished = isFinished(g.gameState);
           const selected = selectedId === g.id;
+          const hovered = hoveredId === g.id;
+
           const leafsIsHome = g.homeAbbrev?.toUpperCase() === teamAbbrev.toUpperCase();
           const opp = leafsIsHome ? g.awayAbbrev : g.homeAbbrev;
 
@@ -249,10 +261,13 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
               }}
               onClick={() => handleSelect(g)}
               disabled={finished}
+              onMouseEnter={() => setHoveredId(g.id)}
+              onMouseLeave={() => setHoveredId((cur) => (cur === g.id ? null : cur))}
               style={{
                 ...styles.card,
                 ...(selected ? styles.cardSelected : null),
                 ...(finished ? styles.cardDisabled : null),
+                ...(!finished && !selected && hovered ? (styles as any).cardHover : null),
               }}
               title={finished ? "Finished game" : "Select game"}
             >
@@ -279,7 +294,13 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
         })}
       </div>
 
-      <button style={styles.arrowBtn} onClick={() => scrollByPx(520)} aria-label="Next games">
+      <button
+        style={{ ...styles.arrowBtn, ...(hoverNext ? (styles as any).arrowBtnHover : null) }}
+        onMouseEnter={() => setHoverNext(true)}
+        onMouseLeave={() => setHoverNext(false)}
+        onClick={() => scrollByPx(520)}
+        aria-label="Next games"
+      >
         ▶
       </button>
     </div>

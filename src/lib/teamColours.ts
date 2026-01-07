@@ -1,5 +1,5 @@
 export const TEAM_COLORS: Record<string, string> = {
-  TOR: "rgba(26, 15, 232, 1)",
+  TOR: "rgba(28, 18, 213, 1)",
 
   ANA: "rgba(252, 76, 2, 1)",
   BOS: "rgba(252, 181, 20, 1)",

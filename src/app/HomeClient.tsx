@@ -1,48 +1,61 @@
 "use client";
 
 import React, { useState } from "react";
-import ScheduleBar, { type Game } from "@/components/schedule/scheduleBar";
+
+import ScheduleBar, { type Game } from "@/components/schedule/ScheduleBar";
+import CenterNav from "@/components/CenterNav";
 import MatchupHeader from "@/components/MatchupHeader";
-import GoaliesSection from "@/components/goalies";
+
 import TeamComparisonSection from "@/components/TeamComparisons";
-import Last5Section from "@/components/Last5";
-import HotPlayersLast5 from "@/components/HotPlayers";
+import Last5Section from "@/components/LastFive";
+import MatchupHistory from "@/components/MatchupHistory";
+import GoaliesSection from "@/components/Goalies";
 import InjuriesSection from "@/components/Injuries";
 
+import CollapsibleSection from "@/components/CollapsibleSection";
+
 import useMatchupData from "@/hooks/useMatchupData";
-import { getTeamColor } from "@/lib/teamColours";
-import MatchupHistory from "@/components/matchupHistory";
 import { useMatchupHistory } from "@/hooks/useMatchupHistory";
-import CenterNav from "@/components/centerNav";
+import { getTeamColor } from "@/lib/teamColours";
+
+/* ─────────────────────────────────────────────────────────────
+   Helpers
+   ───────────────────────────────────────────────────────────── */
 
 function getOppFromGame(game: Game | null, teamAbbrev: string) {
   if (!game) return null;
-  const leafsIsHome =
+
+  const isHome =
     String(game.homeAbbrev).toUpperCase() === teamAbbrev.toUpperCase();
+
   return (
-    (leafsIsHome ? game.awayAbbrev : game.homeAbbrev)?.toUpperCase?.() ?? null
+    (isHome ? game.awayAbbrev : game.homeAbbrev)?.toUpperCase?.() ?? null
   );
 }
 
-function torontoDateFromUTC(utcIso: string | null | undefined): string | null {
+function torontoDateFromUTC(utcIso?: string | null): string | null {
   if (!utcIso) return null;
-  const dt = new Date(utcIso);
-  if (!Number.isFinite(dt.getTime())) return null;
+  const d = new Date(utcIso);
+  if (!Number.isFinite(d.getTime())) return null;
 
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Toronto",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).formatToParts(dt);
+  }).formatToParts(d);
 
   const y = parts.find((p) => p.type === "year")?.value;
   const m = parts.find((p) => p.type === "month")?.value;
-  const d = parts.find((p) => p.type === "day")?.value;
-  if (!y || !m || !d) return null;
+  const day = parts.find((p) => p.type === "day")?.value;
 
-  return `${y}-${m}-${d}`;
+  if (!y || !m || !day) return null;
+  return `${y}-${m}-${day}`;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Page
+   ───────────────────────────────────────────────────────────── */
 
 export default function HomeClient() {
   const TEAM = "TOR";
@@ -60,81 +73,98 @@ export default function HomeClient() {
     torHot,
     oppHot,
     teamRanks,
-  } = useMatchupData({ teamAbbrev: TEAM, oppAbbrev });
+  } = useMatchupData({
+    teamAbbrev: TEAM,
+    oppAbbrev,
+  });
+
+  const { data: history, loading: historyLoading } = useMatchupHistory(
+    TEAM,
+    oppAbbrev
+  );
 
   const leftColor = getTeamColor(TEAM);
   const rightColor = getTeamColor(oppAbbrev ?? "");
-  const gameDayToronto = torontoDateFromUTC(selectedGame?.startTimeUTC ?? null);
-  const { data: history, loading: historyLoading } = useMatchupHistory(TEAM, oppAbbrev);
+  const gameDateToronto = torontoDateFromUTC(selectedGame?.startTimeUTC);
 
   return (
-    <main style={{ minHeight: "100vh", color: "white" }}>
+    <main className="leShell">
+      {/* ───────── Schedule Bar ───────── */}
       <ScheduleBar
         teamAbbrev={TEAM}
-        onSelectFutureGame={(game) => setSelectedGame(game)}
+        onSelectFutureGame={(g) => setSelectedGame(g)}
       />
 
+      {/* ───────── Center Nav ───────── */}
       <CenterNav teamAbbrev={TEAM} oppAbbrev={oppAbbrev} />
 
-      <MatchupHeader
-        game={selectedGame}
-        teamAbbrev={TEAM}
-        leftSummary={torSummary}
-        rightSummary={oppSummary}
-      />
-
-      <section style={{ padding: 24 }}>
-        <div
-          style={{
-            border: "1px solid rgba(255,255,255,0.10)",
-            background: "rgba(255,255,255,0.03)",
-            borderRadius: 14,
-            overflow: "hidden",
-          }}
-        >
-          <TeamComparisonSection
-            left={torSummary}
-            right={oppSummary}
-            loading={loadingSummary}
-            leftColor={leftColor}
-            rightColor={rightColor}
-            leftAbbrev={TEAM}
-            rightAbbrev={oppAbbrev ?? ""}
-            ranks={teamRanks}
-          />
-
-          <Last5Section
-            left={torLast5}
-            right={oppLast5}
-            loading={loadingLast5}
-            leftColor={leftColor}
-            rightColor={rightColor}
-            hotLeft={torHot}
-            hotRight={oppHot}
-          />
-
-          <MatchupHistory
-            data={history}
-            loading={historyLoading}
-            leftAbbrev="TOR"
-            rightAbbrev={oppAbbrev ?? ""}
-            leftColor={leftColor}
-            rightColor={rightColor}
-          />
-
-          {oppAbbrev && gameDayToronto && (
-            <GoaliesSection
-              leftTeam="TOR"
-              rightTeam={oppAbbrev}
-              gameDate={gameDayToronto}
-              leftColor={leftColor}
-              rightColor={rightColor}
+      {/* ───────── Main Surface ───────── */}
+      <div className="leSurface">
+        <div className="leContentPad">
+          <div className="leDarkPanel">
+            {/* Matchup Header (no divider under it) */}
+            <MatchupHeader
+              game={selectedGame}
+              teamAbbrev={TEAM}
+              leftSummary={torSummary}
+              rightSummary={oppSummary}
             />
-          )}
 
-          <InjuriesSection leftTeam="TOR" rightTeam={oppAbbrev} />
+            {/* ───────── Dropdown Group (boxed) ───────── */}
+            <div className="leSectionGroup">
+              <CollapsibleSection title="Team Comparisons" defaultOpen>
+                <TeamComparisonSection
+                  left={torSummary}
+                  right={oppSummary}
+                  loading={loadingSummary}
+                  leftColor={leftColor}
+                  rightColor={rightColor}
+                  leftAbbrev={TEAM}
+                  rightAbbrev={oppAbbrev ?? ""}
+                  ranks={teamRanks}
+                />
+              </CollapsibleSection>
+
+              <CollapsibleSection title="Last 5 Games" defaultOpen>
+                <Last5Section
+                  left={torLast5}
+                  right={oppLast5}
+                  loading={loadingLast5}
+                  leftColor={leftColor}
+                  rightColor={rightColor}
+                  hotLeft={torHot}
+                  hotRight={oppHot}
+                />
+              </CollapsibleSection>
+
+              <CollapsibleSection title="Matchup History" defaultOpen>
+                <MatchupHistory
+                  data={history}
+                  loading={historyLoading}
+                  leftAbbrev={TEAM}
+                  rightAbbrev={oppAbbrev ?? ""}
+                  leftColor={leftColor}
+                  rightColor={rightColor}
+                />
+              </CollapsibleSection>
+            </div>
+
+            {/* ───────── Goalies (untouched) ───────── */}
+            {oppAbbrev && gameDateToronto && (
+              <GoaliesSection
+                leftTeam={TEAM}
+                rightTeam={oppAbbrev}
+                gameDate={gameDateToronto}
+                leftColor={leftColor}
+                rightColor={rightColor}
+              />
+            )}
+
+            {/* ───────── Injuries (untouched) ───────── */}
+            <InjuriesSection leftTeam={TEAM} rightTeam={oppAbbrev} />
+          </div>
         </div>
-      </section>
+      </div>
     </main>
   );
 }

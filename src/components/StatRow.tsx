@@ -31,57 +31,22 @@ export default function StatRow({
   const rightPct = total && total > 0 ? (rAbs! / total) * 100 : 50;
 
   return (
-    <div
-      style={{
-        position: "relative",
-        overflow: "hidden",
-        borderRadius: 12,
-        border: "1px solid rgba(255,255,255,0.08)",
-        background: "rgba(0,0,0,0.25)",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          display: "flex",
-          opacity: 0.22,
-        }}
-      >
+    <div className="leStatRow">
+      {/* Team color fills */}
+      <div className="leStatRowFill">
         <div style={{ width: `${leftPct}%`, background: leftColor }} />
         <div style={{ width: `${rightPct}%`, background: rightColor }} />
-
-        <div
-          style={{
-            position: "absolute",
-            left: "50%",
-            top: 0,
-            bottom: 0,
-            width: 2,
-            transform: "translateX(-1px)",
-            background: "rgba(255,255,255,0.18)",
-          }}
-        />
       </div>
 
-      <div
-        style={{
-          position: "relative",
-          zIndex: 1,
-          display: "grid",
-          gridTemplateColumns: "1fr auto 1fr",
-          gap: 12,
-          alignItems: "center",
-          padding: "12px 10px",
-        }}
-      >
-        <div style={{ textAlign: "left", fontWeight: 800 }}>
+      {/* Content */}
+      <div className="leStatRowContent">
+        <div className="leStatRowValue left">
           {leftText ?? (l != null ? l : "—")}
         </div>
 
-        <div style={{ textAlign: "center", opacity: 0.8 }}>{label}</div>
+        <div className="leStatRowLabel">{label}</div>
 
-        <div style={{ textAlign: "right", fontWeight: 800 }}>
+        <div className="leStatRowValue right">
           {rightText ?? (r != null ? r : "—")}
         </div>
       </div>

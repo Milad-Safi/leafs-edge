@@ -44,24 +44,7 @@ function StatusPill({ status }: { status: string | null }) {
   const st = normalizeStatus(status);
 
   return (
-    <span
-      title={st.label}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: 30,
-        height: 30,
-        borderRadius: 9999,
-        background: "rgba(239, 68, 68, 1)",
-        color: "white",
-        fontWeight: 800,
-        fontSize: 12,
-        letterSpacing: 0.3,
-        boxShadow: "0 6px 18px rgba(0,0,0,0.35)",
-        flex: "0 0 auto",
-      }}
-    >
+    <span className="leInjPill" title={st.label}>
       {st.code}
     </span>
   );
@@ -79,28 +62,8 @@ function InjuryRow({
   headshotUrl?: string | null;
 }) {
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "88px 1fr",
-        gap: 16,
-        alignItems: "center",
-      }}
-    >
-      <div
-        style={{
-          width: 88,
-          height: 88,
-          borderRadius: 14,
-          overflow: "hidden",
-          border: "1px solid rgba(255,255,255,0.10)",
-          background: "rgba(255,255,255,0.04)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          position: "relative",
-        }}
-      >
+    <div className="leInjRow">
+      <div className="leInjHeadshot">
         {headshotUrl ? (
           <img
             src={headshotUrl}
@@ -108,64 +71,27 @@ function InjuryRow({
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
             loading="lazy"
             onError={(e) => {
+              // if image fails, hide it (fallback to initials)
               (e.currentTarget as HTMLImageElement).src = "";
             }}
           />
         ) : (
-          <div
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: 800,
-              fontSize: 22,
-              color: "rgba(255,255,255,0.85)",
-            }}
-          >
-            {initials(name)}
-          </div>
+          <div className="leInjInitials">{initials(name)}</div>
         )}
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-        <div style={{ minWidth: 0 }}>
-          <div
-            style={{
-              fontWeight: 800,
-              fontSize: 16,
-              lineHeight: 1.15,
-              color: "rgba(255,255,255,0.92)",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              maxWidth: 360,
-            }}
-          >
-            {name}
-          </div>
+      <div className="leInjRowRight">
+        <div className="leInjText">
+          <div className="leInjName">{name}</div>
 
           {subtitle ? (
-            <div
-              style={{
-                marginTop: 6,
-                fontSize: 12,
-                color: "rgba(255,255,255,0.60)",
-                lineHeight: 1.25,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                maxWidth: 440,
-              }}
-              title={subtitle}
-            >
+            <div className="leInjSub" title={subtitle}>
               {subtitle}
             </div>
           ) : null}
         </div>
 
-        <div style={{ marginLeft: "auto" }}>
+        <div className="leInjPillWrap">
           <StatusPill status={status} />
         </div>
       </div>
@@ -185,31 +111,21 @@ function Column({
   lastUpdated?: string | null;
 }) {
   return (
-    <div
-      style={{
-        padding: 22,
-        borderRadius: 18,
-        border: "1px solid rgba(255,255,255,0.10)",
-        background: "rgba(0,0,0,0.28)",
-        boxShadow: "0 18px 60px rgba(0,0,0,0.35)",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-        <div style={{ fontWeight: 900, fontSize: 18, color: "rgba(255,255,255,0.92)" }}>
-          {title}
-        </div>
+    <div className="leInjCol">
+      <div className="leInjHeader">
+        <div className="leInjTitle">{title}</div>
         {lastUpdated ? (
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.50)" }}>
+          <div className="leInjUpdated">
             Last updated: {new Date(lastUpdated).toLocaleString()}
           </div>
         ) : null}
       </div>
 
-      <div style={{ marginTop: 18, display: "grid", gap: 16 }}>
+      <div className="leInjList">
         {loading ? (
-          <div style={{ color: "rgba(255,255,255,0.65)" }}>Loading injuries…</div>
+          <div className="leInjEmpty">Loading injuries…</div>
         ) : items.length === 0 ? (
-          <div style={{ color: "rgba(255,255,255,0.65)" }}>No reported injuries.</div>
+          <div className="leInjEmpty">No reported injuries.</div>
         ) : (
           items.slice(0, 6).map((x, idx) => (
             <InjuryRow
@@ -249,8 +165,12 @@ export default function InjuriesSection({
 
       try {
         const [a, b] = await Promise.all([
-          fetch(`/api/team/injuries?team=${encodeURIComponent(leftTeam)}`).then((r) => r.json()),
-          fetch(`/api/team/injuries?team=${encodeURIComponent(rightTeam)}`).then((r) => r.json()),
+          fetch(`/api/team/injuries?team=${encodeURIComponent(leftTeam)}`).then((r) =>
+            r.json()
+          ),
+          fetch(`/api/team/injuries?team=${encodeURIComponent(rightTeam)}`).then((r) =>
+            r.json()
+          ),
         ]);
         if (cancelled) return;
         setLeft(a);
@@ -271,14 +191,22 @@ export default function InjuriesSection({
       <div
         className="injuriesGrid"
         style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
           gap: 28,
           paddingInline: 18,
         }}
       >
-        <Column title="Injuries:" loading={loading} items={leftItems} lastUpdated={left?.lastUpdated ?? null} />
-        <Column title="Injuries:" loading={loading} items={rightItems} lastUpdated={right?.lastUpdated ?? null} />
+        <Column
+          title="Injuries:"
+          loading={loading}
+          items={leftItems}
+          lastUpdated={left?.lastUpdated ?? null}
+        />
+        <Column
+          title="Injuries:"
+          loading={loading}
+          items={rightItems}
+          lastUpdated={right?.lastUpdated ?? null}
+        />
       </div>
     </section>
   );

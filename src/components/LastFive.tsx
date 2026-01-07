@@ -39,14 +39,13 @@ export default function Last5Section({
 
   return (
     <div style={UI.moduleWrapper()}>
-      <div style={{ ...UI.pad(18), opacity: 0.95 }}>
-        {/* TITLE */}
+      <div style={{ ...UI.pad(18) }}>
         <div
           style={{
             paddingTop: 3,
             paddingBottom: 14,
             fontWeight: 900,
-            opacity: 0.92,
+            color: "rgba(11,13,18,0.96)",
             textAlign: "center",
           }}
         >
@@ -54,7 +53,7 @@ export default function Last5Section({
         </div>
 
         {loading && (
-          <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 12 }}>
+          <div style={{ fontSize: 12, color: "rgba(11,13,18,0.72)", marginBottom: 12 }}>
             Loading last 5 Games…
           </div>
         )}
@@ -65,8 +64,8 @@ export default function Last5Section({
             leftVal={typeof lRec?.w === "number" ? lRec.w : null}
             rightVal={typeof rRec?.w === "number" ? rRec.w : null}
             label="Record"
-            leftText={lRec ? `${lRec.w}-${lRec.l}-${lRec.otl}` : "—"}
-            rightText={rRec ? `${rRec.w}-${rRec.l}-${rRec.otl}` : "—"}
+            leftText={lRec ? `${lRec.w}-${lRec.l}` : "—"}
+            rightText={rRec ? `${rRec.w}-${rRec.l}` : "—"}
             leftColor={leftColor}
             rightColor={rightColor}
           />
@@ -90,7 +89,6 @@ export default function Last5Section({
             leftColor={leftColor}
             rightColor={rightColor}
           />
-
 
           <StatRow
             leftVal={higherBetterStrength(left?.shotsForPerGame ?? null, 30, 0.4)}

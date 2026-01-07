@@ -2,8 +2,8 @@
 
 import React from "react";
 import { useSearchParams } from "next/navigation";
-import ScheduleBar from "@/components/schedule/scheduleBar";
-import CenterNav from "@/components/centerNav";
+import ScheduleBar from "@/components/schedule/ScheduleBar";
+import CenterNav from "@/components/CenterNav";
 
 const TEAM = "TOR";
 
