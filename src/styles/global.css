@@ -674,11 +674,7 @@ body {
   scroll-behavior: smooth;
 }
 
-/* ─────────────────────────────────────────────────────────────
-   09) Accessory section (Last 5 Games) legacy helpers
-   Unknown if still used by the current components.
-   ───────────────────────────────────────────────────────────── */
-
+/* Accessory section (Last 5 Games) legacy helpers */
 .leAccessory {
   opacity: 1;
 }
@@ -690,25 +686,22 @@ body {
 .leAccessory .statRowLabel {
   font-size: 13px;
   opacity: 1;
-  color: rgba(11, 13, 18, 0.74);
+  color: var(--le-text-muted);
 }
 
 .leAccessory .statRowLeft,
 .leAccessory .statRowRight {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(11, 13, 18, 0.88);
+  color: var(--le-text);
 }
 
+/* Track behind the bar */
 .leAccessory .statBarTrack {
   opacity: 1;
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--le-divider);
 }
 
-.leSectionGroup {
-  border-top: 1px solid var(--le-divider);
-  border-bottom: 1px solid var(--le-divider);
-}
 
 /* ─────────────────────────────────────────────────────────────
    10) Collapsible sections
@@ -1564,9 +1557,7 @@ body {
   .leStatRowContent {
     padding: 10px 10px;
   }
-
-  /* You set this to 10px. That is extremely small on phones.
-     If you meant "smaller" but still readable, 12-13px is typical. */
+  
   .leStatRowValue {
     font-size: 10px;
     font-weight: 700;
@@ -1576,4 +1567,29 @@ body {
     font-size: 11px;
     letter-spacing: 0.15px;
   }
+}
+
+/* Force collapsible section titles to respect theme in dark mode */
+html[data-theme="dark"] .leSectionTitle,
+html[data-theme="dark"] .leSectionSubRight,
+html[data-theme="dark"] .leSectionHeader {
+  color: var(--le-heading);
+}
+
+html[data-theme="dark"] .leSectionSubRight {
+  color: var(--le-heading-muted);
+}
+
+.leLast5Title {
+  padding-top: var(--le-tc-title-pad-top);
+  padding-bottom: var(--le-tc-title-pad-bottom);
+  font-weight: var(--le-tc-title-weight);
+  color: var(--le-heading);
+  text-align: center;
+}
+
+.leLast5Loading {
+  font-size: var(--le-tc-loading-size);
+  color: var(--le-text-muted);
+  margin-bottom: var(--le-tc-loading-mb);
 }

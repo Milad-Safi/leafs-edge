@@ -40,23 +40,9 @@ export default function Last5Section({
   return (
     <div style={UI.moduleWrapper()}>
       <div style={{ ...UI.pad(18) }}>
-        <div
-          style={{
-            paddingTop: 3,
-            paddingBottom: 14,
-            fontWeight: 900,
-            color: "rgba(11,13,18,0.96)",
-            textAlign: "center",
-          }}
-        >
-          Last 5 Games:
-        </div>
+        <div className="leLast5Title">Last 5 Games:</div>
 
-        {loading && (
-          <div style={{ fontSize: 12, color: "rgba(11,13,18,0.72)", marginBottom: 12 }}>
-            Loading last 5 Games…
-          </div>
-        )}
+        {loading && <div className="leLast5Loading">Loading last 5 Games…</div>}
 
         {/* STATS */}
         <div style={UI.rowsGrid(10)}>
