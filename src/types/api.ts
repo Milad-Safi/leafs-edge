@@ -152,12 +152,15 @@ export type ProjectedStarter = {
   playerId: number;
   name: string;
   headshot: string | null;
-
   record: GoalieRecord;
   gamesPlayed: number;
-
   savePct: number | null;
   gaa: number | null;
+
+  // add this:
+  last5Starts?: number;
+
+  last5Splits: Last5GoalieSplits;
 };
 
 // goalies endpoint payload
