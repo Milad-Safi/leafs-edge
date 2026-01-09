@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 type RecordSplit = {
   w: number;
   l: number;
+  otl: number;
 };
 
 type TeamSummary = {
@@ -74,12 +75,22 @@ async function getTeamIdByAbbrev(teamAbbrev: string): Promise<number | null> {
   return toNumber(found?.id ?? found?.teamId) ?? null;
 }
 
+function isOtlGameFromSchedule(g: any): boolean {
+  const last = String(g?.gameOutcome?.lastPeriodType ?? "").toUpperCase();
+  if (last === "OT" || last === "SO") return true;
+
+  const pd = String(g?.periodDescriptor?.periodType ?? "").toUpperCase();
+  if (pd === "OT" || pd === "SO") return true;
+
+  return false;
+}
+
 async function getHomeAwayRecord(teamAbbrev: string, seasonId: number): Promise<{
   homeRecord: RecordSplit;
   awayRecord: RecordSplit;
 }> {
-  const homeRecord: RecordSplit = { w: 0, l: 0 };
-  const awayRecord: RecordSplit = { w: 0, l: 0 };
+  const homeRecord: RecordSplit = { w: 0, l: 0, otl: 0 };
+  const awayRecord: RecordSplit = { w: 0, l: 0, otl: 0 };
 
   const endpoint = `https://api-web.nhle.com/v1/club-schedule-season/${teamAbbrev}/${seasonId}`;
   const res = await fetch(endpoint, {
@@ -89,7 +100,7 @@ async function getHomeAwayRecord(teamAbbrev: string, seasonId: number): Promise<
   });
 
   if (!res.ok) {
-    // If schedule fails, just return zeros 
+    // If schedule fails, just return zeros
     return { homeRecord, awayRecord };
   }
 
@@ -97,33 +108,44 @@ async function getHomeAwayRecord(teamAbbrev: string, seasonId: number): Promise<
   const games: any[] = Array.isArray(json?.games) ? json.games : [];
 
   for (const g of games) {
-  const state = String(g?.gameState ?? "").toUpperCase();
-  const isCompleted = state === "FINAL" || state === "OFF";
-  if (!isCompleted) continue;
+    const state = String(g?.gameState ?? "").toUpperCase();
+    const isCompleted = state === "FINAL" || state === "OFF";
+    if (!isCompleted) continue;
 
-  const homeAbbrev = String(g?.homeTeam?.abbrev || "").toUpperCase();
-  const awayAbbrev = String(g?.awayTeam?.abbrev || "").toUpperCase();
-  const isHome = homeAbbrev === teamAbbrev;
-  const isAway = awayAbbrev === teamAbbrev;
-  if (!isHome && !isAway) continue;
+    // regular season only (keep consistent with the rest of your app)
+    if (toNumber(g?.gameType) !== 2) continue;
 
-  const homeScore = toNumber(g?.homeTeam?.score);
-  const awayScore = toNumber(g?.awayTeam?.score);
+    const homeAbbrev = String(g?.homeTeam?.abbrev || "").toUpperCase();
+    const awayAbbrev = String(g?.awayTeam?.abbrev || "").toUpperCase();
+    const isHome = homeAbbrev === teamAbbrev;
+    const isAway = awayAbbrev === teamAbbrev;
+    if (!isHome && !isAway) continue;
 
-  // If a finished game somehow has no score, skip it 
-  if (homeScore == null || awayScore == null) continue;
+    const homeScore = toNumber(g?.homeTeam?.score);
+    const awayScore = toNumber(g?.awayTeam?.score);
 
-  const goalsFor = isHome ? homeScore : awayScore;
-  const goalsAgainst = isHome ? awayScore : homeScore;
+    // If a finished game somehow has no score, skip it
+    if (homeScore == null || awayScore == null) continue;
+    if (homeScore === awayScore) continue;
 
-  if (goalsFor > goalsAgainst) {
-    if (isHome) homeRecord.w++;
-    else awayRecord.w++;
-  } else {
-    if (isHome) homeRecord.l++;
-    else awayRecord.l++;
+    const goalsFor = isHome ? homeScore : awayScore;
+    const goalsAgainst = isHome ? awayScore : homeScore;
+
+    if (goalsFor > goalsAgainst) {
+      if (isHome) homeRecord.w++;
+      else awayRecord.w++;
+    } else {
+      const otl = isOtlGameFromSchedule(g);
+      if (otl) {
+        if (isHome) homeRecord.otl++;
+        else awayRecord.otl++;
+      } else {
+        if (isHome) homeRecord.l++;
+        else awayRecord.l++;
+      }
+    }
   }
-}
+
   return { homeRecord, awayRecord };
 }
 
@@ -134,7 +156,7 @@ export async function GET(req: Request) {
   // Optional override: /api/team/summary?team=TOR&season=20252026
   const seasonOverride = toNumber(url.searchParams.get("season"));
 
-  const gameTypeId = 2; // 2 == regular season, 3 == playoffs 
+  const gameTypeId = 2; // 2 == regular season, 3 == playoffs
   const seasonId = seasonOverride ?? inferCurrentSeasonIdFromToday();
 
   if (!teamAbbrev) {

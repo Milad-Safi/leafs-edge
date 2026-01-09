@@ -4,7 +4,7 @@ import React from "react";
 import type { Game } from "@/components/schedule/ScheduleBar";
 import { styles } from "@/components/matchupHeader.styles";
 
-type RecordSplit = { w: number; l: number };
+type RecordSplit = { w: number; l: number; otl: number };
 
 type TeamSummaryMini = {
   teamAbbrev: string;
@@ -80,8 +80,19 @@ export default function MatchupHeader({
   const leftSplitLabel = leafsIsHome ? "Home" : "Away";
   const rightSplitLabel = leafsIsHome ? "Away" : "Home";
 
-  const leftSplitText = leftSplit ? `${leftSplit.w}-${leftSplit.l}` : "—";
-  const rightSplitText = rightSplit ? `${rightSplit.w}-${rightSplit.l}` : "—";
+  const leftSplitText =
+    leftSplit && typeof leftSplit.otl === "number"
+      ? `${leftSplit.w}-${leftSplit.l}-${leftSplit.otl}`
+      : leftSplit
+      ? `${leftSplit.w}-${leftSplit.l}`
+      : "—";
+
+  const rightSplitText =
+    rightSplit && typeof rightSplit.otl === "number"
+      ? `${rightSplit.w}-${rightSplit.l}-${rightSplit.otl}`
+      : rightSplit
+      ? `${rightSplit.w}-${rightSplit.l}`
+      : "—";
 
   return (
     <section className="leHeroHeader leFullBleed">

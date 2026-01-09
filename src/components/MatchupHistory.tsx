@@ -53,18 +53,50 @@ export default function MatchupHistory({
   const left = data.leaders[leftAbbrev] ?? { topGoals: null, topPoints: null, topSog: null };
   const right = data.leaders[rightAbbrev] ?? { topGoals: null, topPoints: null, topSog: null };
 
+  const records = (data as any).records as
+    | Record<string, { w: number; l: number; otl: number }>
+    | undefined;
+
+  const leftRec = records?.[leftAbbrev] ?? { w: 0, l: 0, otl: 0 };
+  const rightRec = records?.[rightAbbrev] ?? { w: 0, l: 0, otl: 0 };
+
+  const avgSog = (data as any).avgShotsOnGoal as Record<string, number | null> | undefined;
+  const leftAvgSog = avgSog?.[leftAbbrev] ?? null;
+  const rightAvgSog = avgSog?.[rightAbbrev] ?? null;
+
   return (
     <div style={UI.moduleWrapper()}>
       <div style={UI.pad(18)}>
         <div style={{ ...UI.headerRow(), justifyContent: "center" }}>
-            <div style={{ textAlign: "center" }}>
-                <div style={UI.title()}>Matchup history</div>
-                <div style={{ ...UI.meta(), marginTop: 4 }}>
-                    Last 2 seasons • {data.gamesFound} game{data.gamesFound === 1 ? "" : "s"}
-                </div>
+          <div style={{ textAlign: "center" }}>
+            <div style={UI.title()}>Matchup history</div>
+            <div style={{ ...UI.meta(), marginTop: 4 }}>
+              Last 2 seasons • {data.gamesFound} game{data.gamesFound === 1 ? "" : "s"}
             </div>
+          </div>
         </div>
+
         <div style={UI.rowsGrid(12)}>
+          <StatRow
+            label="Record"
+            leftVal={leftRec.w}
+            rightVal={rightRec.w}
+            leftText={`${leftRec.w}-${leftRec.l}-${leftRec.otl}`}
+            rightText={`${rightRec.w}-${rightRec.l}-${rightRec.otl}`}
+            leftColor={leftColor}
+            rightColor={rightColor}
+          />
+
+          <StatRow
+            label="Shots on goal / Game"
+            leftVal={leftAvgSog}
+            rightVal={rightAvgSog}
+            leftText={leftAvgSog != null ? leftAvgSog.toFixed(1) : "—"}
+            rightText={rightAvgSog != null ? rightAvgSog.toFixed(1) : "—"}
+            leftColor={leftColor}
+            rightColor={rightColor}
+          />
+
           <StatRow
             label="Most Goals"
             leftVal={left.topGoals?.goals ?? null}

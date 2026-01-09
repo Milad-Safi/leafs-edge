@@ -28,6 +28,31 @@ function todayISO_UTC(): string {
 
 const SEASON_START = "2025-10-05";
 
+type BoxscoreOutcome = {
+  gameOutcome?: { lastPeriodType?: string };
+  periodDescriptor?: { periodType?: string };
+};
+
+function isOtlFromBoxscore(box: BoxscoreOutcome): boolean {
+  const last = (box?.gameOutcome?.lastPeriodType ?? "").toUpperCase();
+  if (last === "OT" || last === "SO") return true;
+
+  const pd = (box?.periodDescriptor?.periodType ?? "").toUpperCase();
+  if (pd === "OT" || pd === "SO") return true;
+
+  return false;
+}
+
+async function fetchBoxscoreOutcome(gameId: number): Promise<BoxscoreOutcome | null> {
+  if (!Number.isFinite(gameId)) return null;
+
+  const url = `https://api-web.nhle.com/v1/gamecenter/${gameId}/boxscore`;
+  const r = await fetch(url, { next: { revalidate } });
+  if (!r.ok) return null;
+
+  return (await r.json()) as BoxscoreOutcome;
+}
+
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const team = normalizeTeam(url.searchParams.get("team") || "");
@@ -115,7 +140,31 @@ export async function GET(req: Request) {
     let pkGA = 0;
     let pkOpps = 0;
 
-    for (const g of rows) {
+    // Pre-extract game IDs (used for OTL classification on losses)
+    const gameIds = rows.map((x) => Number(x.game_id)).filter((n) => Number.isFinite(n));
+
+    // Determine which losses were OT/SO by fetching boxscores (only needed for games marked as losses)
+    const lossIdxs: number[] = [];
+    for (let i = 0; i < rows.length; i++) {
+      const won = !!rows[i].win;
+      if (!won) lossIdxs.push(i);
+    }
+
+    const lossIsOtl = new Map<number, boolean>();
+    await Promise.all(
+      lossIdxs.map(async (i) => {
+        const gid = Number(rows[i].game_id);
+        if (!Number.isFinite(gid)) return;
+
+        const box = await fetchBoxscoreOutcome(gid);
+        if (!box) return;
+
+        if (isOtlFromBoxscore(box)) lossIsOtl.set(i, true);
+      })
+    );
+
+    for (let i = 0; i < rows.length; i++) {
+      const g = rows[i];
       games++;
 
       gf += num(g.goals_for);
@@ -124,8 +173,12 @@ export async function GET(req: Request) {
       sa += num(g.shots_against);
 
       const won = !!g.win;
-      if (won) w++;
-      else l++;
+      if (won) {
+        w++;
+      } else {
+        if (lossIsOtl.get(i)) otl++;
+        else l++;
+      }
 
       ppGoals += num(g.pp_goals);
       ppOpps += num(g.pp_opps);
@@ -151,7 +204,7 @@ export async function GET(req: Request) {
       shotsAgainstPerGame: +(sa / games).toFixed(2),
       powerPlay: { goals: ppGoals, opps: ppOpps, pct: ppPct },
       penaltyKill: { oppPPGoals: pkGA, oppPPOpps: pkOpps, pct: pkPct },
-      gameIds: rows.map((x) => Number(x.game_id)).filter((n) => Number.isFinite(n)),
+      gameIds,
       skippedPPGames: [],
       note: "Computed from Supabase team_games (no backend).",
     });

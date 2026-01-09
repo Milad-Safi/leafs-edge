@@ -64,8 +64,8 @@ export default function Last5Section({
             leftVal={typeof lRec?.w === "number" ? lRec.w : null}
             rightVal={typeof rRec?.w === "number" ? rRec.w : null}
             label="Record"
-            leftText={lRec ? `${lRec.w}-${lRec.l}` : "—"}
-            rightText={rRec ? `${rRec.w}-${rRec.l}` : "—"}
+            leftText={lRec ? `${lRec.w}-${lRec.l}-${lRec.otl ?? 0}` : "—"}
+            rightText={rRec ? `${rRec.w}-${rRec.l}-${rRec.otl ?? 0}` : "—"}
             leftColor={leftColor}
             rightColor={rightColor}
           />

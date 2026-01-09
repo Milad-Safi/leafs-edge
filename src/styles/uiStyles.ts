@@ -1,7 +1,10 @@
 // src/styles/uiStyles.ts
+// Design helper , reused
+
 import type React from "react";
 
 export const UI = {
+  // outer wrapper, border, background, rounded corners.
   moduleWrapper: (): React.CSSProperties => ({
     borderRadius: 18,
     border: "1px solid var(--le-surface-border)",
@@ -10,6 +13,7 @@ export const UI = {
     overflow: "hidden",
   }),
 
+  // padding helper, default currently at 18
   pad: (n = 18): React.CSSProperties => ({
     paddingTop: n,
     paddingRight: n,
@@ -17,15 +21,13 @@ export const UI = {
     paddingLeft: n,
   }),
 
+  // thin divider line 
   hairline: (alpha = 0.08): React.CSSProperties => ({
     height: 1,
     background: `rgba(255,255,255,${alpha})`,
   }),
 
-  spacer: (h = 10): React.CSSProperties => ({
-    height: h,
-  }),
-
+  // header row layout 
   headerRow: (): React.CSSProperties => ({
     display: "flex",
     justifyContent: "space-between",
@@ -33,17 +35,20 @@ export const UI = {
     marginBottom: 12,
   }),
 
+  // section title style 
   title: (): React.CSSProperties => ({
     fontWeight: 800,
     opacity: 0.92,
   }),
 
+  // small secondary text style
   meta: (): React.CSSProperties => ({
     fontSize: 12,
     opacity: 0.75,
     whiteSpace: "nowrap",
   }),
 
+  // grid layout for stacking rows
   rowsGrid: (gap = 12): React.CSSProperties => ({
     display: "grid",
     gap,

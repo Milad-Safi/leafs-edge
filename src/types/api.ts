@@ -1,12 +1,17 @@
-// Shared API payload + domain types used across hooks/components.
-// Keeping these in /types avoids hooks importing types from UI components.
+// api.ts
+// Shared data type descriptions
 
-// ---------- Team summary + ranks ----------
+// Used in components so they know what fields exist
+// Used in hooks when data is fetched
 
+
+// Home/Away record splits 
 export type RecordSplit = { w: number; l: number };
 
+
+// Current season summary for a team
 export type TeamSummary = {
-  teamAbbrev: string;
+  teamAbbrev: string; // TOR or OTT , etc
   teamFullName: string | null;
   gamesPlayed: number | null;
 
@@ -28,8 +33,10 @@ export type TeamSummary = {
   awayRecord: RecordSplit;
 };
 
+// Helper type for ranks, stores ranks and team oppreviation
 type RanksForMetric = Record<string, number | null>;
 
+// Rank payload for the matchup comparison
 export type TeamRanks = {
   seasonId: number;
   teamsCount: number;
@@ -45,8 +52,7 @@ export type TeamRanks = {
   };
 };
 
-// ---------- Last 5 + hot players ----------
-
+// last 5 stats for a team
 export type TeamLast5 = {
   team: string;
   games: number;
@@ -63,10 +69,9 @@ export type TeamLast5 = {
   penaltyKill: { oppPPGoals: number; oppPPOpps: number; pct: number | null };
   gameIds: number[];
   skippedPPGames?: number[];
-  note?: string;
 };
 
-
+// Single leader stats, used by hot players and history leaders
 export type HotLeader = {
   playerId: number;
   name: string;
@@ -76,6 +81,7 @@ export type HotLeader = {
   shots: number;
 };
 
+// Hot leader payload for one team, each leader grouped by stat
 export type HotL5Payload = {
   team: string;
   leaders: {
@@ -85,8 +91,7 @@ export type HotL5Payload = {
   };
 };
 
-// ---------- ML trend ----------
-
+// Machine learning trend endpoint response, next n games.
 export type TeamTrendResponse = {
   team: string;
   as_of: string;
@@ -103,12 +108,9 @@ export type TeamTrendResponse = {
     FLAT: number;
     UP: number;
   };
-  features?: Record<string, number>;
-  model_info?: Record<string, unknown>;
 };
 
-// ---------- Matchup history ----------
-
+// A single matchup history leader
 export type HistoryLeader = {
   playerId: number;
   name: string;
@@ -117,6 +119,7 @@ export type HistoryLeader = {
   sog: number;
 };
 
+// Matchup history payload, similar to last 5
 export type MatchupHistoryPayload = {
   team: string;
   opp: string;
@@ -132,10 +135,11 @@ export type MatchupHistoryPayload = {
   >;
 };
 
-// ---------- Goalies ----------
-
+// Goalie record defined
 export type GoalieRecord = { wins: number; losses: number; ot: number };
 
+// Last 5 splits for a goalie, ( last 5 starts for that goalie not the team)
+// Can become weird when goalies are pulled due to the way NHL records starts
 export type Last5GoalieSplits = {
   games: number;
   record: { w: number; l: number; ot: number };
@@ -143,6 +147,7 @@ export type Last5GoalieSplits = {
   gaa: number | null;
 };
 
+// projected starter data for goalie card
 export type ProjectedStarter = {
   playerId: number;
   name: string;
@@ -153,40 +158,35 @@ export type ProjectedStarter = {
 
   savePct: number | null;
   gaa: number | null;
-
-  last5Starts?: number | null;
-  last5Splits?: Last5GoalieSplits | null;
 };
 
+// goalies endpoint payload
 export type GoalieApiPayload = {
   team: string;
   projectedStarter: ProjectedStarter | null;
-  meta?: any;
-  error?: string;
 };
 
-// ---------- NHL EDGE ----------
+// Edge stats:
 
+// Fastest Skater row
 export type EdgeFastestSkater = {
   playerId: number;
   name: string;
   mph: number;
   kph: number;
   gameDate: string;
-  gameCenterLink?: string;
-  period?: number;
-  time?: string;
 };
 
+// Hardest Shooter row
 export type EdgeHardestShooter = {
   playerId: number;
   name: string;
   mph: number;
   kph: number;
   gameDate: string;
-  time?: string;
 };
 
+// Shot location, grouped by ice area/zone
 export type EdgeAreaRow = {
   area: string;
   sog: number;
@@ -194,6 +194,7 @@ export type EdgeAreaRow = {
   shootingPctg: number;
 };
 
+// team skating speed response
 export type TeamSkatingSpeedResponse = {
   ok: boolean;
   team: string;
@@ -201,6 +202,7 @@ export type TeamSkatingSpeedResponse = {
   fastestSkaters: EdgeFastestSkater[];
 };
 
+// team shot speed response
 export type TeamShotSpeedResponse = {
   ok: boolean;
   team: string;
@@ -208,14 +210,15 @@ export type TeamShotSpeedResponse = {
   hardestShooters: EdgeHardestShooter[];
 };
 
+// team shot location response
 export type TeamShotLocationResponse = {
   ok: boolean;
   team: string;
   season: string | null;
   areas: EdgeAreaRow[];
-  scale?: { maxSog: number; maxGoals: number };
 };
 
+// Bundle so that a hook can fetch all three edge datasets at the same time
 export type TeamEdgeBundle = {
   skating: TeamSkatingSpeedResponse;
   shotSpeed: TeamShotSpeedResponse;

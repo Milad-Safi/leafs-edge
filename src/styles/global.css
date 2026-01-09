@@ -1,13 +1,17 @@
 /* ─────────────────────────────────────────────────────────────
-   GLOBAL.CSS (Leafs Edge) — CLEANED + CONSOLIDATED
+   GLOBAL.CSS (Leafs Edge) — REORGANIZED + REDUNDANCY CLEANUP
    Goals:
    - ONE :root block for LIGHT tokens (default)
    - ONE html[data-theme="dark"] block for DARK overrides
-   - Remove duplicate rules (ex: leChevron was defined twice before)
-   - Keep backwards-compat classNames  
-   - Components should prefer tokens, not hard-coded rgba() in-line
-
-   If a token’s purpose is unclear, it’s marked "idk".
+   - No duplicate class blocks (example: leChevron defined once)
+   - Keep backwards-compat classNames
+   - Comments contain no emojis
+   - If a token’s purpose is unclear, it is marked "idk"
+   Notes on things I cannot verify:
+   - Whether legacy classes (.statRowContent/.statRowLeft/.statRowRight) are still used
+     depends on your components. I kept them because you labeled them legacy.
+   - I cannot verify whether --le-topbar-* are still used; kept as "idk" compatibility.
+   - I cannot verify whether .leScheduleBar legacy strip is still used; kept as "idk".
    ───────────────────────────────────────────────────────────── */
 
 /* ─────────────────────────────────────────────────────────────
@@ -28,63 +32,50 @@ body {
 
 /* ─────────────────────────────────────────────────────────────
    01) TOKENS — LIGHT THEME (default)
-   Everything here is safe to tweak without breaking logic.
    ───────────────────────────────────────────────────────────── */
 
 :root {
-  /* ───────────────
-     Core shell / page
-     ─────────────── */
-
-  /* Page gutters/background (dark outer frame around the slab) */
+  /* Core shell / page */
   --le-page: #1a1d21;
-
-  /* NAV BAR  */
   --le-nav-bg: rgba(0, 0, 0, 0.92);
 
-  /* Schedule bar strip (idk: kept from earlier iterations) */
+  /* Schedule bar strip (idk) */
   --le-topbar-bg: rgba(20, 22, 26, 0.94);
   --le-topbar-border: rgba(255, 255, 255, 0.10);
 
-  /* Main slab surface (the center panel) */
+  /* Main slab surface */
   --le-surface-top: #efefef;
   --le-surface-bot: #fffcfc;
   --le-surface-border: rgba(0, 0, 0, 0.12);
   --le-divider: rgba(0, 0, 0, 0.10);
 
-  /* Default text colors */
+  /* Text */
   --le-text: #0b0d12;
   --le-text-muted: rgba(11, 13, 18, 0.62);
 
-  /* Global shadow used by cards/modules */
+  /* Global shadow */
   --le-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
 
-  /* General radii (idk: used by some components) */
+  /* Radii (idk) */
   --le-radius-lg: 18px;
 
-  /* Headings (Collapsible headers etc.) */
+  /* Headings */
   --le-heading: rgba(11, 13, 18, 0.92);
   --le-heading-muted: rgba(11, 13, 18, 0.72);
 
   /* Module wrapper surface (UI.moduleWrapper) */
   --le-module-bg: rgba(255, 255, 255, 0.72);
 
-  /* ───────────────
-     StatRow (new component: .leStatRow*)
-     ─────────────── */
+  /* StatRow */
   --le-statrow-radius: 12px;
   --le-statrow-border: rgba(0, 0, 0, 0.12);
   --le-statrow-bg: #ffffff;
-
-  /* Fill opacity of the team colors inside the bar */
   --le-statrow-fill-opacity: 0.46;
 
-  /* Layout metrics */
   --le-statrow-gap: 12px;
   --le-statrow-pad-y: 12px;
   --le-statrow-pad-x: 12px;
 
-  /* Typography */
   --le-stat-value-weight: 700;
   --le-stat-label-weight: 700;
   --le-stat-value-size: 14px;
@@ -92,9 +83,7 @@ body {
   --le-stat-value-color: rgba(11, 13, 18, 0.95);
   --le-stat-label-color: rgba(11, 13, 18, 0.80);
 
-  /* ───────────────
-     Team Comparisons section (title/subtitle/loading)
-     ─────────────── */
+  /* Team Comparisons section */
   --le-tc-title-weight: 900;
   --le-tc-title-color: rgba(11, 13, 18, 0.96);
 
@@ -112,12 +101,9 @@ body {
 
   --le-tc-loading-mb: 12px;
 
-  /* ───────────────
-     Matchup Header tokens (matchupHeader.styles.ts)
-     ─────────────── */
+  /* Matchup Header tokens */
   --le-mh-kicker: rgba(11, 13, 18, 0.92);
   --le-mh-meta: rgba(11, 13, 18, 0.90);
-
   --le-mh-abbrev: rgba(11, 13, 18, 0.96);
 
   --le-mh-record-line: rgba(11, 13, 18, 0.90);
@@ -128,13 +114,9 @@ body {
   --le-mh-center-sub: rgba(11, 13, 18, 0.82);
 
   --le-mh-divider: rgba(0, 0, 0, 0.10);
-
-  /* Logo shadow (idk: purely aesthetic) */
   --le-mh-logo-shadow: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.55));
 
-  /* ───────────────
-     Schedule Bar tokens (scheduleBar.styles.ts)
-     ─────────────── */
+  /* Schedule Bar tokens */
   --le-sched-wrap-bg: #f4f5f7;
   --le-sched-wrap-border: rgba(0, 0, 0, 0.12);
   --le-sched-wrap-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
@@ -155,9 +137,8 @@ body {
   --le-sched-card-selected-bg: #eef1f5;
   --le-sched-card-selected-border: rgba(0, 0, 0, 0.40);
 
-  /* Past/inaccessible game style (locked look, not faded) */
-  --le-sched-card-disabled-bg: rgba(0, 0, 0, 0.06);
-  --le-sched-card-disabled-border: rgba(0, 0, 0, 0.22);
+  --le-sched-card-disabled-bg: rgba(0,  0,  0,  0.06);
+  --le-sched-card-disabled-border: rgba(0,  0,  0,  0.22);
   --le-sched-card-disabled-text: rgba(11, 13, 18, 0.58);
   --le-sched-card-disabled-filter: grayscale(0.35) contrast(0.96);
 
@@ -176,16 +157,12 @@ body {
   --le-sched-loss-bg: rgba(220, 38, 38, 0.20);
   --le-sched-loss-text: rgba(150, 20, 20, 0.95);
 
-  /* ───────────────
-     Theme Toggle (pill switch)
-     Used by <ThemeToggle /> in navbar
-     ─────────────── */
+  /* Theme Toggle (pill switch) */
   --le-toggle-w: 56px;
   --le-toggle-h: 28px;
   --le-toggle-pad: 3px;
   --le-toggle-knob: 22px;
 
-  /* Toggle colors (on the black nav) */
   --le-toggle-track: rgba(255, 255, 255, 0.12);
   --le-toggle-track-border: rgba(255, 255, 255, 0.18);
   --le-toggle-track-hover: rgba(255, 255, 255, 0.16);
@@ -193,14 +170,12 @@ body {
   --le-toggle-knob-bg: rgba(255, 255, 255, 0.92);
   --le-toggle-knob-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
 
-  --le-toggle-icon-off: rgba(0, 0, 0, 0.65); /* sun */
-  --le-toggle-icon-on: rgba(0, 0, 0, 0.75);  /* moon */
+  --le-toggle-icon-off: rgba(0, 0, 0, 0.65);
+  --le-toggle-icon-on: rgba(0, 0, 0, 0.75);
 
   --le-toggle-focus: rgba(255, 255, 255, 0.35);
 
-  /* ───────────────
-     Collapsible chevron button (theme-safe)
-     ─────────────── */
+  /* Collapsible chevron */
   --le-chevron-bg: rgba(0, 0, 0, 0.03);
   --le-chevron-border: rgba(0, 0, 0, 0.12);
   --le-chevron-fg: rgba(11, 13, 18, 0.86);
@@ -211,10 +186,7 @@ body {
   /* Collapsible header hover background */
   --le-section-hover-bg: rgba(0, 0, 0, 0.03);
 
-  /* ───────────────
-     Goalies section (Projected Starters)
-     NOTE: styles ONLY the cards/shell, NOT StatRow bars
-     ─────────────── */
+  /* Goalies section */
   --le-goalies-shell-bg: rgba(255, 255, 255, 0.62);
   --le-goalies-shell-border: rgba(0, 0, 0, 0.12);
   --le-goalies-shell-shadow: 0 18px 60px rgba(0, 0, 0, 0.18);
@@ -237,10 +209,7 @@ body {
 
   --le-goalie-footnote: rgba(11, 13, 18, 0.55);
 
-  /* ───────────────
-     Injuries section
-     Theme-safe. Tokenized.
-     ─────────────── */
+  /* Injuries section */
   --le-inj-card-bg: rgba(255, 255, 255, 0.62);
   --le-inj-card-border: rgba(0, 0, 0, 0.12);
   --le-inj-card-shadow: 0 18px 60px rgba(0, 0, 0, 0.18);
@@ -259,48 +228,54 @@ body {
   --le-inj-pill-bg: rgba(239, 68, 68, 1);
   --le-inj-pill-text: #ffffff;
   --le-inj-pill-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+
+  /* Edge cards */
+  --le-edge-card-bg: rgba(255, 255, 255, 0.55);
+  --le-edge-card-border: rgba(0, 0, 0, 0.12);
+
+  --le-edge-img-fallback: linear-gradient(
+    145deg,
+    rgba(0, 0, 0, 0.06),
+    rgba(0, 0, 0, 0.02)
+  );
+
+  --le-edge-name: rgba(11, 13, 18, 0.92);
+  --le-edge-value: rgba(11, 13, 18, 0.96);
+  --le-edge-label: rgba(11, 13, 18, 0.60);
 }
 
 /* ─────────────────────────────────────────────────────────────
-   02) THEME OVERRIDE — DARK
-   Use by setting: <html data-theme="dark">
+   02) TOKENS — DARK OVERRIDES
    ───────────────────────────────────────────────────────────── */
 
 html[data-theme="dark"] {
-  /* Core */
   --le-page: #0b0f14;
 
-  /* NAV BAR — DO NOT CHANGE */
   --le-nav-bg: rgba(0, 0, 0, 0.92);
 
-  /* Schedule bar tokens (idk: kept for compatibility) */
   --le-topbar-bg: rgba(20, 22, 26, 0.94);
   --le-topbar-border: rgba(255, 255, 255, 0.10);
 
-  /* Main slab surface */
   --le-surface-top: #11161d;
   --le-surface-bot: #0d1117;
   --le-surface-border: rgba(255, 255, 255, 0.10);
   --le-divider: rgba(255, 255, 255, 0.10);
 
-  /* Text */
   --le-text: rgba(255, 255, 255, 0.92);
   --le-text-muted: rgba(255, 255, 255, 0.65);
 
-  /* Shadow */
   --le-shadow: 0 18px 50px rgba(0, 0, 0, 0.60);
 
-  /* Headings */
   --le-heading: rgba(255, 255, 255, 0.92);
   --le-heading-muted: rgba(255, 255, 255, 0.70);
 
-  /* Module background */
   --le-module-bg: rgba(10, 14, 20, 0.72);
 
-  /* StatRow dark */
+  /* StatRow */
   --le-statrow-bg: rgba(255, 255, 255, 0.06);
   --le-statrow-border: rgba(255, 255, 255, 0.14);
   --le-statrow-fill-opacity: 0.30;
+
   --le-stat-value-color: rgba(255, 255, 255, 0.92);
   --le-stat-label-color: rgba(255, 255, 255, 0.80);
 
@@ -312,7 +287,6 @@ html[data-theme="dark"] {
   /* Matchup Header */
   --le-mh-kicker: rgba(255, 255, 255, 0.92);
   --le-mh-meta: rgba(255, 255, 255, 0.80);
-
   --le-mh-abbrev: rgba(255, 255, 255, 0.95);
 
   --le-mh-record-line: rgba(255, 255, 255, 0.84);
@@ -325,7 +299,7 @@ html[data-theme="dark"] {
   --le-mh-divider: rgba(255, 255, 255, 0.12);
   --le-mh-logo-shadow: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.75));
 
-  /* Schedule Bar — DARK */
+  /* Schedule Bar */
   --le-sched-wrap-bg: rgba(10, 14, 20, 0.96);
   --le-sched-wrap-border: rgba(255, 255, 255, 0.10);
   --le-sched-wrap-shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
@@ -348,7 +322,7 @@ html[data-theme="dark"] {
 
   --le-sched-card-disabled-bg: rgba(255, 255, 255, 0.04);
   --le-sched-card-disabled-border: rgba(255, 255, 255, 0.12);
-  --le-sched-card-disabled-text: rgba(255,  255, 255, 0.52);
+  --le-sched-card-disabled-text: rgba(255, 255, 255, 0.52);
   --le-sched-card-disabled-filter: grayscale(0.30) contrast(0.92);
 
   --le-sched-top-text: rgba(255, 255, 255, 0.68);
@@ -366,26 +340,28 @@ html[data-theme="dark"] {
   --le-sched-loss-bg: rgba(239, 68, 68, 0.16);
   --le-sched-loss-text: rgba(255, 205, 205, 0.92);
 
-  /* Toggle (dark) — still on the black nav */
+  /* Toggle */
   --le-toggle-track: rgba(255, 255, 255, 0.10);
   --le-toggle-track-border: rgba(255, 255, 255, 0.16);
   --le-toggle-track-hover: rgba(255, 255, 255, 0.14);
+
   --le-toggle-knob-bg: rgba(255, 255, 255, 0.90);
   --le-toggle-knob-shadow: 0 8px 18px rgba(0, 0, 0, 0.55);
+
   --le-toggle-icon-off: rgba(0, 0, 0, 0.70);
   --le-toggle-icon-on: rgba(0, 0, 0, 0.80);
 
-  /* Chevron (dark) */
+  /* Chevron */
   --le-chevron-bg: rgba(255, 255, 255, 0.06);
   --le-chevron-border: rgba(255, 255, 255, 0.14);
   --le-chevron-fg: rgba(255, 255, 255, 0.86);
+
   --le-chevron-hover-bg: rgba(255, 255, 255, 0.10);
   --le-chevron-hover-border: rgba(255, 255, 255, 0.22);
 
-  /* Collapsible header hover (dark) */
   --le-section-hover-bg: rgba(255, 255, 255, 0.06);
 
-  /* Goalies (dark) */
+  /* Goalies */
   --le-goalies-shell-bg: rgba(10, 14, 20, 0.72);
   --le-goalies-shell-border: rgba(255, 255, 255, 0.12);
   --le-goalies-shell-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
@@ -408,7 +384,7 @@ html[data-theme="dark"] {
 
   --le-goalie-footnote: rgba(255, 255, 255, 0.50);
 
-  /* Injuries (dark) */
+  /* Injuries */
   --le-inj-card-bg: rgba(10, 14, 20, 0.72);
   --le-inj-card-border: rgba(255, 255, 255, 0.12);
   --le-inj-card-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
@@ -425,6 +401,20 @@ html[data-theme="dark"] {
   --le-inj-initials: rgba(255, 255, 255, 0.85);
 
   --le-inj-pill-shadow: 0 6px 18px rgba(0, 0, 0, 0.40);
+
+  /* Edge cards */
+  --le-edge-card-bg: rgba(255, 255, 255, 0.06);
+  --le-edge-card-border: rgba(255, 255, 255, 0.12);
+
+  --le-edge-img-fallback: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.12),
+    rgba(255, 255, 255, 0.04)
+  );
+
+  --le-edge-name: rgba(255, 255, 255, 0.92);
+  --le-edge-value: rgba(255, 255, 255, 0.96);
+  --le-edge-label: rgba(255, 255, 255, 0.62);
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -447,7 +437,6 @@ body {
   margin: 0 !important;
 }
 
-/* MAIN SLAB (center panel) */
 .leSurface {
   max-width: 1300px;
   margin: 0 auto;
@@ -457,12 +446,10 @@ body {
   box-shadow: var(--le-shadow);
 }
 
-/* padding INSIDE the slab */
 .leContentPad {
   padding: 0 18px 18px;
 }
 
-/* Full-bleed sections (hero) */
 .leFullBleed {
   width: 100vw;
   margin-left: calc(50% - 50vw);
@@ -475,7 +462,7 @@ body {
   padding: 0 18px;
 }
 
-/* Middle content container (idk: older naming, kept for compatibility) */
+/* Middle content container (idk) */
 .leDarkPanel {
   background: transparent;
   color: var(--le-text);
@@ -489,7 +476,6 @@ body {
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-/* Spacing helpers */
 .leSectionGap {
   margin-top: 14px;
 }
@@ -500,8 +486,7 @@ body {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   05) StatRow (new component) — SINGLE SOURCE OF TRUTH
-   Uses: .leStatRow, .leStatRowFill, .leStatRowContent, etc.
+   05) StatRow (new component)
    ───────────────────────────────────────────────────────────── */
 
 .leStatRow {
@@ -578,7 +563,7 @@ body {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   07) NHL-style top nav (unchanged)
+   07) NHL-style top nav
    ───────────────────────────────────────────────────────────── */
 
 .leNavBar {
@@ -638,7 +623,7 @@ body {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   08) Schedule scroller (behavior unchanged)
+   08) Schedule scroller
    ───────────────────────────────────────────────────────────── */
 
 .scheduleScroller {
@@ -657,7 +642,7 @@ body {
   }
 }
 
-/* Legacy schedule strip (idk: older class, kept for compatibility) */
+/* Legacy schedule strip (idk) */
 .leScheduleBar {
   background: #f4f5f7;
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
@@ -690,8 +675,8 @@ body {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   09) Accessory section (Last 5 Games) — legacy helpers
-   NOTE: these are for old stat rows (statRowContent...), not the new leStatRow.
+   09) Accessory section (Last 5 Games) legacy helpers
+   Unknown if still used by the current components.
    ───────────────────────────────────────────────────────────── */
 
 .leAccessory {
@@ -720,14 +705,13 @@ body {
   background: rgba(0, 0, 0, 0.08);
 }
 
-/* Dropdown group frame (top + bottom dividers) */
 .leSectionGroup {
   border-top: 1px solid var(--le-divider);
   border-bottom: 1px solid var(--le-divider);
 }
 
 /* ─────────────────────────────────────────────────────────────
-   10) Collapsible sections (theme-safe)
+   10) Collapsible sections
    ───────────────────────────────────────────────────────────── */
 
 .leSection {
@@ -735,7 +719,6 @@ body {
   border-top: none;
 }
 
-/* Divider ONLY between sections */
 .leSection + .leSection {
   border-top: 1px solid var(--le-divider);
   margin-top: 6px;
@@ -773,9 +756,9 @@ body {
   font-weight: 900;
   letter-spacing: 0.10em;
   text-transform: uppercase;
-  opacity: 1;
 
   color: var(--le-heading);
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -821,7 +804,6 @@ body {
   border-color: var(--le-chevron-hover-border);
 }
 
-/* Just in case the glyph is inheriting some other color rule */
 .leChevron * {
   color: inherit;
 }
@@ -830,7 +812,6 @@ body {
   padding: 8px 6px 12px;
 }
 
-/* Collapsible body visibility */
 .leSectionBodyHidden {
   display: none;
 }
@@ -841,7 +822,6 @@ body {
 
 /* ─────────────────────────────────────────────────────────────
    11) Theme Toggle (pill switch)
-   Used by <ThemeToggle /> in navbar
    ───────────────────────────────────────────────────────────── */
 
 .leThemeToggle {
@@ -894,13 +874,10 @@ body {
 
 .leThemeToggle[data-on="true"] .leThemeToggleKnob {
   transform: translateX(
-    calc(
-      var(--le-toggle-w) - (var(--le-toggle-pad) * 2) - var(--le-toggle-knob)
-    )
+    calc(var(--le-toggle-w) - (var(--le-toggle-pad) * 2) - var(--le-toggle-knob))
   );
 }
 
-/* Icons inside knob */
 .leThemeToggleIcon {
   position: absolute;
   width: 14px;
@@ -928,8 +905,6 @@ body {
 
 /* ─────────────────────────────────────────────────────────────
    12) Goalies section (Projected Starters cards)
-   NOTE: styles ONLY the goalie cards + section shell.
-   StatRow stays exactly as-is.
    ───────────────────────────────────────────────────────────── */
 
 .leGoaliesShell {
@@ -945,7 +920,6 @@ body {
   background: var(--le-goalies-divider);
 }
 
-/* Grid for the two goalie cards */
 .goaliesGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -985,7 +959,6 @@ body {
   font-weight: 600;
 }
 
-/* main content layout */
 .leGoalieMain {
   display: grid;
   grid-template-columns: 92px 1fr;
@@ -1050,7 +1023,6 @@ body {
   font-weight: 600;
 }
 
-/* Last 5 title + footnote (NOT StatRow) */
 .leGoaliesLast5Title {
   font-weight: 900;
   font-size: 16px;
@@ -1065,8 +1037,7 @@ body {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   13) Injuries section (two columns + rows)
-   Theme-safe. Tokenized.
+   13) Injuries section
    ───────────────────────────────────────────────────────────── */
 
 .injuriesGrid {
@@ -1206,35 +1177,7 @@ body {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   99) Mobile adjustments (general)
-   ───────────────────────────────────────────────────────────── */
-
-@media (max-width: 640px) {
-  body {
-    font-size: 14px;
-  }
-
-  .leShell {
-    padding: 0 !important;
-  }
-
-  .leSurface {
-    max-width: 100%;
-    margin: 0;
-    border-radius: 0;
-    border-left: 0;
-    border-right: 0;
-  }
-
-  .leContentPad {
-    padding: 0;
-  }
-
-
-}
-
-/* ─────────────────────────────────────────────────────────────
-   Matchup Header 
+   14) Matchup Header
    ───────────────────────────────────────────────────────────── */
 
 .leMH {
@@ -1339,7 +1282,121 @@ body {
   color: var(--le-mh-center-sub);
 }
 
+.mhDesktop {
+  display: block;
+}
+
+.mhMobile {
+  display: none;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   15) Edge Cards (Fastest Skaters / Hardest Shooters)
+   ───────────────────────────────────────────────────────────── */
+
+.leEdgeCards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.leEdgeCard {
+  background: var(--le-edge-card-bg);
+  border: 1px solid var(--le-edge-card-border);
+  border-radius: 14px;
+  padding: 16px 14px 14px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.leEdgeCardImg,
+.leEdgeCardImgFallback {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.leEdgeCardImg {
+  object-fit: cover;
+}
+
+.leEdgeCardImgFallback {
+  background: var(--le-edge-img-fallback);
+}
+
+.leEdgeCardName {
+  font-weight: 800;
+  font-size: 15px;
+  margin-bottom: 6px;
+  color: var(--le-edge-name);
+
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leEdgeCardValue {
+  font-size: 34px;
+  font-weight: 950;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 6px;
+  color: var(--le-edge-value);
+}
+
+.leEdgeCardLabel {
+  font-size: 12px;
+  letter-spacing: 0.3px;
+  color: var(--le-edge-label);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   99) Mobile adjustments
+   ───────────────────────────────────────────────────────────── */
+
 @media (max-width: 640px) {
+  body {
+    font-size: 14px;
+  }
+
+  .leShell {
+    padding: 0 !important;
+  }
+
+  .leSurface {
+    max-width: 100%;
+    margin: 0;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+
+  .leContentPad {
+    padding: 0;
+  }
+
+  /* Nav bar mobile polish */
+  .leNavInner {
+    padding: 10px 12px;
+  }
+
+  .leNavLinks {
+    gap: 18px;
+  }
+
+  .leNavLink {
+    font-size: 12px;
+    padding: 10px 0;
+    letter-spacing: 0.11em;
+  }
+
+  /* Matchup Header mobile behavior */
   .leMH {
     padding: 18px 14px 22px;
   }
@@ -1359,21 +1416,15 @@ body {
   }
 
   .leMHMatchup {
-    font-size: 30px; /* big but not overlapping now */
-  }
-
-  .leMHTeamLeft {
-    order: 1;
-    justify-content: flex-start;
+    font-size: 30px;
   }
 
   .leMHTeamRight {
-    order: 2;
-    justify-content: flex-start; /* IMPORTANT: don’t shove right on mobile */
+    justify-content: flex-start;
   }
 
   .leMHTeamTextRight {
-    text-align: left; /* IMPORTANT: prevent narrow right-column crunch */
+    text-align: left;
   }
 
   .leMHLogo {
@@ -1384,18 +1435,14 @@ body {
   .leMHAbbrev {
     font-size: 22px;
   }
-}
 
-/* ─────────────────────────────────────────────────────────────
-   Matchup Header — Mobile layout (TOR stuff VS OPP stuff)
-   ───────────────────────────────────────────────────────────── */
+  .mhDesktop {
+    display: none;
+  }
 
-.mhDesktop { display: block; }
-.mhMobile { display: none; }
-
-@media (max-width: 640px) {
-  .mhDesktop { display: none; }
-  .mhMobile { display: block; }
+  .mhMobile {
+    display: block;
+  }
 
   .mhMobileTitle {
     text-align: center;
@@ -1450,10 +1497,6 @@ body {
     color: var(--le-heading-muted);
   }
 
-  .mhMobileLabel {
-    opacity: 0.9;
-  }
-
   .mhMobileValue {
     font-weight: 900;
     color: var(--le-heading);
@@ -1467,139 +1510,8 @@ body {
     opacity: 0.9;
     transform: translateY(-4px);
   }
-}
 
-
-/* ─────────────────────────────────────────────────────────────
-   Nav bar — mobile polish
-   ───────────────────────────────────────────────────────────── */
-
-@media (max-width: 640px) {
-  .leNavInner {
-    padding: 10px 12px;
-  }
-
-  .leNavLinks {
-    gap: 18px;
-  }
-
-  .leNavLink {
-    font-size: 12px;
-    padding: 10px 0;
-    letter-spacing: 0.11em;
-  }
-}
-
-/* ─────────────────────────────────────────────────────────────
-   Edge Cards (Fastest Skaters / Hardest Shooters)
-   ───────────────────────────────────────────────────────────── */
-
-:root {
-  /* Card surface */
-  --le-edge-card-bg: rgba(255, 255, 255, 0.06);
-  --le-edge-card-border: rgba(255, 255, 255, 0.12);
-
-  /* Fallback circle */
-  --le-edge-img-fallback: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.12),
-    rgba(255, 255, 255, 0.04)
-  );
-
-  /* Text */
-  --le-edge-name: rgba(255, 255, 255, 0.92);
-  --le-edge-value: rgba(255, 255, 255, 0.96);
-  --le-edge-label: rgba(255, 255, 255, 0.62);
-}
-
-html[data-theme="dark"] {
-  --le-edge-card-bg: rgba(255, 255, 255, 0.06);
-  --le-edge-card-border: rgba(255, 255, 255, 0.12);
-}
-
-/* Light mode (your panels are light-ish there) */
-html:not([data-theme="dark"]) {
-  --le-edge-card-bg: rgba(255, 255, 255, 0.55);
-  --le-edge-card-border: rgba(0, 0, 0, 0.12);
-
-  --le-edge-name: rgba(11, 13, 18, 0.92);
-  --le-edge-value: rgba(11, 13, 18, 0.96);
-  --le-edge-label: rgba(11, 13, 18, 0.60);
-
-  --le-edge-img-fallback: linear-gradient(
-    145deg,
-    rgba(0, 0, 0, 0.06),
-    rgba(0, 0, 0, 0.02)
-  );
-}
-
-/* Container: desktop grid */
-.leEdgeCards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-/* Card */
-.leEdgeCard {
-  background: var(--le-edge-card-bg);
-  border: 1px solid var(--le-edge-card-border);
-  border-radius: 14px;
-  padding: 16px 14px 14px;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.leEdgeCardImg,
-.leEdgeCardImgFallback {
-  width: 72px;
-  height: 72px;
-  border-radius: 999px;
-  margin-bottom: 10px;
-  display: block;
-}
-
-.leEdgeCardImg {
-  object-fit: cover;
-}
-
-.leEdgeCardImgFallback {
-  background: var(--le-edge-img-fallback);
-}
-
-.leEdgeCardName {
-  font-weight: 800;
-  font-size: 15px;
-  margin-bottom: 6px;
-  color: var(--le-edge-name);
-
-  /* prevent ugly overflow on long names */
-  max-width: 160px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.leEdgeCardValue {
-  font-size: 34px;
-  font-weight: 950;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  margin-bottom: 6px;
-  color: var(--le-edge-value);
-}
-
-.leEdgeCardLabel {
-  font-size: 12px;
-  letter-spacing: 0.3px;
-  color: var(--le-edge-label);
-}
-
-/* Mobile: horizontal scroll, smaller cards, NO stacking */
-@media (max-width: 640px) {
+  /* Edge cards mobile: horizontal scroll */
   .leEdgeCards {
     display: flex;
     gap: 12px;
@@ -1611,17 +1523,17 @@ html:not([data-theme="dark"]) {
     -webkit-overflow-scrolling: touch;
   }
 
-  /* hide scrollbars but keep scrolling */
   .leEdgeCards::-webkit-scrollbar {
     display: none;
   }
+
   .leEdgeCards {
     scrollbar-width: none;
   }
 
   .leEdgeCard {
     flex: 0 0 auto;
-    width: 210px;             
+    width: 210px;
     scroll-snap-align: start;
     padding: 14px 12px 12px;
     border-radius: 16px;
@@ -1647,24 +1559,21 @@ html:not([data-theme="dark"]) {
   .leEdgeCardLabel {
     font-size: 11px;
   }
-}
 
-/* ─────────────────────────────────────────────────────────────
-   StatRow — Mobile text tuning
-   ───────────────────────────────────────────────────────────── */
-
-@media (max-width: 640px) {
+  /* StatRow mobile text tuning */
   .leStatRowContent {
     padding: 10px 10px;
   }
 
+  /* You set this to 10px. That is extremely small on phones.
+     If you meant "smaller" but still readable, 12-13px is typical. */
   .leStatRowValue {
-    font-size: 10px;     /* was 14 */
+    font-size: 10px;
     font-weight: 700;
   }
 
   .leStatRowLabel {
-    font-size: 11px;     /* was 13 */
+    font-size: 11px;
     letter-spacing: 0.15px;
   }
 }

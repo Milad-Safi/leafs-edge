@@ -28,11 +28,15 @@ type Boxscore = {
     homeTeam: { forwards: Skater[]; defense: Skater[] };
     awayTeam: { forwards: Skater[]; defense: Skater[] };
   };
-  homeTeam?: { abbrev?: string };
-  awayTeam?: { abbrev?: string };
+  homeTeam?: { abbrev?: string; score?: number; sog?: number };
+  awayTeam?: { abbrev?: string; score?: number; sog?: number };
+  periodDescriptor?: { number?: number; periodType?: string; maxRegulationPeriods?: number };
+  gameOutcome?: { lastPeriodType?: string; otPeriods?: number };
 };
 
 type Agg = { playerId: number; name: string; goals: number; points: number; sog: number };
+
+type Record = { w: number; l: number; otl: number };
 
 // Cache for 24h
 const REVALIDATE = 86400;
@@ -94,6 +98,20 @@ function add(agg: Map<number, Agg>, p: Skater) {
 function topBy(list: Agg[], key: keyof Pick<Agg, "goals" | "points" | "sog">): Agg | null {
   if (!list.length) return null;
   return list.reduce((best, cur) => (cur[key] > best[key] ? cur : best), list[0]);
+}
+
+function newRec(): Record {
+  return { w: 0, l: 0, otl: 0 };
+}
+
+function isOtlGame(box: Boxscore): boolean {
+  const last = (box.gameOutcome?.lastPeriodType ?? "").toUpperCase();
+  if (last === "OT" || last === "SO") return true;
+
+  const pd = (box.periodDescriptor?.periodType ?? "").toUpperCase();
+  if (pd === "OT" || pd === "SO") return true;
+
+  return false;
 }
 
 export async function GET(req: Request) {
@@ -162,6 +180,14 @@ export async function GET(req: Request) {
         perSeason,
         perSeasonPlayed: perSeason.map((x) => ({ season: x.season, gameIds: [] })),
         gamesFound: 0,
+        records: {
+          [team]: newRec(),
+          [opp]: newRec(),
+        },
+        avgShotsOnGoal: {
+          [team]: null,
+          [opp]: null,
+        },
         leaders: {
           [team]: { topGoals: null, topPoints: null, topSog: null },
           [opp]: { topGoals: null, topPoints: null, topSog: null },
@@ -171,6 +197,12 @@ export async function GET(req: Request) {
 
     const aggTeam = new Map<number, Agg>();
     const aggOpp = new Map<number, Agg>();
+
+    const recTeam = newRec();
+    const recOpp = newRec();
+
+    let sogTeamTotal = 0;
+    let sogOppTotal = 0;
 
     const playedGameIds: number[] = [];
     const playedSet = new Set<number>();
@@ -202,6 +234,38 @@ export async function GET(req: Request) {
       for (const p of homeSkaters) add(homeAgg, p);
       for (const p of awaySkaters) add(awayAgg, p);
 
+      const homeScore = Number((box as any)?.homeTeam?.score);
+      const awayScore = Number((box as any)?.awayTeam?.score);
+
+      if (Number.isFinite(homeScore) && Number.isFinite(awayScore) && homeScore !== awayScore) {
+        const teamScore = isTeamHome ? homeScore : awayScore;
+        const oppScore = isTeamHome ? awayScore : homeScore;
+
+        const teamWon = teamScore > oppScore;
+        const otl = isOtlGame(box);
+
+        if (teamWon) {
+          recTeam.w += 1;
+          if (otl) recOpp.otl += 1;
+          else recOpp.l += 1;
+        } else {
+          recOpp.w += 1;
+          if (otl) recTeam.otl += 1;
+          else recTeam.l += 1;
+        }
+      }
+
+      const homeSog = Number((box as any)?.homeTeam?.sog);
+      const awaySog = Number((box as any)?.awayTeam?.sog);
+
+      if (Number.isFinite(homeSog) && Number.isFinite(awaySog)) {
+        const teamSog = isTeamHome ? homeSog : awaySog;
+        const oppSog = isTeamHome ? awaySog : homeSog;
+
+        sogTeamTotal += teamSog;
+        sogOppTotal += oppSog;
+      }
+
       return true;
     });
 
@@ -213,13 +277,25 @@ export async function GET(req: Request) {
       gameIds: x.gameIds.filter((id) => playedSet.has(id)),
     }));
 
+    const gamesFound = playedGameIds.length;
+
     return NextResponse.json({
       team,
       opp,
       seasons,
       perSeason,
       perSeasonPlayed,
-      gamesFound: playedGameIds.length,
+      gamesFound,
+
+      records: {
+        [team]: recTeam,
+        [opp]: recOpp,
+      },
+
+      avgShotsOnGoal: {
+        [team]: gamesFound ? +(sogTeamTotal / gamesFound).toFixed(2) : null,
+        [opp]: gamesFound ? +(sogOppTotal / gamesFound).toFixed(2) : null,
+      },
 
       leaders: {
         [team]: {

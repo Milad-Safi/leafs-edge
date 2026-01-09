@@ -1,3 +1,8 @@
+// helper for team colours, 
+
+// Colour for every team is available and can be changed if needed
+// Colours chosen are either the teams primary, secondary or tertiary colour.
+// Secondary and Tertiary chosen to help reduce overlaqp
 export const TEAM_COLORS: Record<string, string> = {
   TOR: "rgba(28, 18, 213, 1)",
 
@@ -34,6 +39,7 @@ export const TEAM_COLORS: Record<string, string> = {
   UTA: "rgba(120, 120, 120, 1)",
 };
 
+// returns requested teams colour
 export function getTeamColor(abbrev?: string) {
   return TEAM_COLORS[(abbrev ?? "").toUpperCase()] ?? "rgba(120,120,120,1)";
 }

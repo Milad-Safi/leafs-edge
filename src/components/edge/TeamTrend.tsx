@@ -134,7 +134,7 @@ export default function TeamTrend({
   return (
     <div style={{ width: "100%" }}>
       <div style={card}>
-        <div style={label}>{title ?? `${team} ML Trend`}</div>
+        <div style={label}>{title ?? `${team} Performance Trend`}</div>
 
         {loading ? (
           <div style={{ marginTop: 10, fontSize: 13, color: "rgba(255,255,255,0.7)" }}>
