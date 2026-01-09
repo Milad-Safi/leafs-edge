@@ -4,7 +4,7 @@ import React from "react";
 import type { Game } from "@/components/schedule/ScheduleBar";
 import { styles } from "@/components/matchupHeader.styles";
 
-type RecordSplit = { w: number; l: number; otl: number };
+type RecordSplit = { w: number; l: number; otl?: number | null };
 
 type TeamSummaryMini = {
   teamAbbrev: string;
@@ -37,6 +37,13 @@ function formatTimeTorontoFromUTC(utcIso: string) {
 
 function logoUrl(teamAbbrev: string) {
   return `https://assets.nhle.com/logos/nhl/svg/${teamAbbrev.toUpperCase()}_light.svg`;
+}
+
+function formatSplit(rec?: RecordSplit) {
+  if (!rec) return "—";
+  // If OTL exists, show W-L-OTL. If not, keep old W-L so nothing breaks.
+  if (rec.otl != null) return `${rec.w}-${rec.l}-${rec.otl}`;
+  return `${rec.w}-${rec.l}`;
 }
 
 export default function MatchupHeader({
@@ -80,19 +87,8 @@ export default function MatchupHeader({
   const leftSplitLabel = leafsIsHome ? "Home" : "Away";
   const rightSplitLabel = leafsIsHome ? "Away" : "Home";
 
-  const leftSplitText =
-    leftSplit && typeof leftSplit.otl === "number"
-      ? `${leftSplit.w}-${leftSplit.l}-${leftSplit.otl}`
-      : leftSplit
-      ? `${leftSplit.w}-${leftSplit.l}`
-      : "—";
-
-  const rightSplitText =
-    rightSplit && typeof rightSplit.otl === "number"
-      ? `${rightSplit.w}-${rightSplit.l}-${rightSplit.otl}`
-      : rightSplit
-      ? `${rightSplit.w}-${rightSplit.l}`
-      : "—";
+  const leftSplitText = formatSplit(leftSplit);
+  const rightSplitText = formatSplit(rightSplit);
 
   return (
     <section className="leHeroHeader leFullBleed">
