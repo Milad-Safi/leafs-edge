@@ -18,10 +18,10 @@ import useMatchupData from "@/hooks/useMatchupData";
 import { useMatchupHistory } from "@/hooks/useMatchupHistory";
 import { getTeamColor } from "@/lib/teamColours";
 
-/* ─────────────────────────────────────────────────────────────
-   Helpers
-   ───────────────────────────────────────────────────────────── */
+// Main client-side page for Leafs Edge
+// Orchestrates schedule selection, matchup context, and all major sections
 
+// Resolve the opposing team abbreviation from a selected game
 function getOppFromGame(game: Game | null, teamAbbrev: string) {
   if (!game) return null;
 
@@ -33,6 +33,7 @@ function getOppFromGame(game: Game | null, teamAbbrev: string) {
   );
 }
 
+// Convert a UTC game timestamp into a Toronto-local YYYY-MM-DD string
 function torontoDateFromUTC(utcIso?: string | null): string | null {
   if (!utcIso) return null;
   const d = new Date(utcIso);
@@ -53,16 +54,16 @@ function torontoDateFromUTC(utcIso?: string | null): string | null {
   return `${y}-${m}-${day}`;
 }
 
-/* ─────────────────────────────────────────────────────────────
-   Page
-   ───────────────────────────────────────────────────────────── */
-
 export default function HomeClient() {
   const TEAM = "TOR";
 
+  // Currently selected game from the schedule bar
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+
+  // Derived opponent based on the selected game
   const oppAbbrev = getOppFromGame(selectedGame, TEAM);
 
+  // Primary matchup data used across multiple sections
   const {
     torSummary,
     oppSummary,
@@ -78,31 +79,35 @@ export default function HomeClient() {
     oppAbbrev,
   });
 
+  // matchup data between the two teams
   const { data: history, loading: historyLoading } = useMatchupHistory(
     TEAM,
     oppAbbrev
   );
 
+  // Team-specific colors used for side-by-side visuals
   const leftColor = getTeamColor(TEAM);
   const rightColor = getTeamColor(oppAbbrev ?? "");
+
+  // Localized game date used by the goalie projection section
   const gameDateToronto = torontoDateFromUTC(selectedGame?.startTimeUTC);
 
   return (
-    <main className="leShell">
-      {/* ───────── Schedule Bar ───────── */}
+    <main className="Shell">
+      {/* Schedule selector for upcoming and recent games */}
       <ScheduleBar
         teamAbbrev={TEAM}
         onSelectFutureGame={(g) => setSelectedGame(g)}
       />
 
-      {/* ───────── Center Nav ───────── */}
+      {/* Center navigation that reflects the current matchup */}
       <CenterNav teamAbbrev={TEAM} oppAbbrev={oppAbbrev} />
 
-      {/* ───────── Main Surface ───────── */}
-      <div className="leSurface">
-        <div className="leContentPad">
-          <div className="leDarkPanel">
-            {/* Matchup Header (no divider under it) */}
+      {/* Main content surface */}
+      <div className="Surface">
+        <div className="ContentPad">
+          <div className="DarkPanel">
+            {/* Header summarizing the selected matchup */}
             <MatchupHeader
               game={selectedGame}
               teamAbbrev={TEAM}
@@ -110,8 +115,8 @@ export default function HomeClient() {
               rightSummary={oppSummary}
             />
 
-            {/* ───────── Dropdown Group (boxed) ───────── */}
-            <div className="leSectionGroup">
+            {/* Grouped expandable sections for comparisons and trends */}
+            <div className="SectionGroup">
               <CollapsibleSection title="Team Comparisons" defaultOpen>
                 <TeamComparisonSection
                   left={torSummary}
@@ -149,7 +154,7 @@ export default function HomeClient() {
               </CollapsibleSection>
             </div>
 
-            {/* ───────── Goalies (untouched) ───────── */}
+            {/* Goalie comparison shown only when matchup context is complete */}
             {oppAbbrev && gameDateToronto && (
               <GoaliesSection
                 leftTeam={TEAM}
@@ -160,7 +165,7 @@ export default function HomeClient() {
               />
             )}
 
-            {/* ───────── Injuries (untouched) ───────── */}
+            {/* Injury report for both teams */}
             <InjuriesSection leftTeam={TEAM} rightTeam={oppAbbrev} />
           </div>
         </div>

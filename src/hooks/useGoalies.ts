@@ -1,5 +1,7 @@
 "use client";
 
+// React hook for loading goalie data for a head to head matchup
+
 import { useEffect, useRef, useState } from "react";
 
 import { fetchJson } from "@/lib/fetchJson";
@@ -10,7 +12,7 @@ import type {
   ProjectedStarter,
 } from "@/types/api";
 
-// Re-export types for backwards-compat with existing imports.
+// Re-export types for backwards-compat with existing imports
 export type {
   GoalieApiPayload,
   GoalieRecord,
@@ -18,7 +20,7 @@ export type {
   ProjectedStarter,
 } from "@/types/api";
 
-
+// Hook that fetches goalie matchup data for two teams on a given game date
 export default function useGoalies({
   leftTeam,
   rightTeam,
@@ -32,9 +34,11 @@ export default function useGoalies({
   const [right, setRight] = useState<GoalieApiPayload | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Sequence ref to ignore stale responses from previous requests
   const seqRef = useRef(0);
 
   useEffect(() => {
+    // Reset state if required inputs are missing
     if (!leftTeam || !rightTeam || !gameDate) {
       setLeft(null);
       setRight(null);
@@ -48,6 +52,7 @@ export default function useGoalies({
     async function run() {
       setLoading(true);
       try {
+        // Fetch goalie data for both teams in parallel
         const [a, b] = await Promise.all([
           fetchJson<GoalieApiPayload>(
             `/api/team/goalies?team=${leftTeam}&gameDate=${gameDate}`,

@@ -1,14 +1,20 @@
 import React, { useMemo } from "react";
 import type { EdgeAreaRow } from "@/hooks/useTeamEdge";
 
+// OffensiveZoneHeatmap
+// Renders an offensive-zone SVG heatmap with per-area values for shots or goals
+// Values are pulled from EDGE area rows and placed into fixed labeled zones
+
 type Mode = "shots" | "goals";
 
+// Coerce values into a safe whole number for display
 function safeNum(n: unknown) {
   const x = typeof n === "number" ? n : Number(n);
   // Round to the nearest whole number
   return Number.isFinite(x) ? Math.round(x) : 0;
 }
 
+// Select the correct numeric metric based on the selected mode
 function valueFor(row: EdgeAreaRow | undefined, mode: Mode) {
   if (!row) return 0;
   return mode === "shots" ? safeNum(row.sog) : safeNum(row.goals);
@@ -23,13 +29,14 @@ export default function OffensiveZoneHeatmap({
   mode: Mode;
   height?: number;
 }) {
-  // 1. Data Mapping
+  // Build a quick lookup so SVG labels can pull values by area name
   const byArea = useMemo(() => {
     const m = new Map<string, EdgeAreaRow>();
     for (const r of areas ?? []) m.set(r.area, r);
     return m;
   }, [areas]);
 
+  // Map NHL EDGE area names into a stable object used by the SVG text nodes
   const vals = useMemo(() => {
     const get = (name: string) => valueFor(byArea.get(name), mode);
 
@@ -53,6 +60,7 @@ export default function OffensiveZoneHeatmap({
     };
   }, [byArea, mode]);
 
+  // Compute the highest-value area for the footer summary
   const { maxArea, maxValue, unitLabel } = useMemo(() => {
     const unit = mode === "shots" ? "SOG" : "goals";
     let bestArea = "";
@@ -67,6 +75,7 @@ export default function OffensiveZoneHeatmap({
     return { maxArea: bestArea, maxValue: Math.max(0, best), unitLabel: unit };
   }, [vals, mode]);
 
+  // Centralized color palette for the SVG
   const COLORS = {
     CREASE: "#5ab5e3ff",
     PLAIN_WHITE: "#ffffff",
@@ -78,9 +87,11 @@ export default function OffensiveZoneHeatmap({
     BLUE_LINE: "#0033a0"
   };
 
+  // Derived flag for any special casing tied to the max zone
   const lowSlotIsMax = maxArea === "Low Slot";
 
   return (
+    // Wrapper holds the SVG plus the small summary footer
     <div style={{ width: "100%", position: "relative" }}>
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -204,7 +215,7 @@ export default function OffensiveZoneHeatmap({
           <path d="M11.3983 33.9164H63.3788V2.13208C51.9534 2.90187 40.9278 6.64555 31.3959 12.9917C25.7999 16.7484 20.7999 21.3243 16.5633 26.5663C15.9673 27.2947 15.3713 28.0893 14.8416 28.8176C13.9808 30.0096 13.12 31.2677 12.3254 
           32.5258L11.3983 33.9164Z" />
           
-          <path d="M140.329 33.9166H192.177C191.912 33.4531 191.581 32.9896 191.316 32.5261C190.522 31.2679 189.661 30.0098 188.8 28.8179C188.204 28.0233 187.674 27.2949 187.012 26.5665C182.618 21.101 177.389 16.3633 171.517 12.5284C162.188
+          <path d="M140.329 33.9166H192.177C191.912 33.4531 191.581 32.9896 191.316 32.5261C190.522 31.2679 189661 30.0098 188.8 28.8179C188.204 28.0233 187.674 27.2949 187.012 26.5665C182.618 21.101 177.389 16.3633 171.517 12.5284C162.188
            6.43841 151.446 2.85769 140.329 2.13232V33.9166Z" />
           
           <path d="M140.327 2.13219C139.467 2.06597 138.539 1.99976 137.679 1.99976H65.9642C65.1034 1.99976 64.2426 2.06597 63.3817 2.13219V33.9827H87.4852" />

@@ -1,24 +1,30 @@
 "use client";
 
+// Goalies comparison section
+
 import React from "react";
 import StatRow from "@/components/StatRow";
 import useGoalies, { type ProjectedStarter } from "@/hooks/useGoalies";
 
+// Build initials from a goalie name (used when headshot is missing)
 function initials(name: string) {
   const p = name.trim().split(/\s+/);
   return ((p[0]?.[0] ?? "") + (p[p.length - 1]?.[0] ?? "")).toUpperCase();
 }
 
+// Format save percentage as a 3-decimal string
 function fmtSvDecimal(v: number | null | undefined) {
   if (v == null || !Number.isFinite(v)) return "—";
   return v.toFixed(3);
 }
 
+// Format a numeric stat with a fixed number of decimals
 function fmtNum(v: number | null | undefined, digits = 2) {
   if (v == null || !Number.isFinite(v)) return "—";
   return v.toFixed(digits);
 }
 
+// Convert SV% into a positive comparison strength value (higher SV% => stronger)
 function svStrength(sv: number | null | undefined) {
   if (sv == null || !Number.isFinite(sv)) return null;
   const baseline = 0.904;
@@ -26,6 +32,7 @@ function svStrength(sv: number | null | undefined) {
   return Math.exp(k * (sv - baseline));
 }
 
+// Convert a last-5 record into a goodness value (fewer lost points => stronger)
 function recordGoodness(
   s: { games: number; record: { w: number; l: number; ot: number } } | null
 ): number | null {
@@ -36,20 +43,23 @@ function recordGoodness(
   return 1 / (lostPts + 1);
 }
 
+// Invert a positive metric so “lower is better” becomes “higher is better” for bars. (goals against lower is better)
 function inversePositive(v: number | null | undefined): number | null {
   if (v == null || !Number.isFinite(v) || v <= 0) return null;
   return 1 / v;
 }
 
+// Small label/value row used inside the goalie cards
 function StatLine({ label, value }: { label: string; value: string }) {
   return (
-    <div className="leGoalieStatLine">
-      <div className="leGoalieStatLabel">{label}</div>
-      <div className="leGoalieStatValue">{value}</div>
+    <div className="GoalieStatLine">
+      <div className="GoalieStatLabel">{label}</div>
+      <div className="GoalieStatValue">{value}</div>
     </div>
   );
 }
 
+// Card UI for a single team’s projected starter
 function GoalieCard({
   title,
   loading,
@@ -60,17 +70,17 @@ function GoalieCard({
   starter: ProjectedStarter | null;
 }) {
   return (
-    <div className="leGoalieCard">
-      <div className="leGoalieCardInner">
-        <div className="leGoalieCardTitle">{title}</div>
+    <div className="GoalieCard">
+      <div className="GoalieCardInner">
+        <div className="GoalieCardTitle">{title}</div>
 
         {loading ? (
-          <div className="leGoalieLoading">Loading projected starter…</div>
+          <div className="GoalieLoading">Loading projected starter…</div>
         ) : !starter ? (
-          <div className="leGoalieEmpty">No projected starter.</div>
+          <div className="GoalieEmpty">No projected starter.</div>
         ) : (
-          <div className="leGoalieMain">
-            <div className="leGoalieHeadshot">
+          <div className="GoalieMain">
+            <div className="GoalieHeadshot">
               {starter.headshot ? (
                 <img
                   src={starter.headshot}
@@ -78,14 +88,14 @@ function GoalieCard({
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               ) : (
-                <div className="leGoalieInitials">{initials(starter.name)}</div>
+                <div className="GoalieInitials">{initials(starter.name)}</div>
               )}
             </div>
 
             <div>
-              <div className="leGoalieName">{starter.name}</div>
+              <div className="GoalieName">{starter.name}</div>
 
-              <div className="leGoalieStats">
+              <div className="GoalieStats">
                 <StatLine
                   label="Record"
                   value={`${starter.record.wins}-${starter.record.losses}-${starter.record.ot}`}
@@ -94,7 +104,7 @@ function GoalieCard({
                 <StatLine label="GAA" value={fmtNum(starter.gaa, 2)} />
               </div>
 
-              <div className="leGoalieMeta">
+              <div className="GoalieMeta">
                 GP: {starter.gamesPlayed}
                 {typeof starter.last5Starts === "number"
                   ? ` • Last 5 starts: ${starter.last5Starts}`
@@ -108,6 +118,7 @@ function GoalieCard({
   );
 }
 
+// Main section that renders projected starters + last-5 split comparisons
 export default function GoaliesSection({
   leftTeam,
   rightTeam,
@@ -132,18 +143,28 @@ export default function GoaliesSection({
   return (
     <section style={{ width: "100%", marginTop: 34 }}>
       <div style={{ padding: "0 18px 18px" }}>
-        <div className="leGoaliesShell">
+        <div className="GoaliesShell">
           <div style={{ padding: 18, paddingBottom: 16 }}>
             <div className="goaliesGrid">
-              <GoalieCard title="Projected Starter:" loading={loading} starter={lStarter} />
-              <GoalieCard title="Projected Starter:" loading={loading} starter={rStarter} />
+              <GoalieCard
+                title="Projected Starter:"
+                loading={loading}
+                starter={lStarter}
+              />
+              <GoalieCard
+                title="Projected Starter:"
+                loading={loading}
+                starter={rStarter}
+              />
             </div>
           </div>
 
-          <div className="leGoaliesDivider" />
+          <div className="GoaliesDivider" />
 
           <div style={{ padding: 18, paddingTop: 16 }}>
-            <div className="leGoaliesLast5Title">Last 5 Splits (Projected Starters)</div>
+            <div className="GoaliesLast5Title">
+              Last 5 Splits (Projected Starters)
+            </div>
 
             <div style={{ marginTop: 12, display: "grid", gap: 12 }}>
               <StatRow
@@ -151,10 +172,14 @@ export default function GoaliesSection({
                 leftVal={recordGoodness(l5Left)}
                 rightVal={recordGoodness(l5Right)}
                 leftText={
-                  l5Left ? `${l5Left.record.w}-${l5Left.record.l}-${l5Left.record.ot}` : "—"
+                  l5Left
+                    ? `${l5Left.record.w}-${l5Left.record.l}-${l5Left.record.ot}`
+                    : "—"
                 }
                 rightText={
-                  l5Right ? `${l5Right.record.w}-${l5Right.record.l}-${l5Right.record.ot}` : "—"
+                  l5Right
+                    ? `${l5Right.record.w}-${l5Right.record.l}-${l5Right.record.ot}`
+                    : "—"
                 }
                 leftColor={leftColor}
                 rightColor={rightColor}
@@ -165,7 +190,9 @@ export default function GoaliesSection({
                 leftVal={svStrength(l5Left?.svPct ?? null)}
                 rightVal={svStrength(l5Right?.svPct ?? null)}
                 leftText={l5Left?.svPct != null ? l5Left.svPct.toFixed(3) : "—"}
-                rightText={l5Right?.svPct != null ? l5Right.svPct.toFixed(3) : "—"}
+                rightText={
+                  l5Right?.svPct != null ? l5Right.svPct.toFixed(3) : "—"
+                }
                 leftColor={leftColor}
                 rightColor={rightColor}
               />
@@ -181,8 +208,9 @@ export default function GoaliesSection({
               />
             </div>
 
-            <div className="leGoaliesFootnote">
-              *Splits computed from last 5 team games where the projected goalie played (TOI &gt; 0).
+            <div className="GoaliesFootnote">
+              *Splits computed from last 5 team games where the projected goalie
+              played (TOI &gt; 0).
             </div>
           </div>
         </div>

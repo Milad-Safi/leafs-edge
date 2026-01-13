@@ -4,10 +4,12 @@ export const revalidate = 60;
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+// Basic YYYY-MM-DD validation for as_of filtering
 function isISODate(s: string | null): s is string {
   return !!s && /^\d{4}-\d{2}-\d{2}$/.test(s);
 }
 
+// Default as_of value when the client does not provide one
 function todayISO_UTC(): string {
   return new Date().toISOString().slice(0, 10);
 }
@@ -20,6 +22,7 @@ function seasonIdForDateISO(dateISO: string) {
   return `${startYear}${startYear + 1}`;
 }
 
+// Fetch JSON with no-store caching and a useful error on failure
 async function fetchJson(url: string) {
   const r = await fetch(url, {
     cache: "no-store",
@@ -35,6 +38,7 @@ async function fetchJson(url: string) {
   return r.json();
 }
 
+// Aggregated stat line across the sampled games
 type Leader = {
   name: string;
   goals: number;
@@ -43,6 +47,7 @@ type Leader = {
   playerId?: number;
 };
 
+// Pick the best leader by a single stat key
 function pickLeader(map: Map<string, Leader>, key: "goals" | "points" | "shots"): Leader | null {
   let best: Leader | null = null;
   for (const v of map.values()) {
@@ -52,6 +57,7 @@ function pickLeader(map: Map<string, Leader>, key: "goals" | "points" | "shots")
   return best;
 }
 
+// Normalize name fields across slightly different payload shapes
 function safeName(p: any): string | null {
   const a = p?.name?.default;
   if (typeof a === "string" && a.trim()) return a.trim();
@@ -68,12 +74,15 @@ function safeName(p: any): string | null {
   return null;
 }
 
+// GET /api/hotLast5?team=TOR&as_of=YYYY-MM-DD
+// Returns leaders for goals, points, and shots over the last 5 completed games
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const team = (url.searchParams.get("team") || "").trim().toUpperCase();
   const asOfParam = url.searchParams.get("as_of");
   const asOf = isISODate(asOfParam) ? asOfParam : todayISO_UTC();
 
+  // Validate required query param
   if (!team) {
     return NextResponse.json({ error: "Missing query param ?team=TOR" }, { status: 400 });
   }
@@ -90,7 +99,7 @@ export async function GET(req: Request) {
       (Array.isArray(sched?.gameWeek) ? sched.gameWeek.flatMap((w: any) => w?.games ?? []) : null) ??
       [];
 
-    // last 5 completed regular season games up to asOf
+    // Filter to last 5 completed regular-season games up to asOf
     const completed = games
       .filter((g) => {
         const d = (g?.gameDate || g?.startTimeUTC || "").toString().slice(0, 10);
@@ -121,12 +130,14 @@ export async function GET(req: Request) {
       })
       .slice(0, 5);
 
+    // Extract game ids so we can pull boxscores
     const gameIds = completed
       .map((g) => Number(g?.gameId ?? g?.id))
       .filter((n) => Number.isFinite(n));
 
     const boxUrls = gameIds.map((id) => `https://api-web.nhle.com/v1/gamecenter/${id}/boxscore`);
 
+    // Keep response shape stable when there are no completed games yet
     if (gameIds.length === 0) {
       return NextResponse.json({
         ok: true,
@@ -138,9 +149,11 @@ export async function GET(req: Request) {
       });
     }
 
+    // Aggregate per-player totals across the sampled games
     const agg = new Map<string, Leader>();
 
     for (const gameId of gameIds) {
+
       // URL #2: boxscore
       const boxUrl = `https://api-web.nhle.com/v1/gamecenter/${gameId}/boxscore`;
       const box = await fetchJson(boxUrl);
@@ -148,7 +161,7 @@ export async function GET(req: Request) {
       const homeAbbrev = box?.homeTeam?.abbrev;
       const awayAbbrev = box?.awayTeam?.abbrev;
 
-      // IMPORTANT: playerByGameStats is keyed by awayTeam/homeTeam
+      // playerByGameStats is keyed by awayTeam/homeTeam
       const sideKey = team === homeAbbrev ? "homeTeam" : team === awayAbbrev ? "awayTeam" : null;
       if (!sideKey) continue;
 
@@ -159,6 +172,7 @@ export async function GET(req: Request) {
       const defense: any[] = Array.isArray(pbg?.defense) ? pbg.defense : [];
       const skaters = [...forwards, ...defense];
 
+      // Sum goals, points, and shots on goal per skater name
       for (const p of skaters) {
         const name = safeName(p);
         if (!name) continue;
@@ -167,7 +181,6 @@ export async function GET(req: Request) {
         const assists = Number(p?.assists ?? 0) || 0;
         const points = Number(p?.points) || (goals + assists);
 
-        // In your payload it’s `sog`
         const shots = Number(p?.sog ?? p?.shotsOnGoal ?? 0) || 0;
 
         const playerIdNum = Number(p?.playerId);
@@ -183,6 +196,7 @@ export async function GET(req: Request) {
       }
     }
 
+    // Final leaders are chosen from aggregated totals
     const goalsLeader = pickLeader(agg, "goals");
     const pointsLeader = pickLeader(agg, "points");
     const shotsLeader = pickLeader(agg, "shots");
@@ -205,6 +219,8 @@ export async function GET(req: Request) {
       },
     });
   } catch (err: any) {
+
+    // Upstream NHL failures or unexpected parsing errors
     return NextResponse.json(
       { error: "hotLast5 nhl api error", detail: String(err?.message ?? err) },
       { status: 500 }

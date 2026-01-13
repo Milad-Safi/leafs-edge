@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 
+// Pulls game ids from schedule for the last 2 seasons, then uses boxscores to compute
+// Records (W-L-OTL), average shots on goal, and simple leaders (goals, points, SOG)
+// [ matchup history ^ ]
+
 type ScheduleGame = {
   id: number;
   gameType: number;
@@ -42,12 +46,14 @@ type Record = { w: number; l: number; otl: number };
 const REVALIDATE = 86400;
 const CONCURRENCY = 5;
 
+// Minimal JSON fetch helper with a consistent cache policy
 async function fetchJson<T>(url: string): Promise<T> {
   const r = await fetch(url, { next: { revalidate: REVALIDATE } });
   if (!r.ok) throw new Error(`Fetch ${r.status} ${r.statusText}: ${url}`);
   return (await r.json()) as T;
 }
 
+// Run async work with a concurrency limit while preserving input ordering
 async function mapLimit<T, R>(items: T[], limit: number, fn: (x: T) => Promise<R>) {
   const out: R[] = new Array(items.length);
   let i = 0;
@@ -64,15 +70,18 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (x: T) => Promise<R
   return out;
 }
 
+// Normalize skater name field across payload shapes
 function nameOf(n: Skater["name"]) {
   return typeof n === "string" ? n : (n?.default ?? "");
 }
 
+// Safe number coercion for stats fields
 function num(x: any) {
   const n = Number(x);
   return Number.isFinite(n) ? n : 0;
 }
 
+// Add a skater game line into the running aggregate keyed by playerId
 function add(agg: Map<number, Agg>, p: Skater) {
   const id = Number(p.playerId);
   if (!Number.isFinite(id)) return;
@@ -95,15 +104,18 @@ function add(agg: Map<number, Agg>, p: Skater) {
   agg.set(id, row);
 }
 
+// Pick a single leader from an aggregated list by stat key
 function topBy(list: Agg[], key: keyof Pick<Agg, "goals" | "points" | "sog">): Agg | null {
   if (!list.length) return null;
   return list.reduce((best, cur) => (cur[key] > best[key] ? cur : best), list[0]);
 }
 
+// Create a fresh W-L-OTL record object
 function newRec(): Record {
   return { w: 0, l: 0, otl: 0 };
 }
 
+// Identify whether a game ended in OT or shootout
 function isOtlGame(box: Boxscore): boolean {
   const last = (box.gameOutcome?.lastPeriodType ?? "").toUpperCase();
   if (last === "OT" || last === "SO") return true;
@@ -114,12 +126,15 @@ function isOtlGame(box: Boxscore): boolean {
   return false;
 }
 
+// GET /api/matchup/history?team=TOR&opp=BOS
+// Computes 2-season matchup aggregates using schedule ids + boxscore stats
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const team = (searchParams.get("team") || "").trim().toUpperCase();
     const opp = (searchParams.get("opp") || "").trim().toUpperCase();
 
+    // Validate required params
     if (!team || !opp) {
       return NextResponse.json({ error: "Need ?team=TOR&opp=BOS" }, { status: 400 });
     }
@@ -132,14 +147,15 @@ export async function GET(req: Request) {
       `https://api-web.nhle.com/v1/club-schedule-season/${teamLower}/${seedSeason}`
     );
 
-    // Requirement: last 2 seasons only
+    // Last 2 seasons only
     const seasons = [seed.currentSeason, seed.previousSeason];
 
-    // schedule is source of truth for home/away mapping per gameId
+    // Track home/away mapping per gameId so boxscore stats can be assigned correctly
     const isTeamHomeByGameId = new Map<number, boolean>();
 
     const perSeason: { season: number; gameIds: number[] }[] = [];
 
+    // Gather matchup game ids per season from schedule
     for (const season of seasons) {
       const sched = await fetchJson<ClubScheduleSeason>(
         `https://api-web.nhle.com/v1/club-schedule-season/${teamLower}/${season}`
@@ -148,16 +164,17 @@ export async function GET(req: Request) {
       const gameIds =
         (sched.games ?? [])
           .filter((g) => {
-            // regular season only
+            // Regular season only
             if (g.gameType !== 2) return false;
 
-            // skip future games before boxscore fetch
+            // Skip future games before boxscore fetch
             if (g.gameState === "FUT") return false;
 
             const ht = (g.homeTeam?.abbrev || "").toUpperCase();
             const at = (g.awayTeam?.abbrev || "").toUpperCase();
             const ok = (ht === team && at === opp) || (ht === opp && at === team);
 
+            // Store whether team is home for this gameId for later stat assignment
             if (ok && Number.isFinite(g.id)) {
               isTeamHomeByGameId.set(g.id, ht === team);
             }
@@ -170,8 +187,10 @@ export async function GET(req: Request) {
       perSeason.push({ season, gameIds });
     }
 
+    // De-dupe across seasons just in case
     const gameIds = Array.from(new Set(perSeason.flatMap((x) => x.gameIds)));
 
+    // Empty state when no matchup games were found
     if (!gameIds.length) {
       return NextResponse.json({
         team,
@@ -195,18 +214,23 @@ export async function GET(req: Request) {
       });
     }
 
+    // Aggregates split by side so leaders can be reported per team
     const aggTeam = new Map<number, Agg>();
     const aggOpp = new Map<number, Agg>();
 
+    // Records computed from boxscore scorelines and OT detection
     const recTeam = newRec();
     const recOpp = newRec();
 
+    // Running totals for average SOG per game
     let sogTeamTotal = 0;
     let sogOppTotal = 0;
 
+    // Track which scheduled gameIds had playable boxscore stats
     const playedGameIds: number[] = [];
     const playedSet = new Set<number>();
 
+    // Fetch boxscores with a concurrency limit to avoid hammering the NHL endpoint
     await mapLimit(gameIds, CONCURRENCY, async (gameId) => {
       const box = await fetchJson<Boxscore>(`https://api-web.nhle.com/v1/gamecenter/${gameId}/boxscore`);
 
@@ -219,21 +243,24 @@ export async function GET(req: Request) {
         ...(box.playerByGameStats?.awayTeam?.defense ?? []),
       ];
 
-      // Skip unplayed / missing stats
+      // Skip unplayed or incomplete games
       if (homeSkaters.length === 0 && awaySkaters.length === 0) return true;
 
       playedGameIds.push(gameId);
       playedSet.add(gameId);
 
+      // Home/away mapping comes from schedule, not boxscore
       const isTeamHome = isTeamHomeByGameId.get(gameId);
       if (typeof isTeamHome !== "boolean") return true;
 
+      // Assign skater lines to the correct aggregate based on home/away
       const homeAgg = isTeamHome ? aggTeam : aggOpp;
       const awayAgg = isTeamHome ? aggOpp : aggTeam;
 
       for (const p of homeSkaters) add(homeAgg, p);
       for (const p of awaySkaters) add(awayAgg, p);
 
+      // Record logic uses scoreline plus OT detection for OTL vs regulation loss
       const homeScore = Number((box as any)?.homeTeam?.score);
       const awayScore = Number((box as any)?.awayTeam?.score);
 
@@ -255,6 +282,7 @@ export async function GET(req: Request) {
         }
       }
 
+      // Average SOG uses the team-aligned home/away mapping
       const homeSog = Number((box as any)?.homeTeam?.sog);
       const awaySog = Number((box as any)?.awayTeam?.sog);
 
@@ -269,9 +297,11 @@ export async function GET(req: Request) {
       return true;
     });
 
+    // Convert aggregates to arrays for leader selection
     const teamList = Array.from(aggTeam.values());
     const oppList = Array.from(aggOpp.values());
 
+    // Per-season ids restricted to games that had usable boxscore data
     const perSeasonPlayed = perSeason.map((x) => ({
       season: x.season,
       gameIds: x.gameIds.filter((id) => playedSet.has(id)),
@@ -311,6 +341,7 @@ export async function GET(req: Request) {
       },
     });
   } catch (e: any) {
+    // Catch-all so the client always gets JSON
     return NextResponse.json({ error: e?.message ?? "Unknown error" }, { status: 500 });
   }
 }

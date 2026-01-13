@@ -1,7 +1,14 @@
 "use client";
 
+// React hook for loading all matchup-related data between two teams
+
 import { useEffect, useRef, useState } from "react";
-import type { HotL5Payload, TeamLast5, TeamRanks, TeamSummary } from "@/types/api";
+import type {
+  HotL5Payload,
+  TeamLast5,
+  TeamRanks,
+  TeamSummary,
+} from "@/types/api";
 import { fetchJson } from "@/lib/fetchJson";
 
 type MatchupData = {
@@ -20,6 +27,7 @@ type MatchupData = {
   loadingHot: boolean;
 };
 
+// Hook that aggregates all matchup data needed for the comparison page
 export default function useMatchupData({
   teamAbbrev,
   oppAbbrev,
@@ -41,9 +49,11 @@ export default function useMatchupData({
   const [oppHot, setOppHot] = useState<HotL5Payload | null>(null);
   const [loadingHot, setLoadingHot] = useState(false);
 
+  // Sequence counter to ignore stale async responses
   const requestSeq = useRef(0);
 
   useEffect(() => {
+    // Reset all matchup state if no opponent is selected
     if (!oppAbbrev) {
       setTorSummary(null);
       setOppSummary(null);
@@ -62,7 +72,7 @@ export default function useMatchupData({
     const ctrl = new AbortController();
 
     async function run() {
-      // Summary
+      // Fetch season summary stats for both teams
       try {
         setLoadingSummary(true);
         const [tor, opp] = await Promise.all([
@@ -85,16 +95,18 @@ export default function useMatchupData({
         if (requestSeq.current === seq) setLoadingSummary(false);
       }
 
-      // Last 5
+      // Fetch last-5-games performance for both teams
       try {
         setLoadingLast5(true);
         const [tor, opp] = await Promise.all([
-          fetchJson<TeamLast5>(`/api/team/last5?team=${teamAbbrev}&opp=${oppAbbrev}`, {
-            signal: ctrl.signal,
-          }),
-          fetchJson<TeamLast5>(`/api/team/last5?team=${oppAbbrev}&opp=${teamAbbrev}`, {
-            signal: ctrl.signal,
-          }),
+          fetchJson<TeamLast5>(
+            `/api/team/last5?team=${teamAbbrev}&opp=${oppAbbrev}`,
+            { signal: ctrl.signal }
+          ),
+          fetchJson<TeamLast5>(
+            `/api/team/last5?team=${oppAbbrev}&opp=${teamAbbrev}`,
+            { signal: ctrl.signal }
+          ),
         ]);
 
         if (requestSeq.current !== seq) return;
@@ -108,6 +120,7 @@ export default function useMatchupData({
         if (requestSeq.current === seq) setLoadingLast5(false);
       }
 
+      // Fetch comparative league rankings for the matchup
       try {
         const j = await fetchJson<TeamRanks>(
           `/api/team/ranks?teamA=${teamAbbrev}&teamB=${oppAbbrev}`,
@@ -121,15 +134,18 @@ export default function useMatchupData({
         setTeamRanks(null);
       }
 
+      // Fetch hot players over the last 5 games for both teams
       try {
         setLoadingHot(true);
         const [tor, opp] = await Promise.all([
-          fetchJson<HotL5Payload>(`/api/team/hotLast5?team=${teamAbbrev}`, {
-            signal: ctrl.signal,
-          }),
-          fetchJson<HotL5Payload>(`/api/team/hotLast5?team=${oppAbbrev}`, {
-            signal: ctrl.signal,
-          }),
+          fetchJson<HotL5Payload>(
+            `/api/team/hotLast5?team=${teamAbbrev}`,
+            { signal: ctrl.signal }
+          ),
+          fetchJson<HotL5Payload>(
+            `/api/team/hotLast5?team=${oppAbbrev}`,
+            { signal: ctrl.signal }
+          ),
         ]);
 
         if (requestSeq.current !== seq) return;

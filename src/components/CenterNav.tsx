@@ -1,10 +1,13 @@
 "use client";
 
+// Center navigation bar for team and opponent views
+
 import React from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import ThemeToggle from "@/components/ThemeToggle";
 
+// Single navigation link with active and disabled handling
 function NavLink({
   href,
   label,
@@ -19,13 +22,14 @@ function NavLink({
   const active = !disabled && pathname === targetPath;
 
   const className = [
-    "leNavLink",
-    active ? "leNavLinkActive" : "",
-    disabled ? "leNavLinkDisabled" : "",
+    "NavLink",
+    active ? "NavLinkActive" : "",
+    disabled ? "NavLinkDisabled" : "",
   ]
     .filter(Boolean)
     .join(" ");
 
+  // Render non-interactive span when disabled
   if (disabled) {
     return (
       <span className={className} aria-disabled="true">
@@ -41,6 +45,7 @@ function NavLink({
   );
 }
 
+// Center navigation component that wires team and opponent routing
 export default function CenterNav({
   teamAbbrev,
   oppAbbrev,
@@ -54,13 +59,14 @@ export default function CenterNav({
   const oppFromQuery = search.get("opp")?.toUpperCase() ?? null;
   const opp = (oppAbbrev?.toUpperCase() ?? oppFromQuery) || null;
 
+  // Append opponent query param when available
   const withOpp = (path: string) =>
     opp ? `${path}?opp=${encodeURIComponent(opp)}` : path;
 
   return (
-    <div className="leNavBar">
-      <div className="leNavInner">
-        <div className="leNavLinks">
+    <div className="NavBar">
+      <div className="NavInner">
+        <div className="NavLinks">
           <NavLink href="/" label="Home" />
           <NavLink href={withOpp("/team/tor")} label={`${team} Stats`} />
           <NavLink

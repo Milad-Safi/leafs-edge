@@ -5,6 +5,7 @@ import { toiToMinutes } from "@/lib/nhl/toi";
 
 export const runtime = "nodejs";
 
+// Pull current roster goalies and build a lookup map keyed by playerId
 async function fetchRosterGoalies(team: string) {
   const url = `https://api-web.nhle.com/v1/roster/${team}/current`;
   const res = await fetch(url, { next: { revalidate: 3600 } });
@@ -30,6 +31,7 @@ async function fetchRosterGoalies(team: string) {
   return map;
 }
 
+// Fetch injured player ids via the internal injuries route
 async function fetchInjuredIdsViaApi(team: string, reqUrl: string): Promise<Set<number>> {
   const u = new URL(reqUrl);
   const base = `${u.protocol}//${u.host}`;
@@ -52,6 +54,7 @@ async function fetchInjuredIdsViaApi(team: string, reqUrl: string): Promise<Set<
   return set;
 }
 
+// Fetch season goalie totals from club-stats
 async function fetchClubGoalies(team: string, season: string): Promise<any[]> {
   const url = `https://api-web.nhle.com/v1/club-stats/${team}/${season}/2`;
   const res = await fetch(url, { next: { revalidate: 3600 } });
@@ -60,6 +63,7 @@ async function fetchClubGoalies(team: string, season: string): Promise<any[]> {
   return Array.isArray(data?.goalies) ? data.goalies : [];
 }
 
+// Fetch the full season schedule to find recent completed games and b2b context
 async function fetchSeasonSchedule(team: string, season: string): Promise<any[]> {
   const url = `https://api-web.nhle.com/v1/club-schedule-season/${team}/${season}`;
   const res = await fetch(url, { next: { revalidate: 3600 } });
@@ -68,11 +72,13 @@ async function fetchSeasonSchedule(team: string, season: string): Promise<any[]>
   return Array.isArray(data?.games) ? data.games : [];
 }
 
+// Treat OFF and FINAL as completed states for schedule filtering
 function isCompletedGameState(v: any) {
   const st = String(v ?? "").toUpperCase();
   return st === "OFF" || st === "FINAL";
 }
 
+// Pull goalie rows for the requested team from a gamecenter boxscore payload
 function getTeamGoaliesFromBoxscore(box: any, team: string): any[] {
   const awayAbbrev = cleanStr(box?.awayTeam?.abbrev)?.toUpperCase() ?? null;
   const homeAbbrev = cleanStr(box?.homeTeam?.abbrev)?.toUpperCase() ?? null;
@@ -92,6 +98,7 @@ function getTeamGoaliesFromBoxscore(box: any, team: string): any[] {
   return [];
 }
 
+// Identify the starter for a team from boxscore goalie rows
 function starterIdFromBoxscore(box: any, team: string): number | null {
   const goalies = getTeamGoaliesFromBoxscore(box, team);
   if (goalies.length === 0) return null;
@@ -100,6 +107,7 @@ function starterIdFromBoxscore(box: any, team: string): number | null {
   const starterId = toNum(starterRow?.playerId);
   if (starterId) return starterId;
 
+  // Fallback if starter flag is missing
   let bestId: number | null = null;
   let bestTOI = 0;
 
@@ -116,6 +124,7 @@ function starterIdFromBoxscore(box: any, team: string): number | null {
   return bestId;
 }
 
+// Fetch a single boxscore and extract the starter id
 async function fetchStarterIdFromBoxscore(team: string, gameId: number) {
   const url = `https://api-web.nhle.com/v1/gamecenter/${gameId}/boxscore`;
   const res = await fetch(url, { next: { revalidate: 3600 } });
@@ -125,6 +134,7 @@ async function fetchStarterIdFromBoxscore(team: string, gameId: number) {
   return starterIdFromBoxscore(box, team);
 }
 
+// Fetch multiple boxscores with best-effort filtering on failures
 async function fetchBoxscores(gameIds: number[]) {
   const boxes = await Promise.all(
     gameIds.map(async (gid) => {
@@ -138,6 +148,7 @@ async function fetchBoxscores(gameIds: number[]) {
   return boxes.filter(Boolean) as any[];
 }
 
+// Compute last 5 splits for a single goalie by scanning recent boxscores
 async function computeLast5GoalieSplitsFromBoxes(team: string, goalieId: number, boxes: any[]) {
   if (!goalieId || boxes.length === 0) {
     return {
@@ -189,6 +200,7 @@ async function computeLast5GoalieSplitsFromBoxes(team: string, goalieId: number,
   return { games, record: { w, l, ot }, svPct, gaa };
 }
 
+// Add day offsets while staying in ISO date space
 function addDaysISO(iso: string, deltaDays: number) {
   // iso is "YYYY-MM-DD"
   const d = new Date(`${iso}T00:00:00Z`);
@@ -196,6 +208,8 @@ function addDaysISO(iso: string, deltaDays: number) {
   return d.toISOString().slice(0, 10);
 }
 
+// GET /api/team/projectedStarter?team=TOR&season=20252026&gameDate=YYYY-MM-DD
+// Returns projected starter plus meta explaining the decision path
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
@@ -203,6 +217,7 @@ export async function GET(req: Request) {
   const season = searchParams.get("season") ?? "20252026";
   const gameDateRaw = searchParams.get("gameDate");
 
+  // Validate required params before hitting external endpoints
   if (!team || !gameDateRaw) {
     return NextResponse.json(
       { error: "Missing ?team=TOR&season=20252026&gameDate=YYYY-MM-DD" },
@@ -214,6 +229,7 @@ export async function GET(req: Request) {
   const gameDate = String(gameDateRaw).slice(0, 10);
 
   try {
+    // Core inputs for eligibility, season totals, and schedule context
     const [rosterMap, injuredIds, clubGoalies, seasonGames] = await Promise.all([
       fetchRosterGoalies(team),
       fetchInjuredIdsViaApi(team, req.url),
@@ -221,11 +237,13 @@ export async function GET(req: Request) {
       fetchSeasonSchedule(team, season),
     ]);
 
+    // Filter roster goalie ids to only healthy options
     const eligibleRosterIds: number[] = [];
     for (const [id] of rosterMap) {
       if (!injuredIds.has(id)) eligibleRosterIds.push(id);
     }
 
+    // Index season goalie totals by playerId
     const seasonById = new Map<number, any>();
     for (const g of clubGoalies) {
       const id = toNum(g?.playerId);
@@ -233,7 +251,7 @@ export async function GET(req: Request) {
       seasonById.set(id, g);
     }
 
-    // Full schedule view (includes future + completed)
+    // Normalize schedule rows with Toronto-local date and sortable timestamp
     const scheduleAll = (seasonGames ?? [])
       .map((g: any) => {
         const torDate = torontoDateISO(g?.startTimeUTC);
@@ -242,11 +260,13 @@ export async function GET(req: Request) {
       })
       .filter((g: any) => g._torDate && g._startMs > 0);
 
+    // Select the most relevant game on a given date by start time
     const gameOnDate = (d: string) =>
       scheduleAll
         .filter((g: any) => g._torDate === d)
         .sort((a: any, b: any) => b._startMs - a._startMs)[0] ?? null;
 
+    // Build a list of completed games before gameDate for last 5 sampling
     const completedBefore = scheduleAll
       .filter((g: any) => g._torDate && g._torDate < gameDate)
       .filter((g: any) => isCompletedGameState(g?.gameState))
@@ -255,13 +275,16 @@ export async function GET(req: Request) {
     const last5Games = completedBefore.slice(0, 5);
     const prevCompleted = completedBefore[0] ?? null;
 
+    // Extract game ids for boxscore pulls
     const last5GameIds: number[] = last5Games
       .map((g: any) => toNum(g?.id))
       .filter((x: any): x is number => typeof x === "number");
 
+    // Pull boxscores and derive starter ids for start counting
     const last5Boxes = await fetchBoxscores(last5GameIds);
     const last5StarterIds = last5Boxes.map((box) => starterIdFromBoxscore(box, team));
 
+    // Count starts by goalie id across the last 5 games
     const startsMap = new Map<number, number>();
     for (const sid of last5StarterIds) {
       if (!sid) continue;
@@ -269,6 +292,7 @@ export async function GET(req: Request) {
       startsMap.set(sid, (startsMap.get(sid) ?? 0) + 1);
     }
 
+    // Assemble candidate objects with recent-start count and season totals
     const candidates = eligibleRosterIds.map((id) => {
       const r = rosterMap.get(id)!;
       const s = seasonById.get(id);
@@ -289,6 +313,7 @@ export async function GET(req: Request) {
       };
     });
 
+    // Handle the case where every goalie is filtered out
     if (candidates.length === 0) {
       return NextResponse.json({
         team,
@@ -298,6 +323,7 @@ export async function GET(req: Request) {
       });
     }
 
+    // Base ordering is recent starts then season usage
     candidates.sort((a, b) => {
       if (b.last5Starts !== a.last5Starts) return b.last5Starts - a.last5Starts;
       return b.gamesPlayed - a.gamesPlayed;
@@ -306,7 +332,7 @@ export async function GET(req: Request) {
     // Base projection: most starts in last 5, then most GP
     let projected = candidates[0];
 
-    // --- B2B (SECOND HALF, INCLUDING FUTURE): schedule-based detection ---
+    // Back-to-back detection based on schedule games on gameDate and the day before
     const yesterdayISO = addDaysISO(gameDate, -1);
 
     const todayGame = gameOnDate(gameDate);
@@ -314,9 +340,7 @@ export async function GET(req: Request) {
 
     const isBackToBack = Boolean(todayGame && yesterdayGame);
 
-    // Choose which game to reference to find the "starter we want to avoid":
-    // - If yesterday is completed, use yesterday starter
-    // - Else (future), use most recent completed game starter as best available signal
+    // Pick a reference game to discover the starter that should be avoided
     let referenceGameId: number | null = null;
     if (isBackToBack) {
       if (isCompletedGameState(yesterdayGame?.gameState)) referenceGameId = toNum(yesterdayGame?.id);
@@ -328,7 +352,7 @@ export async function GET(req: Request) {
       refStarterId = await fetchStarterIdFromBoxscore(team, referenceGameId);
     }
 
-    // If second half B2B, always return the OTHER goalie (your requirement)
+    // Second half of a b2b always flips to the other eligible goalie
     if (isBackToBack) {
       if (refStarterId) {
         const alt = candidates.find((c) => c.playerId !== refStarterId);
@@ -339,12 +363,14 @@ export async function GET(req: Request) {
       }
     }
 
+    // Compute last 5 performance splits for the projected goalie
     const last5Splits = await computeLast5GoalieSplitsFromBoxes(
       team,
       projected.playerId,
       last5Boxes
     );
 
+    // Expose previous completed date in Toronto-local terms when present
     const prevDate =
       typeof prevCompleted?._torDate === "string"
         ? prevCompleted._torDate

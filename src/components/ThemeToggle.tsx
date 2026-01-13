@@ -1,25 +1,37 @@
 "use client";
 
+// Theme toggle component for switching between light and dark mode
+
 import React, { useEffect, useMemo, useState } from "react";
 
 type Theme = "light" | "dark";
 
+// Detect the user's system colour scheme preference
 function getSystemTheme(): Theme {
   if (typeof window === "undefined") return "light";
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 }
 
+// Apply the selected theme to the root HTML element
 function applyTheme(theme: Theme) {
-  document.documentElement.dataset.theme = theme; 
+  document.documentElement.dataset.theme = theme;
 }
 
+// UI control for toggling between light and dark themes
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>("light");
 
-  // Read initial theme once on mount
+  // Read saved theme or system preference once on mount
   useEffect(() => {
-    const saved = (typeof window !== "undefined" && localStorage.getItem("le_theme")) as Theme | null;
-    const initial: Theme = saved === "light" || saved === "dark" ? saved : getSystemTheme();
+    const saved =
+      (typeof window !== "undefined" &&
+        localStorage.getItem("le_theme")) as Theme | null;
+
+    const initial: Theme =
+      saved === "light" || saved === "dark" ? saved : getSystemTheme();
+
     setTheme(initial);
     applyTheme(initial);
   }, []);
@@ -31,6 +43,7 @@ export default function ThemeToggle() {
     [isDark]
   );
 
+  // Toggle theme and persist the choice
   function toggle() {
     const next: Theme = isDark ? "light" : "dark";
     setTheme(next);
@@ -41,7 +54,7 @@ export default function ThemeToggle() {
   return (
     <button
       type="button"
-      className="leThemeToggle"
+      className="ThemeToggle"
       data-on={isDark ? "true" : "false"}
       onClick={toggle}
       role="switch"
@@ -49,9 +62,9 @@ export default function ThemeToggle() {
       aria-label={ariaLabel}
       title={ariaLabel}
     >
-      <span className="leThemeToggleKnob" aria-hidden="true">
+      <span className="ThemeToggleKnob" aria-hidden="true">
         {/* Sun */}
-        <svg className="leThemeToggleIcon sun" viewBox="0 0 24 24" fill="none">
+        <svg className="ThemeToggleIcon sun" viewBox="0 0 24 24" fill="none">
           <path
             d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"
             stroke="currentColor"
@@ -66,7 +79,7 @@ export default function ThemeToggle() {
         </svg>
 
         {/* Moon */}
-        <svg className="leThemeToggleIcon moon" viewBox="0 0 24 24" fill="none">
+        <svg className="ThemeToggleIcon moon" viewBox="0 0 24 24" fill="none">
           <path
             d="M21 14.5A8 8 0 0 1 9.5 3a7 7 0 1 0 11.5 11.5Z"
             stroke="currentColor"

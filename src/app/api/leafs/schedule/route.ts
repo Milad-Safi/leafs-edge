@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 
+// API route that returns a normalized season schedule for TOR
+// Converts game start times into Toronto-local ISO dates for consistent UI grouping
+// Keeps the payload small and stable for the schedule bar and date-based lookups
+
 type NHLGame = {
   id: number;
   gameDate: string; 
@@ -9,6 +13,7 @@ type NHLGame = {
   awayTeam?: { abbrev?: string; score?: number };
 };
 
+// Compute the current NHL season id in api-web format like 20252026
 function getSeasonStringForToday(): string {
   const now = new Date();
   const year = now.getUTCFullYear();
@@ -19,6 +24,7 @@ function getSeasonStringForToday(): string {
   return `${startYear}${endYear}`;
 }
 
+// Convert a UTC ISO timestamp into a Toronto-local YYYY-MM-DD string
 function torontoDateISO(utcIso: string): string {
   const dt = new Date(utcIso);
 
@@ -36,6 +42,8 @@ function torontoDateISO(utcIso: string): string {
   return `${y}-${m}-${d}`;
 }
 
+// GET /api/schedule
+// Returns all games for TOR for the selected season with Toronto-local dates added
 export async function GET() {
   const team = "tor";
   const season = process.env.NHL_SEASON ?? getSeasonStringForToday();
@@ -47,6 +55,7 @@ export async function GET() {
     headers: { Accept: "application/json" },
   });
 
+  // Fail fast so the client always gets a JSON error payload
   if (!res.ok) {
     return NextResponse.json(
       { error: "Failed to fetch schedule", status: res.status },
@@ -56,8 +65,10 @@ export async function GET() {
 
   const data = await res.json();
 
+  // NHL schedule response contains a games array for the season
   const games: NHLGame[] = Array.isArray(data?.games) ? data.games : [];
 
+  // Normalize schedule rows into a frontend-friendly shape
   const normalized = games.map((g) => {
     const torDate = torontoDateISO(g.startTimeUTC);
 

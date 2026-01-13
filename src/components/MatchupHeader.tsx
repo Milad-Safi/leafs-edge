@@ -1,5 +1,7 @@
 "use client";
 
+// Matchup header (hero) for the next scheduled game
+
 import React from "react";
 import type { Game } from "@/components/schedule/ScheduleBar";
 import { styles } from "@/components/matchupHeader.styles";
@@ -16,6 +18,7 @@ type TeamSummaryMini = {
   awayRecord?: RecordSplit;
 };
 
+// Format a UTC ISO timestamp into a Toronto-local, readable date label
 function formatPrettyDateFromUTC(utcIso: string) {
   const dt = new Date(utcIso);
   return dt.toLocaleDateString(undefined, {
@@ -26,6 +29,7 @@ function formatPrettyDateFromUTC(utcIso: string) {
   });
 }
 
+// Format a UTC ISO timestamp into a Toronto-local, readable time label
 function formatTimeTorontoFromUTC(utcIso: string) {
   const dt = new Date(utcIso);
   return dt.toLocaleTimeString(undefined, {
@@ -35,17 +39,19 @@ function formatTimeTorontoFromUTC(utcIso: string) {
   });
 }
 
+// Build the NHL team logo URL for a given team abbreviation.
 function logoUrl(teamAbbrev: string) {
   return `https://assets.nhle.com/logos/nhl/svg/${teamAbbrev.toUpperCase()}_light.svg`;
 }
 
+// Format a W/L(/OTL) split into "W-L" or "W-L-OTL" depending on availability
 function formatSplit(rec?: RecordSplit) {
   if (!rec) return "—";
-  // If OTL exists, show W-L-OTL. If not, keep old W-L so nothing breaks.
   if (rec.otl != null) return `${rec.w}-${rec.l}-${rec.otl}`;
   return `${rec.w}-${rec.l}`;
 }
 
+// Hero header for the next game matchup (desktop + mobile layouts)
 export default function MatchupHeader({
   game,
   teamAbbrev = "TOR",
@@ -81,8 +87,12 @@ export default function MatchupHeader({
       ? `${rightSummary.wins}-${rightSummary.losses}-${rightSummary.otLosses}`
       : "—";
 
-  const leftSplit = leafsIsHome ? leftSummary?.homeRecord : leftSummary?.awayRecord;
-  const rightSplit = leafsIsHome ? rightSummary?.awayRecord : rightSummary?.homeRecord;
+  const leftSplit = leafsIsHome
+    ? leftSummary?.homeRecord
+    : leftSummary?.awayRecord;
+  const rightSplit = leafsIsHome
+    ? rightSummary?.awayRecord
+    : rightSummary?.homeRecord;
 
   const leftSplitLabel = leafsIsHome ? "Home" : "Away";
   const rightSplitLabel = leafsIsHome ? "Away" : "Home";
@@ -91,8 +101,8 @@ export default function MatchupHeader({
   const rightSplitText = formatSplit(rightSplit);
 
   return (
-    <section className="leHeroHeader leFullBleed">
-      <div className="leFullBleedInner">
+    <section className="HeroHeader FullBleed">
+      <div className="FullBleedInner">
         <div style={styles.wrap}>
           <div style={styles.topRow}>
             <span style={styles.kicker}>NEXT GAME</span>
@@ -105,7 +115,11 @@ export default function MatchupHeader({
           <div className="mhDesktop">
             <div className="mhRow" style={styles.mainRow}>
               <div style={styles.teamSideLeft}>
-                <img src={logoUrl(TEAM)} alt={`${TEAM} logo`} style={styles.logo} />
+                <img
+                  src={logoUrl(TEAM)}
+                  alt={`${TEAM} logo`}
+                  style={styles.logo}
+                />
                 <div style={styles.teamText}>
                   <div style={styles.abbrev}>{TEAM}</div>
 
@@ -125,7 +139,9 @@ export default function MatchupHeader({
                 <div className="mhTitle" style={styles.matchup}>
                   {matchup}
                 </div>
-                <div style={styles.centerSub}>{leafsIsHome ? "Home game" : "Away game"}</div>
+                <div style={styles.centerSub}>
+                  {leafsIsHome ? "Home game" : "Away game"}
+                </div>
               </div>
 
               <div style={styles.teamSideRight}>
@@ -150,11 +166,17 @@ export default function MatchupHeader({
           {/* ===== MOBILE LAYOUT===== */}
           <div className="mhMobile">
             <div className="mhMobileTitle">{matchup}</div>
-            <div className="mhMobileSub">{leafsIsHome ? "Home game" : "Away game"}</div>
+            <div className="mhMobileSub">
+              {leafsIsHome ? "Home game" : "Away game"}
+            </div>
 
             <div className="mhMobileTeams">
               <div className="mhMobileTeam">
-                <img className="mhMobileLogo" src={logoUrl(TEAM)} alt={`${TEAM} logo`} />
+                <img
+                  className="mhMobileLogo"
+                  src={logoUrl(TEAM)}
+                  alt={`${TEAM} logo`}
+                />
                 <div className="mhMobileAbbrev">{TEAM}</div>
                 <div className="mhMobileLine">
                   <span className="mhMobileLabel">Season:</span>{" "}
@@ -169,7 +191,11 @@ export default function MatchupHeader({
               <div className="mhMobileVs">{leafsIsHome ? "VS" : "@"}</div>
 
               <div className="mhMobileTeam">
-                <img className="mhMobileLogo" src={logoUrl(opp)} alt={`${opp} logo`} />
+                <img
+                  className="mhMobileLogo"
+                  src={logoUrl(opp)}
+                  alt={`${opp} logo`}
+                />
                 <div className="mhMobileAbbrev">{opp}</div>
                 <div className="mhMobileLine">
                   <span className="mhMobileLabel">Overall:</span>{" "}

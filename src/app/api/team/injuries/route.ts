@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import { cleanStr, toNum } from "@/lib/nhl/parse";
 
+// Proxies an external injury feed and enriches results with roster headshots
+// Always returns a stable JSON shape even when upstream data is missing
+
 export const runtime = "nodejs";
 
 // Force this route to be dynamic (no Next static/cached route behavior)
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+// External injury feed used by the site
 const INJURY_SOURCE =
   "https://datacrunch.9c9media.ca/statsapi/sports/hockey/leagues/nhl/playerInjuries?type=json";
 
@@ -30,6 +34,7 @@ type TeamInjuryReport = {
   error?: string;
 };
 
+// Fetch current roster so we can attach headshot URLs to injury rows
 async function fetchRosterHeadshots(team: string): Promise<{
   byId: Map<number, string>;
   byName: Map<string, string>;
@@ -54,6 +59,7 @@ async function fetchRosterHeadshots(team: string): Promise<{
     ...(data?.goalies ?? []),
   ];
 
+  // Build two lookup maps since injuries can come with id or just displayName
   for (const p of players) {
     const id = toNum(p?.id);
     const headshot = cleanStr(p?.headshot);
@@ -71,15 +77,19 @@ async function fetchRosterHeadshots(team: string): Promise<{
   return { byId, byName };
 }
 
+// GET /api/injuries?team=TOR
+// Returns a team injury report with optional headshots when matches are found
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const team = (searchParams.get("team") ?? "").toUpperCase();
 
+  // Validate required query param
   if (!team) {
     return NextResponse.json({ error: "Missing ?team=TOR" }, { status: 400 });
   }
 
   try {
+    // Fetch injuries and roster in parallel since they come from different sources
     const [injRes, roster] = await Promise.all([
       // IMPORTANT: disable Next fetch caching for injuries (always fresh)
       fetch(INJURY_SOURCE, {
@@ -92,6 +102,7 @@ export async function GET(req: Request) {
       fetchRosterHeadshots(team),
     ]);
 
+    // If the upstream feed is down, return an empty report but keep the same shape
     if (!injRes.ok) {
       return NextResponse.json(
         {
@@ -114,10 +125,12 @@ export async function GET(req: Request) {
         ? data.items
         : [];
 
+    // Each block is a team competitor object with its own injury list
     const block = blocks.find(
       (b) => cleanStr(b?.competitor?.shortName)?.toUpperCase() === team
     );
 
+    // If the team is not present in the feed, return an empty report
     if (!block) {
       return NextResponse.json(
         {
@@ -132,6 +145,7 @@ export async function GET(req: Request) {
       );
     }
 
+    // Convert upstream injury rows into the simplified output used by the frontend
     const injuries: InjuryOut[] = (block?.playerInjuries ?? []).map((pi: any) => {
       const pid = toNum(pi?.player?.playerId);
       const name = cleanStr(pi?.player?.displayName) ?? "Unknown";
@@ -151,6 +165,7 @@ export async function GET(req: Request) {
       };
     });
 
+    // Final payload includes team metadata and a timestamp for when we served the result
     const payload: TeamInjuryReport = {
       team,
       teamName: cleanStr(block?.competitor?.name),
@@ -164,6 +179,7 @@ export async function GET(req: Request) {
       headers: { "Cache-Control": "no-store" },
     });
   } catch (e: any) {
+    // Catch all for parsing and network failures
     return NextResponse.json(
       {
         team,

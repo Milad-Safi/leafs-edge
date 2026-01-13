@@ -1,10 +1,13 @@
 "use client";
 
+// Matchup history UI section (last 2 seasons)
+
 import React from "react";
 import StatRow from "@/components/StatRow";
 import type { MatchupHistoryPayload } from "@/hooks/useMatchupHistory";
 import { UI } from "@/styles/uiStyles";
 
+// Renders a matchup history module using a MatchupHistoryPayload response
 export default function MatchupHistory({
   data,
   loading,
@@ -50,8 +53,19 @@ export default function MatchupHistory({
     );
   }
 
-  const left = data.leaders[leftAbbrev] ?? { topGoals: null, topPoints: null, topSog: null };
-  const right = data.leaders[rightAbbrev] ?? { topGoals: null, topPoints: null, topSog: null };
+  // Pull per-team leaders and other optional fields with safe defaults
+  const left =
+    data.leaders[leftAbbrev] ?? {
+      topGoals: null,
+      topPoints: null,
+      topSog: null,
+    };
+  const right =
+    data.leaders[rightAbbrev] ?? {
+      topGoals: null,
+      topPoints: null,
+      topSog: null,
+    };
 
   const records = (data as any).records as
     | Record<string, { w: number; l: number; otl: number }>
@@ -60,7 +74,10 @@ export default function MatchupHistory({
   const leftRec = records?.[leftAbbrev] ?? { w: 0, l: 0, otl: 0 };
   const rightRec = records?.[rightAbbrev] ?? { w: 0, l: 0, otl: 0 };
 
-  const avgSog = (data as any).avgShotsOnGoal as Record<string, number | null> | undefined;
+  const avgSog = (data as any).avgShotsOnGoal as
+    | Record<string, number | null>
+    | undefined;
+
   const leftAvgSog = avgSog?.[leftAbbrev] ?? null;
   const rightAvgSog = avgSog?.[rightAbbrev] ?? null;
 
@@ -71,7 +88,8 @@ export default function MatchupHistory({
           <div style={{ textAlign: "center" }}>
             <div style={UI.title()}>Matchup history</div>
             <div style={{ ...UI.meta(), marginTop: 4 }}>
-              Last 2 seasons • {data.gamesFound} game{data.gamesFound === 1 ? "" : "s"}
+              Last 2 seasons • {data.gamesFound} game
+              {data.gamesFound === 1 ? "" : "s"}
             </div>
           </div>
         </div>
@@ -101,8 +119,16 @@ export default function MatchupHistory({
             label="Most Goals"
             leftVal={left.topGoals?.goals ?? null}
             rightVal={right.topGoals?.goals ?? null}
-            leftText={left.topGoals ? `${left.topGoals.name} (${left.topGoals.goals} G)` : "—"}
-            rightText={right.topGoals ? `${right.topGoals.name} (${right.topGoals.goals} G)` : "—"}
+            leftText={
+              left.topGoals
+                ? `${left.topGoals.name} (${left.topGoals.goals} G)`
+                : "—"
+            }
+            rightText={
+              right.topGoals
+                ? `${right.topGoals.name} (${right.topGoals.goals} G)`
+                : "—"
+            }
             leftColor={leftColor}
             rightColor={rightColor}
           />
@@ -111,8 +137,16 @@ export default function MatchupHistory({
             label="Most Points"
             leftVal={left.topPoints?.points ?? null}
             rightVal={right.topPoints?.points ?? null}
-            leftText={left.topPoints ? `${left.topPoints.name} (${left.topPoints.points} P)` : "—"}
-            rightText={right.topPoints ? `${right.topPoints.name} (${right.topPoints.points} P)` : "—"}
+            leftText={
+              left.topPoints
+                ? `${left.topPoints.name} (${left.topPoints.points} P)`
+                : "—"
+            }
+            rightText={
+              right.topPoints
+                ? `${right.topPoints.name} (${right.topPoints.points} P)`
+                : "—"
+            }
             leftColor={leftColor}
             rightColor={rightColor}
           />
@@ -121,8 +155,12 @@ export default function MatchupHistory({
             label="Most SOG"
             leftVal={left.topSog?.sog ?? null}
             rightVal={right.topSog?.sog ?? null}
-            leftText={left.topSog ? `${left.topSog.name} (${left.topSog.sog} SOG)` : "—"}
-            rightText={right.topSog ? `${right.topSog.name} (${right.topSog.sog} SOG)` : "—"}
+            leftText={
+              left.topSog ? `${left.topSog.name} (${left.topSog.sog} SOG)` : "—"
+            }
+            rightText={
+              right.topSog ? `${right.topSog.name} (${right.topSog.sog} SOG)` : "—"
+            }
             leftColor={leftColor}
             rightColor={rightColor}
           />

@@ -1,16 +1,21 @@
 "use client";
 
+
+// Hot (hot streak) players comparison rows (last 5 games)
+
+
 import React from "react";
 import StatRow from "@/components/StatRow";
 import { UI } from "@/styles/uiStyles";
 
 import type { HotL5Payload, HotLeader } from "@/types/api";
 
-// Re-export types for backwards-compat with existing imports.
+// Re-export types for backwards-compat with existing imports
 export type { HotL5Payload } from "@/types/api";
 
 type Leader = HotLeader;
 
+// Shorten a full player name to an initial + last name 
 function shortName(full: string) {
   const parts = full.trim().split(/\s+/);
   if (parts.length <= 1) return full;
@@ -20,6 +25,7 @@ function shortName(full: string) {
   return `${first[0]}. ${last}`;
 }
 
+// Format leader display strings for each stat type
 function fmtGoals(p: Leader | null) {
   return p ? `${shortName(p.name)} — ${p.goals} G` : "-";
 }
@@ -30,6 +36,7 @@ function fmtShots(p: Leader | null) {
   return p ? `${shortName(p.name)} — ${p.shots} SOG` : "—";
 }
 
+// Renders hot-player leader rows for two teams
 export default function HotPlayersRows({
   left,
   right,
@@ -60,6 +67,8 @@ export default function HotPlayersRows({
             <div style={UI.hairline(0.08)} />
           </div>
 
+
+
           <div
             style={{
               paddingTop: 10,
@@ -75,11 +84,15 @@ export default function HotPlayersRows({
           >
           </div>
 
+
+
           <div style={{ marginTop: 10, marginRight: -16, marginBottom: 0, marginLeft: -16 }}>
             <div style={UI.hairline(0.08)} />
           </div>
         </div>
       )}
+
+
 
       <div style={UI.rowsGrid(10)}>
         <StatRow
@@ -92,6 +105,8 @@ export default function HotPlayersRows({
           rightColor={rightColor}
         />
 
+
+
         <StatRow
           leftVal={lp ? lp.points : null}
           rightVal={rp ? rp.points : null}
@@ -101,6 +116,8 @@ export default function HotPlayersRows({
           leftColor={leftColor}
           rightColor={rightColor}
         />
+
+
 
         <StatRow
           leftVal={ls ? ls.shots : null}

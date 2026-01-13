@@ -17,6 +17,7 @@ export type TeamRanks = {
   };
 };
 
+// Best-effort number parsing for stats REST fields
 function toNumber(val: unknown): number | null {
   if (typeof val === "number" && Number.isFinite(val)) return val;
   if (typeof val === "string") {
@@ -26,6 +27,7 @@ function toNumber(val: unknown): number | null {
   return null;
 }
 
+// Guess the current NHL seasonId based on today in UTC
 function inferCurrentSeasonIdFromToday(): number {
   const now = new Date();
   const y = now.getUTCFullYear();
@@ -34,6 +36,7 @@ function inferCurrentSeasonIdFromToday(): number {
   return Number(`${startYear}${startYear + 1}`);
 }
 
+// Fetch team metadata so numeric teamId values can be mapped to triCode
 async function getTeamMeta() {
   const res = await fetch("https://api.nhle.com/stats/rest/en/team", {
     next: { revalidate: 60 * 60 },
@@ -64,6 +67,7 @@ type TeamSummaryRow = {
   shotsAgainstPerGame: number | null;
 };
 
+// Pull league-wide team summary rows for a season and game type
 async function getLeagueTeamSummary(seasonId: number, gameTypeId: number): Promise<TeamSummaryRow[]> {
   const url =
     "https://api.nhle.com/stats/rest/en/team/summary" +
@@ -91,12 +95,14 @@ async function getLeagueTeamSummary(seasonId: number, gameTypeId: number): Promi
     .filter((r) => r.teamId !== -1);
 }
 
+// Convert stats REST percentages from 0..1 into 0..100 for consistent ranking display
 function pct01ToPct100(v: number | null) {
   if (v == null) return null;
   // This feed is 0-1 (ex: 0.224489) => 22.4489
   return v <= 1 ? v * 100 : v;
 }
 
+// Produce a simple 1..N rank map for every triCode in the input set
 function computeRanks(
   rows: { triCode: string; value: number | null }[],
   higherBetter: boolean
@@ -119,17 +125,22 @@ function computeRanks(
   return out;
 }
 
+// GET /api/team/ranks?teamA=TOR&teamB=MTL&seasonId=20252026&gameTypeId=2
+// Returns league rank maps so the UI can display where each team sits for each stat
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
+  // Default teams allow the route to be hit directly during dev
   const teamA = String(searchParams.get("teamA") || "TOR").toUpperCase();
   const teamB = String(searchParams.get("teamB") || "MTL").toUpperCase();
   const seasonId = toNumber(searchParams.get("seasonId")) ?? inferCurrentSeasonIdFromToday();
   const gameTypeId = toNumber(searchParams.get("gameTypeId")) ?? 2;
 
+  // Fetch meta and league summary data needed to build triCode keyed rows
   const meta = await getTeamMeta();
   const league = await getLeagueTeamSummary(seasonId, gameTypeId);
 
+  // Map numeric teamId values to triCode abbreviations
   const idToTri = new Map(meta.map((m) => [m.id, m.triCode]));
   const leagueByTri = league
     .map((r) => {
@@ -140,6 +151,7 @@ export async function GET(req: Request) {
 
   const teamsCount = leagueByTri.length;
 
+  // Compute per-metric ranks for every team in the league set
   const payload: TeamRanks = {
     seasonId,
     teamsCount,

@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+/*
+React hook for fetching NHL Edge analytics for at team,
+Fetches multiple edge stat endpoints (skating speed + shot speed and locations), then combines them
+*/
 
+import { useEffect, useMemo, useState } from "react";
 import { fetchJson } from "@/lib/fetchJson";
 import type {
   TeamEdgeBundle,
@@ -13,7 +17,7 @@ import type {
   EdgeHardestShooter,
 } from "@/types/api";
 
-// Re-export types for backwards-compat with existing imports.
+// Re-export types for backwards-compat with existing imports
 export type {
   TeamEdgeBundle,
   TeamSkatingSpeedResponse,
@@ -24,15 +28,21 @@ export type {
   EdgeHardestShooter,
 } from "@/types/api";
 
+
+// build a team-scoped API URL for given edge endpoint 
 function buildUrl(baseUrl: string, path: string, team: string) {
   const u = new URL(path, baseUrl);
   u.searchParams.set("team", team);
   return u.toString();
 }
 
+// Hook that fetches and aggregatres each of the edge analytics 
 export default function useTeamEdge(team: string | null, enabled = true) {
+
+  // url (env ovverride + default fallback)
   const baseUrl = process.env.NEXT_PUBLIC_EDGE_API_BASE ?? "https://leafs-edge-api.onrender.com";
 
+  // precompute endpoint urls when a team or base URl changes
   const urls = useMemo(() => {
     if (!team) return null;
     return {
@@ -47,6 +57,7 @@ export default function useTeamEdge(team: string | null, enabled = true) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // reset state if disabled or no team is selected
     if (!enabled || !team || !urls) {
       setData(null);
       setLoading(false);
@@ -54,10 +65,12 @@ export default function useTeamEdge(team: string | null, enabled = true) {
       return;
     }
 
+    // abort controller to cancel requests
     const ac = new AbortController();
     setLoading(true);
     setError(null);
 
+    // fetch all edge endpoints and bundle results
     Promise.all([
       fetchJson<TeamSkatingSpeedResponse>(urls.skating, { signal: ac.signal }),
       fetchJson<TeamShotSpeedResponse>(urls.shotSpeed, { signal: ac.signal }),

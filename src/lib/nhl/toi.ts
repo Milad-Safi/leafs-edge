@@ -1,5 +1,5 @@
-// src/lib/nhl/toi.ts
-
+// Helper for goalie route
+// converts NHL Time on ice strings to a normal numeric value
 export function toiToMinutes(toi: any): number {
   if (typeof toi !== "string") return 0;
 

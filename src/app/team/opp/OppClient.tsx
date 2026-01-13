@@ -11,19 +11,27 @@ import useTeamEdge from "@/hooks/useTeamEdge";
 import TeamTrend from "@/components/edge/TeamTrend";
 import { useTeamTrend } from "@/hooks/useTeamTrend";
 
+// EDGE analytics page for the selected opponent
+// Team is derived from the URL search param and drives all data on this page
+
 export default function OppClient() {
+  // Fixed season context for EDGE endpoints
   const season = "20252026"; // keep hardcoded for now
 
+  // Read opponent abbreviation from query string
   const search = useSearchParams();
   const opp = search.get("opp")?.toUpperCase() ?? null;
 
+  // NHL EDGE data scoped to the opponent team
   const { data, loading, error, baseUrl } = useTeamEdge(opp, !!opp);
+
+  // ML-based short-term trend prediction for the opponent
   const trend = useTeamTrend(opp);
 
   return (
     <main style={{ minHeight: "100vh", color: "white", padding: 24 }}>
       <div style={{ display: "grid", gap: 14 }}>
-        {/* ML Trend (TOP, above fastest/hardest) */}
+        {/* ML trend shown only when an opponent is present */}
         {opp ? (
           <TeamTrend
             title={`${opp} ML Trend`}
@@ -40,7 +48,7 @@ export default function OppClient() {
           />
         )}
 
-        {/* Top cards row */}
+        {/* Skating speed and shot speed cards */}
         <div
           style={{
             display: "grid",
@@ -71,7 +79,7 @@ export default function OppClient() {
           </EdgeCard>
         </div>
 
-        {/* Heatmaps row (ONLY 2 cards) */}
+        {/* Shot location heatmaps */}
         <div
           style={{
             display: "grid",
@@ -79,7 +87,7 @@ export default function OppClient() {
             gap: 14,
           }}
         >
-          <EdgeCard title="Shot Map" subtitle="Shots on goal by zone">
+          <EdgeCard title="Shot Map" subtitle="Shots on Goal by zone">
             <OffensiveZoneHeatmap
               areas={data?.shotLocation.areas ?? []}
               mode="shots"

@@ -1,16 +1,23 @@
 "use client";
 
+// Last-5-games comparison UI section
+
 import React from "react";
 import StatRow from "@/components/StatRow";
 import HotPlayersRows from "@/components/HotPlayers";
 import { UI } from "@/styles/uiStyles";
 
 import type { HotL5Payload, TeamLast5 } from "@/types/api";
-import { higherBetterStrength, lowerBetterStrength, toPct100 } from "@/lib/statsMath";
+import {
+  higherBetterStrength,
+  lowerBetterStrength,
+  toPct100,
+} from "@/lib/statsMath";
 
-// Re-export types for backwards-compat with existing imports.
+// Re-export types for backwards-compat with existing imports
 export type { TeamLast5 } from "@/types/api";
 
+// Component that renders last-5 stats and hot-player rows for two teams
 export default function Last5Section({
   left,
   right,
@@ -40,9 +47,11 @@ export default function Last5Section({
   return (
     <div style={UI.moduleWrapper()}>
       <div style={{ ...UI.pad(18) }}>
-        <div className="leLast5Title">Last 5 Games:</div>
+        <div className="Last5Title">Last 5 Games:</div>
 
-        {loading && <div className="leLast5Loading">Loading last 5 Games…</div>}
+        {loading && (
+          <div className="Last5Loading">Loading last 5 Games…</div>
+        )}
 
         {/* STATS */}
         <div style={UI.rowsGrid(10)}>
@@ -58,40 +67,92 @@ export default function Last5Section({
 
           <StatRow
             leftVal={higherBetterStrength(left?.goalsForPerGame ?? null, 3.0, 1)}
-            rightVal={higherBetterStrength(right?.goalsForPerGame ?? null, 3.0, 1)}
+            rightVal={higherBetterStrength(
+              right?.goalsForPerGame ?? null,
+              3.0,
+              1
+            )}
             label="Goals For / Game"
-            leftText={left?.goalsForPerGame != null ? left.goalsForPerGame.toFixed(2) : "—"}
-            rightText={right?.goalsForPerGame != null ? right.goalsForPerGame.toFixed(2) : "—"}
+            leftText={
+              left?.goalsForPerGame != null
+                ? left.goalsForPerGame.toFixed(2)
+                : "—"
+            }
+            rightText={
+              right?.goalsForPerGame != null
+                ? right.goalsForPerGame.toFixed(2)
+                : "—"
+            }
             leftColor={leftColor}
             rightColor={rightColor}
           />
 
           <StatRow
-            leftVal={lowerBetterStrength(left?.goalsAgainstPerGame ?? null, 3.0, 1.4)}
-            rightVal={lowerBetterStrength(right?.goalsAgainstPerGame ?? null, 3.0, 1.4)}
+            leftVal={lowerBetterStrength(
+              left?.goalsAgainstPerGame ?? null,
+              3.0,
+              1.4
+            )}
+            rightVal={lowerBetterStrength(
+              right?.goalsAgainstPerGame ?? null,
+              3.0,
+              1.4
+            )}
             label="Goals Against / Game"
-            leftText={left?.goalsAgainstPerGame != null ? left.goalsAgainstPerGame.toFixed(2) : "—"}
-            rightText={right?.goalsAgainstPerGame != null ? right.goalsAgainstPerGame.toFixed(2) : "—"}
+            leftText={
+              left?.goalsAgainstPerGame != null
+                ? left.goalsAgainstPerGame.toFixed(2)
+                : "—"
+            }
+            rightText={
+              right?.goalsAgainstPerGame != null
+                ? right.goalsAgainstPerGame.toFixed(2)
+                : "—"
+            }
             leftColor={leftColor}
             rightColor={rightColor}
           />
 
           <StatRow
             leftVal={higherBetterStrength(left?.shotsForPerGame ?? null, 30, 0.4)}
-            rightVal={higherBetterStrength(right?.shotsForPerGame ?? null, 30, 0.4)}
+            rightVal={higherBetterStrength(
+              right?.shotsForPerGame ?? null,
+              30,
+              0.4
+            )}
             label="Shots For / Game"
-            leftText={left?.shotsForPerGame != null ? `${left.shotsForPerGame}` : "—"}
-            rightText={right?.shotsForPerGame != null ? `${right.shotsForPerGame}` : "—"}
+            leftText={
+              left?.shotsForPerGame != null ? `${left.shotsForPerGame}` : "—"
+            }
+            rightText={
+              right?.shotsForPerGame != null ? `${right.shotsForPerGame}` : "—"
+            }
             leftColor={leftColor}
             rightColor={rightColor}
           />
 
           <StatRow
-            leftVal={lowerBetterStrength(left?.shotsAgainstPerGame ?? null, 30, 0.25)}
-            rightVal={lowerBetterStrength(right?.shotsAgainstPerGame ?? null, 30, 0.25)}
+            leftVal={lowerBetterStrength(
+              left?.shotsAgainstPerGame ?? null,
+              30,
+              0.25
+            )}
+            rightVal={lowerBetterStrength(
+              right?.shotsAgainstPerGame ?? null,
+              30,
+              0.25
+            )}
             label="Shots Against / Game"
-            leftText={left?.shotsAgainstPerGame != null ? `${left.shotsAgainstPerGame}` : "—"}
-            rightText={right?.shotsAgainstPerGame != null ? `${right.shotsAgainstPerGame}` : "—"}
+            leftText={
+              left?.shotsAgainstPerGame != null
+                ? `${left.shotsAgainstPerGame}`
+                : "—"
+            }
+            rightText={
+              right?.shotsAgainstPerGame != null
+                ? `${right.shotsAgainstPerGame}`
+                : "—"
+            }
             leftColor={leftColor}
             rightColor={rightColor}
           />

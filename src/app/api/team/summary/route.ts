@@ -27,6 +27,7 @@ type TeamSummary = {
   awayRecord: RecordSplit;
 };
 
+// Best-effort number parsing for API values that may arrive as strings
 function toNumber(val: unknown): number | null {
   if (typeof val === "number" && Number.isFinite(val)) return val;
   if (typeof val === "string") {
@@ -36,16 +37,19 @@ function toNumber(val: unknown): number | null {
   return null;
 }
 
+// Round numeric outputs to 2 decimals for UI-friendly stats
 function round2(n: number | null): number | null {
   if (n == null) return null;
   return Math.round(n * 100) / 100;
 }
 
+// Convert 0..1 decimal rates into percent values for display
 function pctFromDecimal01(n: number | null): number | null {
   if (n == null) return null;
   return round2(n * 100);
 }
 
+// Guess the current NHL seasonId based on today in UTC
 function inferCurrentSeasonIdFromToday(): number {
   // Example: Sept 2025 is the 2025-2026 season => 20252026
   const now = new Date();
@@ -56,6 +60,7 @@ function inferCurrentSeasonIdFromToday(): number {
   return Number(`${startYear}${endYear}`);
 }
 
+// Resolve NHL teamId from a 3-letter abbreviation
 async function getTeamIdByAbbrev(teamAbbrev: string): Promise<number | null> {
   // Stats REST team list (same family as team/summary)
   const res = await fetch("https://api.nhle.com/stats/rest/en/team", {
@@ -75,6 +80,7 @@ async function getTeamIdByAbbrev(teamAbbrev: string): Promise<number | null> {
   return toNumber(found?.id ?? found?.teamId) ?? null;
 }
 
+// Detect whether a completed schedule game ended in OT or a shootout
 function isOtlGameFromSchedule(g: any): boolean {
   const last = String(g?.gameOutcome?.lastPeriodType ?? "").toUpperCase();
   if (last === "OT" || last === "SO") return true;
@@ -85,6 +91,7 @@ function isOtlGameFromSchedule(g: any): boolean {
   return false;
 }
 
+// Compute home and away record splits by iterating the season schedule
 async function getHomeAwayRecord(teamAbbrev: string, seasonId: number): Promise<{
   homeRecord: RecordSplit;
   awayRecord: RecordSplit;
@@ -108,6 +115,7 @@ async function getHomeAwayRecord(teamAbbrev: string, seasonId: number): Promise<
   const games: any[] = Array.isArray(json?.games) ? json.games : [];
 
   for (const g of games) {
+    // Only count completed games
     const state = String(g?.gameState ?? "").toUpperCase();
     const isCompleted = state === "FINAL" || state === "OFF";
     if (!isCompleted) continue;
@@ -115,6 +123,7 @@ async function getHomeAwayRecord(teamAbbrev: string, seasonId: number): Promise<
     // regular season only (keep consistent with the rest of your app)
     if (toNumber(g?.gameType) !== 2) continue;
 
+    // Identify whether the team is home or away for this game
     const homeAbbrev = String(g?.homeTeam?.abbrev || "").toUpperCase();
     const awayAbbrev = String(g?.awayTeam?.abbrev || "").toUpperCase();
     const isHome = homeAbbrev === teamAbbrev;
@@ -124,13 +133,14 @@ async function getHomeAwayRecord(teamAbbrev: string, seasonId: number): Promise<
     const homeScore = toNumber(g?.homeTeam?.score);
     const awayScore = toNumber(g?.awayTeam?.score);
 
-    // If a finished game somehow has no score, skip it
+    // Skip bad or incomplete score states
     if (homeScore == null || awayScore == null) continue;
     if (homeScore === awayScore) continue;
 
     const goalsFor = isHome ? homeScore : awayScore;
     const goalsAgainst = isHome ? awayScore : homeScore;
 
+    // Update split record based on result and OT detection
     if (goalsFor > goalsAgainst) {
       if (isHome) homeRecord.w++;
       else awayRecord.w++;
@@ -149,6 +159,8 @@ async function getHomeAwayRecord(teamAbbrev: string, seasonId: number): Promise<
   return { homeRecord, awayRecord };
 }
 
+// GET /api/team/summary?team=TOR&season=20252026
+// Fetches team summary stats and returns a normalized payload for the UI
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const teamAbbrev = (url.searchParams.get("team") || "").trim().toUpperCase();
@@ -156,24 +168,29 @@ export async function GET(req: Request) {
   // Optional override: /api/team/summary?team=TOR&season=20252026
   const seasonOverride = toNumber(url.searchParams.get("season"));
 
+  // Keep game type consistent across the route and schedule splits
   const gameTypeId = 2; // 2 == regular season, 3 == playoffs
   const seasonId = seasonOverride ?? inferCurrentSeasonIdFromToday();
 
+  // Validate required query params
   if (!teamAbbrev) {
     return NextResponse.json({ error: "Missing query param ?team=TOR" }, { status: 400 });
   }
 
   try {
+    // Resolve teamId first since stats REST uses numeric ids in the filter expression
     const teamId = await getTeamIdByAbbrev(teamAbbrev);
     if (!teamId) {
       return NextResponse.json({ error: `Unknown team abbrev: ${teamAbbrev}` }, { status: 404 });
     }
 
+    // Build stats REST filter expression for the requested team and season
     const cayenneExp = `seasonId=${seasonId} and gameTypeId=${gameTypeId} and teamId=${teamId}`;
     const endpoint =
       "https://api.nhle.com/stats/rest/en/team/summary" +
       `?cayenneExp=${encodeURIComponent(cayenneExp)}`;
 
+    // Fetch stats summary and compute schedule-based splits in parallel
     const [summaryRes, splits] = await Promise.all([
       fetch(endpoint, {
         next: { revalidate: 60 },
@@ -192,6 +209,7 @@ export async function GET(req: Request) {
     const json = await summaryRes.json();
     const row = Array.isArray(json?.data) ? json.data[0] : null;
 
+    // Stats REST returns the row inside data[0] for this filtered query
     if (!row) {
       return NextResponse.json(
         { error: "No team summary row returned", teamAbbrev, teamId, seasonId },
@@ -199,6 +217,7 @@ export async function GET(req: Request) {
       );
     }
 
+    // Normalize and shape the payload consumed by the frontend
     const payload: TeamSummary = {
       teamAbbrev,
       seasonId,
@@ -229,6 +248,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(payload);
   } catch (err: any) {
+    // Final catch-all for unexpected fetch or parsing errors
     return NextResponse.json(
       { error: "Server error", detail: String(err?.message ?? err) },
       { status: 500 }

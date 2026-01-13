@@ -4,12 +4,12 @@
 import type React from "react";
 
 export const UI = {
-  // outer wrapper, border, background, rounded corners.
+  // outer wrapper, border, background, rounded corners
   moduleWrapper: (): React.CSSProperties => ({
     borderRadius: 18,
-    border: "1px solid var(--le-surface-border)",
-    boxShadow: "var(--le-shadow)",
-    background: "var(--le-module-bg)",
+    border: "1px solid var(--surface-border)",
+    boxShadow: "var(--shadow)",
+    background: "var(--module-bg)",
     overflow: "hidden",
   }),
 
@@ -21,13 +21,13 @@ export const UI = {
     paddingLeft: n,
   }),
 
-  // thin divider line 
+  // thin divider line
   hairline: (alpha = 0.08): React.CSSProperties => ({
     height: 1,
     background: `rgba(255,255,255,${alpha})`,
   }),
 
-  // header row layout 
+  // header row layout
   headerRow: (): React.CSSProperties => ({
     display: "flex",
     justifyContent: "space-between",
@@ -35,7 +35,7 @@ export const UI = {
     marginBottom: 12,
   }),
 
-  // section title style 
+  // section title style
   title: (): React.CSSProperties => ({
     fontWeight: 800,
     opacity: 0.92,

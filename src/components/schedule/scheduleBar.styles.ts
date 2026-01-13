@@ -1,3 +1,5 @@
+// Inline style definitions for the schedule bar
+
 import type React from "react";
 
 export const styles: Record<string, React.CSSProperties> = {
@@ -9,18 +11,18 @@ export const styles: Record<string, React.CSSProperties> = {
     alignItems: "center",
     gap: 10,
     padding: "8px 12px",
-    background: "var(--le-sched-wrap-bg)",
-    borderBottom: "1px solid var(--le-sched-wrap-border)",
-    boxShadow: "var(--le-sched-wrap-shadow)",
+    background: "var(--sched-wrap-bg)",
+    borderBottom: "1px solid var(--sched-wrap-border)",
+    boxShadow: "var(--sched-wrap-shadow)",
   },
 
   arrowBtn: {
     width: 35,
     height: 40,
     borderRadius: 10,
-    border: "1px solid var(--le-sched-arrow-border)",
-    background: "var(--le-sched-arrow-bg)",
-    color: "var(--le-sched-arrow-text)",
+    border: "1px solid var(--sched-arrow-border)",
+    background: "var(--sched-arrow-bg)",
+    color: "var(--sched-arrow-text)",
     cursor: "pointer",
     fontSize: 18,
     transition:
@@ -28,8 +30,8 @@ export const styles: Record<string, React.CSSProperties> = {
   },
 
   arrowBtnHover: {
-    background: "var(--le-sched-arrow-hover-bg)",
-    border: "1px solid var(--le-sched-arrow-hover-border)",
+    background: "var(--sched-arrow-hover-bg)",
+    border: "1px solid var(--sched-arrow-hover-border)",
   },
 
   scroller: {
@@ -47,9 +49,9 @@ export const styles: Record<string, React.CSSProperties> = {
     height: 64,
     padding: "9px 12px",
     borderRadius: 12,
-    border: "1px solid var(--le-sched-card-border)",
-    background: "var(--le-sched-card-bg)",
-    color: "var(--le-sched-card-text)",
+    border: "1px solid var(--sched-card-border)",
+    background: "var(--sched-card-bg)",
+    color: "var(--sched-card-text)",
     textAlign: "left",
     cursor: "pointer",
     scrollSnapAlign: "center",
@@ -58,13 +60,13 @@ export const styles: Record<string, React.CSSProperties> = {
   },
 
   cardHover: {
-    background: "var(--le-sched-card-hover-bg)",
-    border: "1px solid var(--le-sched-card-hover-border)",
+    background: "var(--sched-card-hover-bg)",
+    border: "1px solid var(--sched-card-hover-border)",
   },
 
   cardSelected: {
-    background: "var(--le-sched-card-selected-bg)",
-    border: "1px solid var(--le-sched-card-selected-border)",
+    background: "var(--sched-card-selected-bg)",
+    border: "1px solid var(--sched-card-selected-border)",
   },
 
   // Past games: locked/inactive look (NOT opacity-faded)
@@ -72,22 +74,22 @@ export const styles: Record<string, React.CSSProperties> = {
     opacity: 1,
     cursor: "not-allowed",
 
-    background: "var(--le-sched-card-disabled-bg)",
-    border: "1px solid var(--le-sched-card-disabled-border)",
+    background: "var(--sched-card-disabled-bg)",
+    border: "1px solid var(--sched-card-disabled-border)",
     boxShadow: "none",
 
-    color: "var(--le-sched-card-disabled-text)",
-    filter: "var(--le-sched-card-disabled-filter)",
+    color: "var(--sched-card-disabled-text)",
+    filter: "var(--sched-card-disabled-filter)",
 
     transform: "none",
   },
 
   cardTop: {
     fontSize: 11,
-    opacity: 0.70,
+    opacity: 0.7,
     letterSpacing: 1.2,
     textTransform: "uppercase",
-    color: "var(--le-sched-top-text)",
+    color: "var(--sched-top-text)",
   },
 
   cardMid: {
@@ -96,7 +98,7 @@ export const styles: Record<string, React.CSSProperties> = {
     fontWeight: 800,
     letterSpacing: 0.9,
     textTransform: "uppercase",
-    color: "var(--le-sched-mid-text)",
+    color: "var(--sched-mid-text)",
   },
 
   cardBotRow: {
@@ -107,14 +109,14 @@ export const styles: Record<string, React.CSSProperties> = {
     fontSize: 11,
     marginTop: 6,
     letterSpacing: 0.4,
-    color: "var(--le-sched-bot-text)",
+    color: "var(--sched-bot-text)",
   },
 
   resultBadge: {
     padding: "2px 8px",
     borderRadius: 999,
-    border: "1px solid var(--le-sched-badge-border)",
-    background: "var(--le-sched-badge-bg)",
+    border: "1px solid var(--sched-badge-border)",
+    background: "var(--sched-badge-bg)",
     fontSize: 10.5,
     fontWeight: 800,
     letterSpacing: 1.0,
@@ -122,14 +124,14 @@ export const styles: Record<string, React.CSSProperties> = {
   },
 
   resultWin: {
-    border: "1px solid var(--le-sched-win-border)",
-    background: "var(--le-sched-win-bg)",
-    color: "var(--le-sched-win-text)",
+    border: "1px solid var(--sched-win-border)",
+    background: "var(--sched-win-bg)",
+    color: "var(--sched-win-text)",
   },
 
   resultLoss: {
-    border: "1px solid var(--le-sched-loss-border)",
-    background: "var(--le-sched-loss-bg)",
-    color: "var(--le-sched-loss-text)",
+    border: "1px solid var(--sched-loss-border)",
+    background: "var(--sched-loss-bg)",
+    color: "var(--sched-loss-text)",
   },
 };

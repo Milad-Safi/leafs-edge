@@ -1,5 +1,7 @@
 "use client";
 
+// Injuries comparison UI section.
+
 import React, { useEffect, useMemo, useState } from "react";
 
 type ApiInjury = {
@@ -21,6 +23,7 @@ type ApiPayload = {
   injuries: ApiInjury[];
 };
 
+// Normalize raw status strings into short codes + readable labels.
 function normalizeStatus(s: string | null): { code: string; label: string } {
   if (!s) return { code: "UNK", label: "Unknown" };
   const t = s.trim().toUpperCase();
@@ -33,6 +36,7 @@ function normalizeStatus(s: string | null): { code: string; label: string } {
   return { code: t.slice(0, 4), label: t };
 }
 
+// Generate initials from a player name (used as a fallback avatar).
 function initials(name: string) {
   const parts = name.trim().split(/\s+/);
   const a = parts[0]?.[0] ?? "";
@@ -40,16 +44,18 @@ function initials(name: string) {
   return (a + b).toUpperCase();
 }
 
+// Small pill UI that displays a normalized injury status code.
 function StatusPill({ status }: { status: string | null }) {
   const st = normalizeStatus(status);
 
   return (
-    <span className="leInjPill" title={st.label}>
+    <span className="InjPill" title={st.label}>
       {st.code}
     </span>
   );
 }
 
+// Single injury row showing player info, description, and status.
 function InjuryRow({
   name,
   status,
@@ -62,8 +68,8 @@ function InjuryRow({
   headshotUrl?: string | null;
 }) {
   return (
-    <div className="leInjRow">
-      <div className="leInjHeadshot">
+    <div className="InjRow">
+      <div className="InjHeadshot">
         {headshotUrl ? (
           <img
             src={headshotUrl}
@@ -71,27 +77,27 @@ function InjuryRow({
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
             loading="lazy"
             onError={(e) => {
-              // if image fails, hide it (fallback to initials)
+              // If image fails, hide it so initials can be shown instead.
               (e.currentTarget as HTMLImageElement).src = "";
             }}
           />
         ) : (
-          <div className="leInjInitials">{initials(name)}</div>
+          <div className="InjInitials">{initials(name)}</div>
         )}
       </div>
 
-      <div className="leInjRowRight">
-        <div className="leInjText">
-          <div className="leInjName">{name}</div>
+      <div className="InjRowRight">
+        <div className="InjText">
+          <div className="InjName">{name}</div>
 
           {subtitle ? (
-            <div className="leInjSub" title={subtitle}>
+            <div className="InjSub" title={subtitle}>
               {subtitle}
             </div>
           ) : null}
         </div>
 
-        <div className="leInjPillWrap">
+        <div className="InjPillWrap">
           <StatusPill status={status} />
         </div>
       </div>
@@ -99,6 +105,7 @@ function InjuryRow({
   );
 }
 
+// Column wrapper for one team’s injury list.
 function Column({
   title,
   loading,
@@ -111,21 +118,21 @@ function Column({
   lastUpdated?: string | null;
 }) {
   return (
-    <div className="leInjCol">
-      <div className="leInjHeader">
-        <div className="leInjTitle">{title}</div>
+    <div className="InjCol">
+      <div className="InjHeader">
+        <div className="InjTitle">{title}</div>
         {lastUpdated ? (
-          <div className="leInjUpdated">
+          <div className="InjUpdated">
             Last updated: {new Date(lastUpdated).toLocaleString()}
           </div>
         ) : null}
       </div>
 
-      <div className="leInjList">
+      <div className="InjList">
         {loading ? (
-          <div className="leInjEmpty">Loading injuries…</div>
+          <div className="InjEmpty">Loading injuries…</div>
         ) : items.length === 0 ? (
-          <div className="leInjEmpty">No reported injuries.</div>
+          <div className="InjEmpty">No reported injuries.</div>
         ) : (
           items.slice(0, 6).map((x, idx) => (
             <InjuryRow
@@ -142,6 +149,7 @@ function Column({
   );
 }
 
+// Main injuries section that fetches and displays injuries for both teams.
 export default function InjuriesSection({
   leftTeam,
   rightTeam,
@@ -153,6 +161,7 @@ export default function InjuriesSection({
   const [right, setRight] = useState<ApiPayload | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Memoize injury arrays to avoid unnecessary re-renders.
   const leftItems = useMemo(() => left?.injuries ?? [], [left]);
   const rightItems = useMemo(() => right?.injuries ?? [], [right]);
 
@@ -165,11 +174,11 @@ export default function InjuriesSection({
 
       try {
         const [a, b] = await Promise.all([
-          fetch(`/api/team/injuries?team=${encodeURIComponent(leftTeam)}`).then((r) =>
-            r.json()
+          fetch(`/api/team/injuries?team=${encodeURIComponent(leftTeam)}`).then(
+            (r) => r.json()
           ),
-          fetch(`/api/team/injuries?team=${encodeURIComponent(rightTeam)}`).then((r) =>
-            r.json()
+          fetch(`/api/team/injuries?team=${encodeURIComponent(rightTeam)}`).then(
+            (r) => r.json()
           ),
         ]);
         if (cancelled) return;

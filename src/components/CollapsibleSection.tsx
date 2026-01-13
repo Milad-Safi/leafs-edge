@@ -1,5 +1,7 @@
 "use client";
 
+// Generic collapsible section wrapper
+
 import React, { useId, useMemo, useState } from "react";
 
 type Props = {
@@ -10,6 +12,7 @@ type Props = {
   className?: string;
 };
 
+// Reusable collapsible section with accessible toggle behavior
 export default function CollapsibleSection({
   title,
   defaultOpen = true,
@@ -24,28 +27,28 @@ export default function CollapsibleSection({
   return (
     <section
       className={[
-        "leSection",
-        open ? "leSectionOpen" : "leSectionClosed",
+        "Section",
+        open ? "SectionOpen" : "SectionClosed",
         className ?? "",
       ].join(" ")}
     >
       <button
         type="button"
-        className="leSectionHeader"
+        className="SectionHeader"
         aria-expanded={open}
         aria-controls={contentId}
         onClick={() => setOpen((v) => !v)}
       >
-        <div className="leSectionHeaderLeft">
-          <div className="leSectionTitle">{title}</div>
+        <div className="SectionHeaderLeft">
+          <div className="SectionTitle">{title}</div>
         </div>
 
-        <div className="leSectionHeaderRight">
+        <div className="SectionHeaderRight">
           {subtitleRight ? (
-            <div className="leSectionSubRight">{subtitleRight}</div>
+            <div className="SectionSubRight">{subtitleRight}</div>
           ) : null}
 
-          <span className={["leChevron", open ? "isOpen" : ""].join(" ")}>
+          <span className={["Chevron", open ? "isOpen" : ""].join(" ")}>
             ▼
           </span>
         </div>
@@ -54,8 +57,8 @@ export default function CollapsibleSection({
       <div
         id={contentId}
         className={[
-          "leSectionBody",
-          open ? "leSectionBodyShown" : "leSectionBodyHidden",
+          "SectionBody",
+          open ? "SectionBodyShown" : "SectionBodyHidden",
         ].join(" ")}
       >
         {children}

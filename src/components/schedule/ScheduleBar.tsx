@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * Horizontal schedule bar for a team
+ *
+ * Fetch and display the team schedule as scrollable game cards
+ * Let the user pick a future game and persist selection across navigation
+ * Keep opponent context in the URL query so the rest of the UI stays in sync
+ */
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { styles } from "@/components/schedule/scheduleBar.styles";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
@@ -63,6 +71,7 @@ function formatTimeLocalFromUTC(utcIso: string) {
   return dt.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 }
 
+// Schedule bar component that persists selection and scroll state in sessionStorage
 export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: Props) {
   const [games, setGames] = useState<Game[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -81,6 +90,7 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
   const pathname = usePathname();
   const search = useSearchParams();
 
+  // Update the opp query param without triggering a page scroll
   function setOppParam(opp: string | null) {
     const params = new URLSearchParams(search.toString());
 
@@ -91,6 +101,7 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
 
+  // Fetch schedule once on mount
   useEffect(() => {
     (async () => {
       const res = await fetch("/api/leafs/schedule");
@@ -99,7 +110,7 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
     })();
   }, []);
 
-  // Save scroll position while user scrolls the schedule bar
+  // Save scroll position while the user scrolls the schedule bar
   useEffect(() => {
     const el = scrollerRef.current;
     if (!el) return;
@@ -125,19 +136,21 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
     if (fut) return fut;
 
     return (
-      games.find((g) => new Date(g.startTimeUTC).getTime() > now && !isFinished(g.gameState)) ??
-      null
+      games.find(
+        (g) =>
+          new Date(g.startTimeUTC).getTime() > now && !isFinished(g.gameState)
+      ) ?? null
     );
   }, [games]);
 
-  // Restore selection + scroll on mount/navigation so the bar doesn't "reset"
+  // Restore selection + scroll on first load so the bar does not reset
   useEffect(() => {
     if (!games.length) return;
     if (restoredOnceRef.current) return;
 
     restoredOnceRef.current = true;
 
-    // Restore scroll position first (so we don't visibly jump)
+    // Restore scroll position first so we do not visibly jump
     try {
       const rawX = sessionStorage.getItem(LS_SCROLL_LEFT);
       const x = rawX != null ? Number(rawX) : null;
@@ -148,7 +161,7 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
       }
     } catch {}
 
-    // Restore selected game if possible (and if it still exists + isn't finished)
+    // Restore selected game if it still exists and is not finished
     let restoredId: number | null = null;
     try {
       const raw = sessionStorage.getItem(LS_SELECTED_ID);
@@ -172,10 +185,11 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
       return;
     }
 
-    // Fallback: normal behavior (select next game + center it)
+    // Fallback to next game behavior when nothing is restored
     if (!nextGame) return;
 
-    const leafsIsHome = nextGame.homeAbbrev?.toUpperCase() === teamAbbrev.toUpperCase();
+    const leafsIsHome =
+      nextGame.homeAbbrev?.toUpperCase() === teamAbbrev.toUpperCase();
     const opp = leafsIsHome ? nextGame.awayAbbrev : nextGame.homeAbbrev;
 
     setSelectedId(nextGame.id);
@@ -191,14 +205,17 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [games.length]);
 
+  // Scroll the scroller container by a fixed pixel amount
   function scrollByPx(px: number) {
     scrollerRef.current?.scrollBy({ left: px, behavior: "smooth" });
   }
 
+  // Select a game card and push opponent context into the URL
   function handleSelect(game: Game) {
     if (isFinished(game.gameState)) return;
 
-    const leafsIsHome = game.homeAbbrev?.toUpperCase() === teamAbbrev.toUpperCase();
+    const leafsIsHome =
+      game.homeAbbrev?.toUpperCase() === teamAbbrev.toUpperCase();
     const opp = leafsIsHome ? game.awayAbbrev : game.homeAbbrev;
 
     setSelectedId(game.id);
@@ -213,7 +230,10 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
   return (
     <div style={styles.wrap}>
       <button
-        style={{ ...styles.arrowBtn, ...(hoverPrev ? (styles as any).arrowBtnHover : null) }}
+        style={{
+          ...styles.arrowBtn,
+          ...(hoverPrev ? (styles as any).arrowBtnHover : null),
+        }}
         onMouseEnter={() => setHoverPrev(true)}
         onMouseLeave={() => setHoverPrev(false)}
         onClick={() => scrollByPx(-520)}
@@ -228,7 +248,8 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
           const selected = selectedId === g.id;
           const hovered = hoveredId === g.id;
 
-          const leafsIsHome = g.homeAbbrev?.toUpperCase() === teamAbbrev.toUpperCase();
+          const leafsIsHome =
+            g.homeAbbrev?.toUpperCase() === teamAbbrev.toUpperCase();
           const opp = leafsIsHome ? g.awayAbbrev : g.homeAbbrev;
 
           const topLine = formatDateShortFromUTC(g.startTimeUTC);
@@ -295,7 +316,10 @@ export default function ScheduleBar({ teamAbbrev = "TOR", onSelectFutureGame }: 
       </div>
 
       <button
-        style={{ ...styles.arrowBtn, ...(hoverNext ? (styles as any).arrowBtnHover : null) }}
+        style={{
+          ...styles.arrowBtn,
+          ...(hoverNext ? (styles as any).arrowBtnHover : null),
+        }}
         onMouseEnter={() => setHoverNext(true)}
         onMouseLeave={() => setHoverNext(false)}
         onClick={() => scrollByPx(520)}
