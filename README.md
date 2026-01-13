@@ -1,36 +1,111 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Focus Blocker
 
-## Getting Started
+A lightweight Chrome extension I createrd to help me eliminate distractions by blocking selected websites and hiding short form entertainment (Shorts, Reels)
 
-First, run the development server:
+Built using Chrome Manifest V3 and the declarativeNetRequest API for fast, native-level blocking without background scripts.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Overview
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Focus Blocker allows users to define a personalized blocklist of distracting websites (e.g. Reddit, TikTok, Instagram) and enforces those rules directly at the browser level.  
+The extension prioritizes simplicity, performance, and reliability, making it ideal for daily productivity use.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+All settings are persisted using Chrome Sync, allowing preferences to carry across devices.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Core Features
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Website Blocking**
+  - Block any domain using Chrome’s `declarativeNetRequest` API
+  - Blocks apply to main-frame navigation (prevents page loads entirely)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Quick Presets**
+  - One-click blocking for common distractions:
+    - Reddit
+    - TikTok
+    - Instagram
+    - Twitch
 
-## Deploy on Vercel
+- **YouTube Shorts Removal**
+  - Optional toggle to hide YouTube Shorts via a content script
+  - Reduces short-form distraction without blocking YouTube entirely
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Persistent Settings**
+  - Uses `chrome.storage.sync` to save preferences
+  - Settings sync automatically across Chrome profiles
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Minimal UI**
+  - Simple popup interface for adding/removing domains
+  - No unnecessary permissions or background workers
+
+---
+
+## How It Works
+
+1. User adds a domain to the blocklist in the popup UI
+2. Domain is normalized (protocol, paths, and `www` removed)
+3. A dynamic blocking rule is generated:
+   - `action: block`
+   - `resourceTypes: ["main_frame"]`
+   - `urlFilter: ||domain^`
+4. Rules are registered via `declarativeNetRequest`
+5. Navigation to blocked domains is immediately prevented
+
+YouTube Shorts hiding is handled separately using a content script that removes Shorts-related DOM elements.
+
+---
+
+## Tech Stack
+
+- **Chrome Extension**
+  - Manifest V3
+  - `declarativeNetRequest`
+  - `chrome.storage.sync`
+
+- **Frontend**
+  - Vanilla JavaScript
+  - HTML + CSS (popup UI)
+
+---
+
+## Project Structure
+
+focus-blocker/
+├── manifest.json # Extension configuration & permissions
+├── popup.html # Popup UI
+├── popup.css # Popup styling
+├── popup.js # UI logic + rule management
+├── content_youtube.js # Hides YouTube Shorts
+└── icons/ # Extension icons
+
+
+---
+
+## Installation (Developer Mode)
+
+1. Open Chrome and navigate to `chrome://extensions`
+2. Enable **Developer Mode**
+3. Click **Load unpacked**
+4. Select the `focus-blocker/` directory
+
+The extension will now be active in your browser.
+
+---
+
+## Permissions Explained
+
+- `declarativeNetRequest` — required to block websites at the network level
+- `storage` — save user preferences
+- `host_permissions: <all_urls>` — allows blocking across all domains
+
+No background scripts or external services are used.
+
+## Future Improvements
+
+- Scheduling focus sessions
+- Temporary unblock timers
+- Cross-browser support (Firefox)
+- Design Upgrades
+
