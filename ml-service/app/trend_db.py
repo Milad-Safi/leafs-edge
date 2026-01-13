@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+# DB access helpers for trend training + inference
+# Pulls team_games rows in the exact shapes the feature builder expects
+# Also computes rolling opponent baselines and league fallback baselines
+# Uses simple in-process caches to avoid re-querying the same baselines
+
 from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import text
@@ -8,12 +13,15 @@ from .db import engine
 
 
 def _regular_season_condition(alias: str = "tg") -> str:
-    # NHL game_id format: YYYYTTNNNN where TT == 02 for regular season
-    # Condition: (game_id // 10000) % 100 == 2
+    # NHL game_id format: YYYYTTNNNN where TT == 02 means regular season
+    # This condition extracts TT using integer math
+    # (game_id // 10000) removes the last 4 digits, then % 100 grabs TT
     return f"((CAST({alias}.game_id / 10000 AS INTEGER) % 100) = 2)"
 
 
 def list_teams() -> List[str]:
+    # Return all distinct team abbreviations present in the DB
+    # Only includes regular-season rows based on game_id TT == 02
     q = text(
         f"""
         SELECT DISTINCT team
@@ -33,12 +41,14 @@ def get_games(
     end_date: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
-    Chronological ASC rows for a team (regular season only).
-    NOTE: We include opponent + goalie_sv_pct (DB stays intact); trend features can ignore sv%.
+    Full game log for one team, chronological order (ASC)
+    Only pulls regular season games
+    Used mostly by training because training needs an ordered timeline
     """
     where = ["tg.team = :team", _regular_season_condition("tg")]
     params: Dict[str, Any] = {"team": team}
 
+    # Optional date range filters
     if start_date:
         where.append("tg.game_date >= :start_date")
         params["start_date"] = start_date
@@ -46,6 +56,8 @@ def get_games(
         where.append("tg.game_date <= :end_date")
         params["end_date"] = end_date
 
+    # Include opponent and goalie_sv_pct in case other feature sets want it later
+    # Trend features can ignore goalie_sv_pct without needing schema changes
     q = text(
         f"""
         SELECT
@@ -71,12 +83,16 @@ def get_games(
 
     with engine.connect() as conn:
         rows = conn.execute(q, params).mappings().all()
+
+    # Convert SQLAlchemy RowMapping to plain dict so downstream code stays simple
     return [dict(r) for r in rows]
 
 
 def get_last_n(team: str, as_of: str, n: int) -> List[Dict[str, Any]]:
     """
-    Last N games strictly BEFORE as_of, DESC order (newest first), regular season only.
+    Last N games strictly BEFORE as_of
+    Returned in DESC order (newest first) because that is convenient for UI/debugging
+    Regular season only
     """
     q = text(
         f"""
@@ -110,8 +126,10 @@ def get_last_n(team: str, as_of: str, n: int) -> List[Dict[str, Any]]:
 
 def get_next_k(team: str, as_of: str, k: int) -> List[Dict[str, Any]]:
     """
-    Next K games on/after as_of, ASC order, regular season only.
-    (Used for training labels; still pulled from team_games.)
+    Next K games on or after as_of
+    Returned in ASC order (oldest first) to preserve timeline direction
+    Regular season only
+    Used during training to build the "future window" for labeling
     """
     q = text(
         f"""
@@ -144,15 +162,22 @@ def get_next_k(team: str, as_of: str, k: int) -> List[Dict[str, Any]]:
 
 
 # -------------------------------------------------------------------
-# Option B helpers: opponent baselines (as-of) + league fallback + cache
-# Baselines intentionally DO NOT use goalie_sv_pct.
+# Baselines used by feature engineering
+# Baseline concept: what a team "normally" does per game around a date
+# Opponent baseline is used to build relative features like rel_gf_pg
+# League baseline is used when an opponent has too few games (early season)
+# In-process caching avoids repeating identical queries during training
 # -------------------------------------------------------------------
 
+# Cache key is (team, as_of, m)
 _BASELINE_CACHE: Dict[Tuple[str, str, int], Dict[str, Any]] = {}
+
+# League cache key is as_of string
 _LEAGUE_CACHE: Dict[str, Dict[str, Any]] = {}
 
 
 def _pct_or_none(numer: float, denom: float) -> Optional[float]:
+    # Return a safe ratio, avoiding divide-by-zero
     if denom <= 0:
         return None
     return float(numer) / float(denom)
@@ -160,8 +185,9 @@ def _pct_or_none(numer: float, denom: float) -> Optional[float]:
 
 def _aggregate_baseline(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
-    Aggregate expectations from a list of team_games-like rows.
-    Returns per-game averages + PP%/PK%. No save% included.
+    Turn a list of game rows into baseline expectations
+    Output is per-game averages and special teams rates
+    goalie_sv_pct is intentionally not part of baseline
     """
     n = len(rows)
     if n == 0:
@@ -175,6 +201,7 @@ def _aggregate_baseline(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
             "pk_pct": None,
         }
 
+    # Sum raw totals first
     gf = sum(int(r.get("goals_for") or 0) for r in rows)
     ga = sum(int(r.get("goals_against") or 0) for r in rows)
     sf = sum(int(r.get("shots_for") or 0) for r in rows)
@@ -185,12 +212,15 @@ def _aggregate_baseline(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     pk_ga = sum(int(r.get("pk_goals_against") or 0) for r in rows)
     pk_opps = sum(int(r.get("pk_opps") or 0) for r in rows)
 
+    # PP% is scored / opportunities
     pp_pct = _pct_or_none(pp_goals, pp_opps)
 
+    # PK% is 1 - (allowed / opportunities)
     pk_pct = None
     if pk_opps > 0:
         pk_pct = 1.0 - (float(pk_ga) / float(pk_opps))
 
+    # Convert totals to per-game averages
     return {
         "games_used": n,
         "gf_pg": gf / n,
@@ -204,13 +234,15 @@ def _aggregate_baseline(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
 
 def get_team_baseline_asof(team: str, as_of: str, m: int) -> Dict[str, Any]:
     """
-    Rolling baseline for `team` using their last `m` regular-season games
-    strictly BEFORE `as_of` (no leakage).
+    Rolling baseline for one team as-of a date
+    Pulls last m games strictly BEFORE as_of
+    Strictly-before prevents information leakage into features
     """
     key = (team, as_of, m)
     if key in _BASELINE_CACHE:
         return _BASELINE_CACHE[key]
 
+    # Pull only the columns needed for baseline aggregation
     q = text(
         f"""
         SELECT
@@ -241,12 +273,15 @@ def get_team_baseline_asof(team: str, as_of: str, m: int) -> Dict[str, Any]:
 
 def get_league_baseline_asof(as_of: str) -> Dict[str, Any]:
     """
-    League-average baseline over all regular-season team-game rows strictly BEFORE `as_of`.
-    Used as neutral fallback when an opponent doesn't have enough prior games.
+    League-wide baseline expectations as-of a date
+    Uses all regular-season rows strictly BEFORE as_of
+    Returned numbers represent league average performance in the DB
     """
     if as_of in _LEAGUE_CACHE:
         return _LEAGUE_CACHE[as_of]
 
+    # AVG for per-row averages like goals_for
+    # SUM for PP/PK components so the rate is computed over total opps, not avg of rates
     q = text(
         f"""
         SELECT
@@ -268,6 +303,7 @@ def get_league_baseline_asof(as_of: str) -> Dict[str, Any]:
     with engine.connect() as conn:
         r = conn.execute(q, {"as_of": as_of}).mappings().first()
 
+    # If the DB is empty or query returns nothing, return a safe empty baseline
     if not r:
         league = {
             "rows_used": 0,
@@ -279,8 +315,10 @@ def get_league_baseline_asof(as_of: str) -> Dict[str, Any]:
             "pk_pct": None,
         }
     else:
+        # Compute league PP% from summed totals
         pp_pct = _pct_or_none(float(r["pp_goals"] or 0), float(r["pp_opps"] or 0))
 
+        # Compute league PK% from summed totals
         pk_pct = None
         pk_opps = float(r["pk_opps"] or 0)
         if pk_opps > 0:
@@ -304,8 +342,9 @@ def get_team_baseline_asof_with_fallback(
     team: str, as_of: str, m: int, *, min_games: int = 5
 ) -> Dict[str, Any]:
     """
-    If team has < min_games prior games, return league baseline expectations.
-    Keep the real `games_used` so downstream can compute an opponent-context strength score.
+    Baseline with safety fallback
+    If the team has fewer than min_games prior games, return league averages instead
+    games_used still reflects the real team count so downstream can measure confidence
     """
     b = get_team_baseline_asof(team, as_of, m)
     if int(b.get("games_used") or 0) >= min_games:
@@ -325,5 +364,6 @@ def get_team_baseline_asof_with_fallback(
 
 
 def clear_baseline_caches() -> None:
+    # Manual cache reset for development or tests
     _BASELINE_CACHE.clear()
     _LEAGUE_CACHE.clear()

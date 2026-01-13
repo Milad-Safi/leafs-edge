@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+# Helper module for routing query params into nhlpy edge client methods
+# Keeps one consistent place for team id mapping, query coercion, and method invocation
+# Used by backend routes that expose nhlpy edge endpoints through FastAPI
+
 import inspect
 from typing import Any, Dict, Optional
 
@@ -7,6 +11,7 @@ from fastapi import HTTPException, Request
 
 from .nhlpy_proxy import nhl_client
 
+# Static NHL team id mapping used when an endpoint needs team_id instead of tri-code
 TEAM_ID_BY_ABBR: Dict[str, int] = {
     "NJD": 1, "NYI": 2, "NYR": 3, "PHI": 4, "PIT": 5, "BOS": 6, "BUF": 7, "MTL": 8,
     "OTT": 9, "TOR": 10, "CAR": 12, "FLA": 13, "TBL": 14, "WSH": 15, "CHI": 16,
@@ -16,10 +21,12 @@ TEAM_ID_BY_ABBR: Dict[str, int] = {
 }
 
 
+# Convert a team abbreviation into the numeric NHL team id when available
 def team_id_for_abbrev(team: str) -> Optional[int]:
     return TEAM_ID_BY_ABBR.get(team.strip().upper())
 
 
+# Convert query string values into bool, int, float when safe, else keep as string
 def coerce_q(v: str):
     s = v.strip()
     low = s.lower()
@@ -38,10 +45,12 @@ def coerce_q(v: str):
     return s
 
 
+# Build kwargs for a target nhlpy method by inspecting its signature and matching query params
 def invoke_with_query(fn, query: Dict[str, str]):
     sig = inspect.signature(fn)
     params = sig.parameters
 
+    # Known alias sets so routes can accept stable query params across slightly different method names
     aliases = {
         "team": ["team", "team_abbrev", "team_abbr", "team_abbreviation", "tri_code", "team_tri_code"],
         "teamId": ["teamId", "team_id", "teamID"],
@@ -50,12 +59,12 @@ def invoke_with_query(fn, query: Dict[str, str]):
 
     kwargs: Dict[str, Any] = {}
 
-    # direct matches
+    # Direct param matches based on the wrapped function signature
     for k, v in query.items():
         if k in params:
             kwargs[k] = coerce_q(v)
 
-    # alias matches
+    # Alias matches where the incoming query uses a different common name
     for given, targets in aliases.items():
         if given in query:
             for t in targets:
@@ -63,7 +72,7 @@ def invoke_with_query(fn, query: Dict[str, str]):
                     kwargs[t] = coerce_q(query[given])
                     break
 
-    # if wrapper expects team_id, allow ?team=TOR
+    # If the wrapped method expects team_id, allow passing ?team=TOR and map it here
     if "team_id" in params and "team_id" not in kwargs:
         if "team" in query:
             tid = team_id_for_abbrev(query["team"])
@@ -73,7 +82,7 @@ def invoke_with_query(fn, query: Dict[str, str]):
         elif "teamId" in query:
             kwargs["team_id"] = coerce_q(query["teamId"])
 
-    # required args check
+    # Enforce required args so missing inputs fail with a clear 400
     missing = []
     for name, p in params.items():
         if p.default is inspect._empty and p.kind in (
@@ -88,6 +97,7 @@ def invoke_with_query(fn, query: Dict[str, str]):
     return fn(**kwargs)
 
 
+# Entry point used by API routes to call nhlpy edge methods by name with request query params
 def edge_call(method_name: str, request: Request):
     c = nhl_client()
     fn = getattr(c.edge, method_name, None)

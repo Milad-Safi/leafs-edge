@@ -1,25 +1,25 @@
 from __future__ import annotations
-
 from typing import Any, Dict, List, Optional, Tuple
-
 from fastapi import APIRouter, Request
-
 from .cache import cached
 from .nhl_edge import edge_call
 
 router = APIRouter()
 
 
+# Small helper for grabbing the first present non-null key from a dict
 def _pick(d: Dict[str, Any], keys: List[str], default=None):
     for k in keys:
         if k in d and d[k] is not None:
             return d[k]
     return default
 
+
+# Extract speed values from an event using the PDF-backed nhl edge shape first
+# Falls back to older or alternate speed field shapes when needed
 def _extract_speed_mph_kph(item: Dict[str, Any]) -> Tuple[Optional[float], Optional[float]]:
     """
-    Matches the payload in team_shot_speed.pdf:
-      - item["shotSpeed"] = {"imperial": <mph>, "metric": <kph>}
+    Matches the payload in team_shot_speed.pdf
     """
     mph = None
     kph = None
@@ -33,25 +33,35 @@ def _extract_speed_mph_kph(item: Dict[str, Any]) -> Tuple[Optional[float], Optio
         if isinstance(met, (int, float)):
             kph = float(met)
 
-    # fallback support (keep your earlier generic behavior)
+    # Fallback support for alternate keys seen across versions and endpoints
     if mph is None or kph is None:
         speed_obj = _pick(item, ["speed", "skatingSpeed"], default=None)
         if isinstance(speed_obj, dict):
             if mph is None:
-                vv = _pick(speed_obj, ["mph", "MPH", "valueMph", "value_mph", "imperial"], default=None)
+                vv = _pick(
+                    speed_obj,
+                    ["mph", "MPH", "valueMph", "value_mph", "imperial"],
+                    default=None,
+                )
                 if isinstance(vv, (int, float)):
                     mph = float(vv)
             if kph is None:
-                vv = _pick(speed_obj, ["kph", "KPH", "valueKph", "value_kph", "metric"], default=None)
+                vv = _pick(
+                    speed_obj,
+                    ["kph", "KPH", "valueKph", "value_kph", "metric"],
+                    default=None,
+                )
                 if isinstance(vv, (int, float)):
                     kph = float(vv)
 
     return mph, kph
 
+
+# Extract player id and display name from an event using the PDF-backed nhl edge shape first
+# Falls back to flatter payloads when player is not nested
 def _extract_player(item: Dict[str, Any]) -> Tuple[Optional[int], Optional[str]]:
     """
-    Matches team_shot_speed.pdf:
-      - item["player"] = {"id": ..., "firstName": {"default": ...}, "lastName": {"default": ...}}
+    Matches team_shot_speed.pdf
     """
     p = item.get("player")
     if isinstance(p, dict):
@@ -76,7 +86,7 @@ def _extract_player(item: Dict[str, Any]) -> Tuple[Optional[int], Optional[str]]
 
         return pid_int, name
 
-    # fallback direct fields (just in case)
+    # Fallback direct fields when player block is missing
     pid = _pick(item, ["playerId", "player_id", "id"], default=None)
     try:
         pid_int = int(pid) if pid is not None else None
@@ -86,9 +96,10 @@ def _extract_player(item: Dict[str, Any]) -> Tuple[Optional[int], Optional[str]]
     return pid_int, str(name) if name is not None else None
 
 
+# Extract optional context fields for tooltips and debugging
 def _extract_context(item: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Pull minimal context for UI tooltips (optional fields if present).
+    Pull minimal context for UI tooltips and debugging
     """
     return {
         "gameId": _pick(item, ["gameId", "game_id"], None),
@@ -99,24 +110,26 @@ def _extract_context(item: Dict[str, Any]) -> Dict[str, Any]:
         "strength": _pick(item, ["strength", "situation"], None),
     }
 
+
 @router.get("/v1/nhl/edge/team_shot_location")
 def edge_team_shot_location(request: Request, team: str, season: Optional[str] = None):
     """
-    Clean response for area-based shot/goal heatmaps.
+    Clean response for area-based shot and goal heatmaps
 
-    Returns:
-      - areas[] with {area, sog, goals, shootingPctg}
-      - scale {maxSog, maxGoals} for frontend coloring
+    Returns
+    - areas[] with {area, sog, goals, shootingPctg}
+    - scale {maxSog, maxGoals} for frontend coloring
     """
+    # Build function is cached so the route stays responsive under repeated UI refresh
     def build():
         raw = edge_call("team_shot_location_detail", request)
 
+        # Normalize raw into the object that contains shotLocationDetails
         data = None
         if isinstance(raw, dict):
             if isinstance(raw.get("data"), dict):
                 data = raw["data"]
             else:
-                # some wrappers might already return the "data" shape
                 data = raw
 
         details = []
@@ -127,6 +140,7 @@ def edge_team_shot_location(request: Request, team: str, season: Optional[str] =
         max_sog = 0
         max_goals = 0
 
+        # Convert each area row into a stable numeric shape for the frontend
         for row in details:
             if not isinstance(row, dict):
                 continue
@@ -154,13 +168,12 @@ def edge_team_shot_location(request: Request, team: str, season: Optional[str] =
                 }
             )
 
-        # sort by shots desc (nice default for debugging)
+        # Sort by shots desc so logs and manual checks are easier
         areas.sort(key=lambda x: x.get("sog", 0), reverse=True)
 
-        # determine season for response
+        # Decide the season string to return when upstream includes it
         season_out = season
         if season_out is None and isinstance(raw, dict):
-            # raw sometimes has top-level season field
             s = raw.get("season")
             if isinstance(s, str) and s.strip():
                 season_out = s
@@ -171,6 +184,7 @@ def edge_team_shot_location(request: Request, team: str, season: Optional[str] =
 
         return season_out, areas, max_sog, max_goals
 
+    # Cache key includes query string so different seasons or params do not collide
     key = f"edge:team_shot_location:clean:{team.upper()}:{season or ''}:{request.url.query}"
     season_out, areas, max_sog, max_goals = cached(key, 300, build)
 
@@ -182,6 +196,7 @@ def edge_team_shot_location(request: Request, team: str, season: Optional[str] =
         "scale": {"maxSog": max_sog, "maxGoals": max_goals},
     }
 
+
 @router.get("/v1/nhl/edge/team_shot_speed")
 def edge_team_shot_speed(
     request: Request,
@@ -190,16 +205,13 @@ def edge_team_shot_speed(
     top: int = 3,
 ):
     """
-    Clean response: top N hardest shooters for the team.
-    We dedupe by player and keep each player's max shot speed event.
+    Clean response for hardest shooters
     """
+    # Build function is cached so repeated UI refresh does not spam upstream
     def build():
         raw = edge_call("team_shot_speed_detail", request)
 
-        # Locate the list of shot events robustly
-        # Common shapes:
-        #   raw["hardestShots"]
-        #   raw["data"]["hardestShots"]
+        # Find the hardest shots list across common wrapper shapes
         hardest = None
         if isinstance(raw, dict):
             if isinstance(raw.get("hardestShots"), list):
@@ -212,6 +224,7 @@ def edge_team_shot_speed(
 
         best_by_player: Dict[int, Dict[str, Any]] = {}
 
+        # Keep the single best event per player so cards show unique players
         for ev in hardest:
             if not isinstance(ev, dict):
                 continue
@@ -234,7 +247,7 @@ def edge_team_shot_speed(
                 **{k: v for k, v in ctx.items() if v is not None},
             }
 
-            # Compare by mph if present, else by kph
+            # Compare by mph when present, else by kph
             def score(x: Dict[str, Any]) -> float:
                 if x.get("mph") is not None:
                     return float(x["mph"])
@@ -244,7 +257,7 @@ def edge_team_shot_speed(
             if prev is None or score(candidate) > score(prev):
                 best_by_player[pid] = candidate
 
-        # Sort and take top N
+        # Sort and clamp top to a safe upper bound
         rows = list(best_by_player.values())
 
         def sort_key(x: Dict[str, Any]) -> float:
@@ -255,7 +268,7 @@ def edge_team_shot_speed(
         rows.sort(key=sort_key, reverse=True)
         return rows[: max(1, min(int(top), 25))]
 
-    key = f"edge:team_shot_speed:hardestShooters:{team.upper()}:{season or ''}:{top}:{request.url.query}"    
+    key = f"edge:team_shot_speed:hardestShooters:{team.upper()}:{season or ''}:{top}:{request.url.query}"
     hardest_shooters = cached(key, 300, build)
 
     return {
@@ -274,10 +287,10 @@ def edge_team_skating_speed(
     top: int = 3,
 ):
     """
-    Clean response: top N fastest skaters for the team.
-    Dedupe by player and keep each player's max skating speed event.
-    Payload source: data.topSkatingSpeeds[*].skatingSpeed.imperial/metric
+    Clean response for fastest skaters
+    Payload source is topSkatingSpeeds with skatingSpeed imperial metric fields
     """
+    # Build function is cached so repeated UI refresh does not spam upstream
     def build():
         raw = edge_call("team_skating_speed_detail", request)
 
@@ -293,6 +306,7 @@ def edge_team_skating_speed(
 
         best_by_player: Dict[int, Dict[str, Any]] = {}
 
+        # Keep the single best event per player so cards show unique players
         for ev in speeds:
             if not isinstance(ev, dict):
                 continue
@@ -301,7 +315,7 @@ def edge_team_skating_speed(
             if pid is None:
                 continue
 
-            # skatingSpeed has {imperial, metric} per PDF
+            # skatingSpeed contains {imperial, metric}
             sp = ev.get("skatingSpeed")
             mph = None
             kph = None
@@ -316,7 +330,7 @@ def edge_team_skating_speed(
             if mph is None and kph is None:
                 continue
 
-            # context from this payload
+            # Context fields are optional and only included when present
             period_num = None
             pd = ev.get("periodDescriptor")
             if isinstance(pd, dict):
@@ -335,6 +349,7 @@ def edge_team_skating_speed(
                 "time": ev.get("timeInPeriod"),
             }
 
+            # Compare by mph when present, else by kph
             def score(x: Dict[str, Any]) -> float:
                 if x.get("mph") is not None:
                     return float(x["mph"])
@@ -344,6 +359,7 @@ def edge_team_skating_speed(
             if prev is None or score(candidate) > score(prev):
                 best_by_player[pid] = candidate
 
+        # Sort and clamp top to a safe upper bound
         rows = list(best_by_player.values())
 
         def sort_key(x: Dict[str, Any]) -> float:

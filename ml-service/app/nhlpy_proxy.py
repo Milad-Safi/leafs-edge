@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+# Thin wrapper around nhl-api-py (nhlpy) that provides
+# One shared NHLClient instance for the whole backend process
+# A small capabilities helper to introspect which modules and methods are available
+
 from typing import Any, Dict, Optional
 
 try:
@@ -8,19 +12,17 @@ except Exception:
     NHLClient = None  # type: ignore
 
 
+# Cached singleton client so routes do not re-create a new client per request
 _client: Optional[Any] = None
 
-
+# Single shared client instance
 def nhl_client() -> Any:
-    """
-    Single shared client instance.
-    Keep args aligned with nhl-api-py supported configuration:
-    debug, timeout, ssl_verify, follow_redirects.
-    """
+
     global _client
     if NHLClient is None:
         raise RuntimeError("nhl-api-py is not installed (pip install nhl-api-py).")
 
+    # Lazy-init to avoid import-time failures and speed up cold start
     if _client is None:
         _client = NHLClient(
             debug=False,
@@ -30,11 +32,8 @@ def nhl_client() -> Any:
         )
     return _client
 
-
+# modules + methods exposed by nhl-api-py
 def capabilities() -> Dict[str, Any]:
-    """
-    Best-effort introspection of modules + methods exposed by nhl-api-py.
-    """
     if NHLClient is None:
         return {"installed": False, "modules": {}}
 
@@ -46,6 +45,7 @@ def capabilities() -> Dict[str, Any]:
         if mod is None or callable(mod):
             continue
 
+        # Collect public callables on each sub-module
         methods = []
         for fn in dir(mod):
             if fn.startswith("_"):
