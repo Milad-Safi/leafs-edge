@@ -2,9 +2,6 @@ from sqlalchemy import text
 from .db import engine
 
 # Database schema helpers for team-level game storage
-# Defines the core table used by last-5, trends, and aggregate stats
-# Intentionally minimal and idempotent so it can run on startup or deploy
-
 
 def create_tables():
     # Create the team_games table if it does not already exist

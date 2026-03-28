@@ -53,10 +53,10 @@ def _train_softmax_lr(
     Multiclass softmax logistic regression trained via scikit-learn
 
     Exported fields mirror the legacy model format
-      - standardize.mu and standardize.sigma
-      - weights shaped (F, 3)
-      - bias shaped (3,)
-      - training accuracy and negative log likelihood
+    - standardize.mu and standardize.sigma
+    - weights shaped (F, 3)
+    - bias shaped (3,)
+    - training accuracy and negative log likelihood
     """
     # Standardize features so coefficients remain comparable across metrics
     scaler = StandardScaler(with_mean=True, with_std=True)

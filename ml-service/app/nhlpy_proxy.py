@@ -1,9 +1,4 @@
 from __future__ import annotations
-
-# Thin wrapper around nhl-api-py (nhlpy) that provides
-# One shared NHLClient instance for the whole backend process
-# A small capabilities helper to introspect which modules and methods are available
-
 from typing import Any, Dict, Optional
 
 try:
