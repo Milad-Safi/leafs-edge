@@ -2,26 +2,29 @@ import type { Metadata } from "next";
 import "@/styles/global.css";
 import { Inter } from "next/font/google";
 import React from "react";
-import SiteFooter from "@/components/SiteFooter";
+import SiteChrome from "@/components/SiteChrome";
 
 const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
-  variable: "--font-inter",
+    subsets: ["latin"],
+    weight: ["400", "500", "600", "700", "800", "900"],
+    variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
-  title: "Leafs Edge",
-  description: "Toronto Maple Leafs Year in Stats",
+    title: "Leafs Edge",
+    description: "A data-driven NHL stats and analytics site, with visualizations and insights to help you understand the game better.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en" data-theme="dark" className={inter.className}>
-      <body className="Body">
-        {children}
-        <SiteFooter />
-      </body>
-    </html>
-  );
+export default function RootLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    return (
+        <html lang="en" data-theme="dark" className={inter.className}>
+            <body className="Body">
+                <SiteChrome>{children}</SiteChrome>
+            </body>
+        </html>
+    );
 }

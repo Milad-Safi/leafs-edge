@@ -1,6 +1,3 @@
-import SiteHeader from "@/components/SiteHeader";
-import { SITE_HEADER_LINKS } from "@/lib/siteNav";
-
 export default function InjuriesPage() {
     return (
         <main
@@ -10,8 +7,6 @@ export default function InjuriesPage() {
                 color: "#ffffff",
             }}
         >
-            <SiteHeader navLinks={SITE_HEADER_LINKS} />
-
             <section
                 style={{
                     width: "min(1100px, 92%)",

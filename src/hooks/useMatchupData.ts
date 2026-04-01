@@ -1,129 +1,137 @@
 "use client";
 
-// React hook for loading all matchup-related data between two teams
-
-import { useEffect, useRef, useState } from "react";
-import type {
-  HotL5Payload,
-  TeamLast5,
-  TeamRanks,
-  TeamSummary,
-} from "@/types/api";
+import { useLayoutEffect, useRef, useState } from "react";
+import type { TeamRanks, TeamSplit, TeamSummary } from "@/types/api";
 import { fetchJson } from "@/lib/fetchJson";
+import type { CompareFilter } from "@/lib/compare";
 
 type MatchupData = {
-  torSummary: TeamSummary | null;
-  oppSummary: TeamSummary | null;
+  leftSummary: TeamSummary | null;
+  rightSummary: TeamSummary | null;
   loadingSummary: boolean;
 
-  torLast5: TeamLast5 | null;
-  oppLast5: TeamLast5 | null;
-  loadingLast5: boolean;
+  leftSplit: TeamSplit | null;
+  rightSplit: TeamSplit | null;
+  loadingSplit: boolean;
 
   teamRanks: TeamRanks | null;
-
-  torHot: HotL5Payload | null;
-  oppHot: HotL5Payload | null;
-  loadingHot: boolean;
 };
 
-// Hook that aggregates all matchup data needed for the comparison page
+function getSplitQueryFromFilter(filterBy: CompareFilter): string | null {
+  if (filterBy === "last1") return "window=1";
+  if (filterBy === "last2") return "window=2";
+  if (filterBy === "last3") return "window=3";
+  if (filterBy === "last4") return "window=4";
+  if (filterBy === "last5") return "window=5";
+  if (filterBy === "last10") return "window=10";
+  return null;
+}
+
 export default function useMatchupData({
-  teamAbbrev,
-  oppAbbrev,
+  leftTeamAbbrev,
+  rightTeamAbbrev,
+  filterBy,
+  enabled,
 }: {
-  teamAbbrev: string;
-  oppAbbrev: string | null;
+  leftTeamAbbrev: string;
+  rightTeamAbbrev: string | null;
+  filterBy: CompareFilter;
+  enabled: boolean;
 }): MatchupData {
-  const [torSummary, setTorSummary] = useState<TeamSummary | null>(null);
-  const [oppSummary, setOppSummary] = useState<TeamSummary | null>(null);
+  const [leftSummary, setLeftSummary] = useState<TeamSummary | null>(null);
+  const [rightSummary, setRightSummary] = useState<TeamSummary | null>(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
 
-  const [torLast5, setTorLast5] = useState<TeamLast5 | null>(null);
-  const [oppLast5, setOppLast5] = useState<TeamLast5 | null>(null);
-  const [loadingLast5, setLoadingLast5] = useState(false);
+  const [leftSplit, setLeftSplit] = useState<TeamSplit | null>(null);
+  const [rightSplit, setRightSplit] = useState<TeamSplit | null>(null);
+  const [loadingSplit, setLoadingSplit] = useState(false);
 
   const [teamRanks, setTeamRanks] = useState<TeamRanks | null>(null);
 
-  const [torHot, setTorHot] = useState<HotL5Payload | null>(null);
-  const [oppHot, setOppHot] = useState<HotL5Payload | null>(null);
-  const [loadingHot, setLoadingHot] = useState(false);
-
-  // Sequence counter to ignore stale async responses
   const requestSeq = useRef(0);
 
-  useEffect(() => {
-    // Reset all matchup state if no opponent is selected
-    if (!oppAbbrev) {
-      setTorSummary(null);
-      setOppSummary(null);
-      setTorLast5(null);
-      setOppLast5(null);
+  useLayoutEffect(() => {
+    if (!enabled || !rightTeamAbbrev) {
+      setLeftSummary(null);
+      setRightSummary(null);
+      setLeftSplit(null);
+      setRightSplit(null);
       setTeamRanks(null);
-      setTorHot(null);
-      setOppHot(null);
       setLoadingSummary(false);
-      setLoadingLast5(false);
-      setLoadingHot(false);
+      setLoadingSplit(false);
       return;
     }
 
     const seq = ++requestSeq.current;
     const ctrl = new AbortController();
+    const splitQuery = getSplitQueryFromFilter(filterBy);
+    const needsSeasonSummary = filterBy === "season";
+    const needsSplit = splitQuery != null;
+
+    setLeftSummary(null);
+    setRightSummary(null);
+    setLeftSplit(null);
+    setRightSplit(null);
+    setTeamRanks(null);
+    setLoadingSummary(needsSeasonSummary);
+    setLoadingSplit(needsSplit);
 
     async function run() {
-      // Fetch season summary stats for both teams
-      try {
-        setLoadingSummary(true);
-        const [tor, opp] = await Promise.all([
-          fetchJson<TeamSummary>(`/api/team/summary?team=${teamAbbrev}`, {
-            signal: ctrl.signal,
-          }),
-          fetchJson<TeamSummary>(`/api/team/summary?team=${oppAbbrev}`, {
-            signal: ctrl.signal,
-          }),
-        ]);
+      if (needsSeasonSummary) {
+        try {
+          const [left, right] = await Promise.all([
+            fetchJson<TeamSummary>(`/api/team/summary?team=${leftTeamAbbrev}`, {
+              signal: ctrl.signal,
+            }),
+            fetchJson<TeamSummary>(`/api/team/summary?team=${rightTeamAbbrev}`, {
+              signal: ctrl.signal,
+            }),
+          ]);
 
-        if (requestSeq.current !== seq) return;
-        setTorSummary(tor?.teamAbbrev ? tor : null);
-        setOppSummary(opp?.teamAbbrev ? opp : null);
-      } catch {
-        if (requestSeq.current !== seq) return;
-        setTorSummary(null);
-        setOppSummary(null);
-      } finally {
-        if (requestSeq.current === seq) setLoadingSummary(false);
+          if (requestSeq.current !== seq) return;
+          setLeftSummary(left?.teamAbbrev ? left : null);
+          setRightSummary(right?.teamAbbrev ? right : null);
+        } catch {
+          if (requestSeq.current !== seq) return;
+          setLeftSummary(null);
+          setRightSummary(null);
+        } finally {
+          if (requestSeq.current === seq) {
+            setLoadingSummary(false);
+          }
+        }
       }
 
-      // Fetch last-5-games performance for both teams
-      try {
-        setLoadingLast5(true);
-        const [tor, opp] = await Promise.all([
-          fetchJson<TeamLast5>(
-            `/api/team/last5?team=${teamAbbrev}&opp=${oppAbbrev}`,
-            { signal: ctrl.signal }
-          ),
-          fetchJson<TeamLast5>(
-            `/api/team/last5?team=${oppAbbrev}&opp=${teamAbbrev}`,
-            { signal: ctrl.signal }
-          ),
-        ]);
+      if (needsSplit && splitQuery) {
+        try {
+          const [left, right] = await Promise.all([
+            fetchJson<TeamSplit>(
+              `/api/team/split?team=${leftTeamAbbrev}&${splitQuery}`,
+              { signal: ctrl.signal }
+            ),
+            fetchJson<TeamSplit>(
+              `/api/team/split?team=${rightTeamAbbrev}&${splitQuery}`,
+              { signal: ctrl.signal }
+            ),
+          ]);
 
-        if (requestSeq.current !== seq) return;
-        setTorLast5(tor?.team ? tor : null);
-        setOppLast5(opp?.team ? opp : null);
-      } catch {
-        if (requestSeq.current !== seq) return;
-        setTorLast5(null);
-        setOppLast5(null);
-      } finally {
-        if (requestSeq.current === seq) setLoadingLast5(false);
+          if (requestSeq.current !== seq) return;
+          setLeftSplit(left?.team ? left : null);
+          setRightSplit(right?.team ? right : null);
+        } catch {
+          if (requestSeq.current !== seq) return;
+          setLeftSplit(null);
+          setRightSplit(null);
+        } finally {
+          if (requestSeq.current === seq) {
+            setLoadingSplit(false);
+          }
+        }
       }
 
-      // Fetch comparative league rankings for the matchup
       try {
         const j = await fetchJson<TeamRanks>(
-          `/api/team/ranks?teamA=${teamAbbrev}&teamB=${oppAbbrev}`,
+          `/api/team/ranks?teamA=${leftTeamAbbrev}&teamB=${rightTeamAbbrev}`,
           { signal: ctrl.signal }
         );
 
@@ -133,31 +141,6 @@ export default function useMatchupData({
         if (requestSeq.current !== seq) return;
         setTeamRanks(null);
       }
-
-      // Fetch hot players over the last 5 games for both teams
-      try {
-        setLoadingHot(true);
-        const [tor, opp] = await Promise.all([
-          fetchJson<HotL5Payload>(
-            `/api/team/hotLast5?team=${teamAbbrev}`,
-            { signal: ctrl.signal }
-          ),
-          fetchJson<HotL5Payload>(
-            `/api/team/hotLast5?team=${oppAbbrev}`,
-            { signal: ctrl.signal }
-          ),
-        ]);
-
-        if (requestSeq.current !== seq) return;
-        setTorHot(tor?.leaders ? tor : null);
-        setOppHot(opp?.leaders ? opp : null);
-      } catch {
-        if (requestSeq.current !== seq) return;
-        setTorHot(null);
-        setOppHot(null);
-      } finally {
-        if (requestSeq.current === seq) setLoadingHot(false);
-      }
     }
 
     run();
@@ -165,18 +148,15 @@ export default function useMatchupData({
     return () => {
       ctrl.abort();
     };
-  }, [teamAbbrev, oppAbbrev]);
+  }, [leftTeamAbbrev, rightTeamAbbrev, filterBy, enabled]);
 
   return {
-    torSummary,
-    oppSummary,
+    leftSummary,
+    rightSummary,
     loadingSummary,
-    torLast5,
-    oppLast5,
-    loadingLast5,
+    leftSplit,
+    rightSplit,
+    loadingSplit,
     teamRanks,
-    torHot,
-    oppHot,
-    loadingHot,
   };
 }

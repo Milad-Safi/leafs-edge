@@ -1,49 +1,67 @@
 "use client";
 
-// React hook for fetching matchup data between two teams
-
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import { fetchJson } from "@/lib/fetchJson";
+import type { CompareFilter } from "@/lib/compare";
 import type { MatchupHistoryPayload } from "@/types/api";
 
-// Re-export types for backwards-compat with existing imports
 export type { MatchupHistoryPayload } from "@/types/api";
 
-// Hook that loads head-to-head matchup history for two teams
-export function useMatchupHistory(team: string | null, opp: string | null) {
+export function useMatchupHistory(
+  team: string | null,
+  opp: string | null,
+  filterBy: CompareFilter
+) {
   const [data, setData] = useState<MatchupHistoryPayload | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Skip fetching if either team is missing
-    if (!team || !opp) return;
+  const requestSeq = useRef(0);
+
+  useLayoutEffect(() => {
+    if (!team || !opp) {
+      setData(null);
+      setError(null);
+      setLoading(false);
+      return;
+    }
 
     const controller = new AbortController();
+    const seq = ++requestSeq.current;
+
+    setData(null);
+    setLoading(true);
+    setError(null);
 
     (async () => {
       try {
-        setLoading(true);
-        setError(null);
-
-        // Fetch matchup history from internal API
         const json = await fetchJson<MatchupHistoryPayload>(
-          `/api/matchups/history?team=${encodeURIComponent(team)}&opp=${encodeURIComponent(opp)}`,
+          `/api/matchups/history?team=${encodeURIComponent(team)}&opp=${encodeURIComponent(
+            opp
+          )}&filterBy=${encodeURIComponent(filterBy)}`,
           { signal: controller.signal }
         );
+
+        if (requestSeq.current !== seq) return;
         setData(json);
       } catch (e: any) {
-        // Ignore abort errors, surface real failures
-        if (e?.name !== "AbortError")
-          setError(e?.message ?? "Failed to load matchup history");
+        if (e?.name === "AbortError") return;
+        if (requestSeq.current !== seq) return;
+
+        setData(null);
+        setError(e?.message ?? "Failed to load matchup history");
       } finally {
-        setLoading(false);
+        if (requestSeq.current === seq) {
+          setLoading(false);
+        }
       }
     })();
 
-    return () => controller.abort();
-  }, [team, opp]);
+    return () => {
+      controller.abort();
+    };
+  }, [team, opp, filterBy]);
 
   return { data, loading, error };
 }

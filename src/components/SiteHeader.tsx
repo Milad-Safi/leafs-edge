@@ -11,7 +11,7 @@ type SiteHeaderProps = {
 };
 
 const navLabelMap: Record<string, string> = {
-    "/matchups": "Compare",
+    "/compare": "Compare",
     "/trends": "Momentum",
     "/visualizer": "Metrics",
     "/edge": "Edge",

@@ -1,12 +1,8 @@
 import Link from "next/link";
-import SiteHeader from "@/components/SiteHeader";
-import { SITE_HEADER_LINKS } from "@/lib/siteNav";
 
 export default function VisualizerPage() {
     return (
         <main className="homePage">
-            <SiteHeader navLinks={SITE_HEADER_LINKS} />
-
             <section className="contentSection sectionDark">
                 <div className="sectionGrid">
                     <div className="sectionCopy">

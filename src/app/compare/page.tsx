@@ -1,5 +1,9 @@
-<main className="comparePage">
-  <SiteHeader navLinks={SITE_HEADER_LINKS} />
+import TeamComparisonShell from "@/components/TeamComparisonShell";
 
-  <CompareShell />
-</main>
+export default function ComparePage() {
+    return (
+        <main className="comparePage">
+            <TeamComparisonShell />
+        </main>
+    );
+}

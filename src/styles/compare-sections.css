@@ -1,0 +1,186 @@
+.compareEmptyState {
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px;
+    border: 1px dashed rgba(145, 167, 208, 0.16);
+    border-radius: 24px;
+    background: rgba(10, 15, 27, 0.38);
+}
+
+.compareEmptyStateWarning {
+    border-color: rgba(255, 184, 95, 0.22);
+    background: rgba(52, 34, 10, 0.16);
+}
+
+.compareEmptyTitle {
+    margin: 0 0 10px;
+    font-size: 1.35rem;
+}
+
+.compareEmptyText {
+    margin: 0;
+    max-width: 560px;
+    color: rgba(215, 224, 239, 0.78);
+    line-height: 1.7;
+}
+
+.compareSectionBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.compareSectionHeader {
+    width: min(1080px, 100%);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.compareSectionHeaderSecondary {
+    margin-top: 8px;
+}
+
+.compareSectionHeaderSplit {
+    width: min(1080px, 100%);
+    margin: 0 auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.compareSectionTitle {
+    margin: 0;
+    font-size: 1.08rem;
+    line-height: 1.2;
+}
+
+.compareSectionText {
+    margin: 0;
+    color: rgba(208, 219, 237, 0.72);
+    font-size: 0.94rem;
+    line-height: 1.5;
+}
+
+.compareRows {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.compareMatchupMeta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.compareMetaPill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 14px;
+    border: 1px solid rgba(145, 167, 208, 0.16);
+    border-radius: 999px;
+    background: #0b1423;
+    color: rgba(240, 245, 255, 0.88);
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.compareMatchupMetaCompact {
+    justify-content: flex-end;
+    margin-left: auto;
+}
+
+.compareMatchupGroup {
+    width: min(1080px, 100%);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.StatRow {
+    position: relative;
+    width: min(1080px, 100%);
+    margin: 0 auto;
+    overflow: hidden;
+    border: 1px solid rgba(145, 167, 208, 0.12);
+    border-radius: 18px;
+    background: #0b1423;
+}
+
+.StatRowFill {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    opacity: 0.26;
+    pointer-events: none;
+}
+
+.StatRowContent {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(90px, 1fr) minmax(220px, 1.35fr) minmax(90px, 1fr);
+    gap: 16px;
+    align-items: center;
+    padding: 17px 20px;
+}
+
+.StatRowValue {
+    color: rgba(245, 248, 255, 0.94);
+    font-size: 1.04rem;
+    font-weight: 800;
+}
+
+.StatRowValue.left {
+    text-align: left;
+}
+
+.StatRowValue.right {
+    text-align: right;
+}
+
+.StatRowLabel {
+    color: rgba(218, 227, 241, 0.84);
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.compareLoadingPanel {
+    min-height: 320px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(145, 167, 208, 0.12);
+    border-radius: 24px;
+    background: rgba(10, 15, 27, 0.42);
+}
+
+.compareLoadingSpinner {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 3px solid rgba(170, 189, 226, 0.2);
+    border-top-color: rgba(236, 242, 255, 0.92);
+    animation: compareSpin 0.9s linear infinite;
+}
+
+@keyframes compareSpin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

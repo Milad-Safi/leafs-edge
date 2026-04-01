@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
-import SiteHeader from "@/components/SiteHeader";
-import { SITE_HEADER_LINKS } from "@/lib/siteNav";
 
 export default function HomePage() {
     useEffect(() => {
@@ -51,8 +49,6 @@ export default function HomePage() {
 
     return (
         <main className="homePage">
-            <SiteHeader isHome navLinks={SITE_HEADER_LINKS} />
-
             <section className="heroSection">
                 <div className="heroStack">
                     <div className="heroCopy" data-reveal>
@@ -98,7 +94,7 @@ export default function HomePage() {
                                     record, scoring, special teams, shooting,
                                     and recent form.
                                 </p>
-                                <Link href="/matchups" className="cardButton">
+                                <Link href="/compare" className="cardButton">
                                     Open Matchups
                                 </Link>
                             </div>
@@ -183,7 +179,6 @@ export default function HomePage() {
                             aria-label="Project visual placeholder"
                         />
                     </div>
-
                 </div>
             </section>
         </main>

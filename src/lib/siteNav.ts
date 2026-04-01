@@ -4,7 +4,7 @@ export type SiteHeaderLink = {
 };
 
 export const SITE_HEADER_LINKS: SiteHeaderLink[] = [
-    { label: "Matchups", href: "/matchups" },
+    { label: "Compare", href: "/compare" },
     { label: "Trends", href: "/trends" },
     { label: "Visualizer", href: "/visualizer" },
     { label: "Injuries", href: "/injuries" },

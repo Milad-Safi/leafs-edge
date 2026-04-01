@@ -1,6 +1,3 @@
-import SiteHeader from "@/components/SiteHeader";
-import { SITE_HEADER_LINKS } from "@/lib/siteNav";
-
 const glossaryItems = [
     {
         term: "Shot Share",
@@ -47,8 +44,6 @@ const glossaryItems = [
 export default function GlossaryPage() {
     return (
         <main className="homePage glossaryPage">
-            <SiteHeader navLinks={SITE_HEADER_LINKS} />
-
             <section className="contentSection">
                 <div className="glossaryShell">
                     <div className="sectionCopy">

@@ -1,0 +1,868 @@
+.comparePage {
+    min-height: 100vh;
+    background: #060b14;
+    color: #f5f7fb;
+}
+
+.compareWorkspace {
+    padding: 34px 24px 88px;
+}
+
+.compareWorkspaceInner {
+    width: min(1220px, 100%);
+    margin: 0 auto;
+}
+
+.compareShellCard {
+    border: 1px solid rgba(109, 138, 191, 0.14);
+    border-radius: 32px;
+    background: #07101d;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+    overflow: hidden;
+}
+
+.compareShellTop {
+    padding: 28px 28px 22px;
+}
+
+.compareShellHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.compareShellEyebrow {
+    margin: 0 0 8px;
+    color: rgba(184, 198, 223, 0.72);
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.compareShellTitle {
+    margin: 0;
+    font-size: 1.6rem;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+}
+
+.compareShellDivider {
+    height: 1px;
+    margin: 0 28px;
+    background: rgba(115, 144, 199, 0.16);
+}
+
+.compareShellBottom {
+    padding: 26px 28px 30px;
+}
+
+.compareControlsCard {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+}
+
+.compareControlsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.compareControl {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.compareControlLabel {
+    color: rgba(201, 213, 233, 0.84);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.compareSelect {
+    width: 100%;
+    min-height: 54px;
+    padding: 0 16px;
+    border: 1px solid rgba(133, 159, 207, 0.18);
+    border-radius: 18px;
+    background: #0b1423;
+    color: #f5f7fb;
+    font: inherit;
+    outline: none;
+    transition:
+        border-color 0.22s ease,
+        box-shadow 0.22s ease,
+        transform 0.22s ease;
+}
+
+.compareSelect:hover {
+    border-color: rgba(165, 188, 233, 0.3);
+}
+
+.compareSelect:focus {
+    border-color: rgba(104, 154, 255, 0.78);
+    box-shadow: 0 0 0 4px rgba(70, 123, 224, 0.14);
+    transform: translateY(-1px);
+}
+
+.compareResultsPanel {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    min-height: 540px;
+}
+
+.compareResultsPanelHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.compareResultsEyebrow {
+    margin: 0 0 8px;
+    color: rgba(185, 199, 224, 0.74);
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.compareResultsTitle {
+    margin: 0;
+    font-size: 2rem;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+}
+
+.compareResultsBadges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.compareResultsBadge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 16px;
+    border: 1px solid rgba(145, 167, 208, 0.14);
+    border-radius: 999px;
+    background: #0b1423;
+    color: rgba(240, 245, 255, 0.88);
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.compareEmptyState {
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px;
+    border: 1px dashed rgba(145, 167, 208, 0.16);
+    border-radius: 24px;
+    background: rgba(10, 15, 27, 0.38);
+}
+
+.compareEmptyStateWarning {
+    border-color: rgba(255, 184, 95, 0.22);
+    background: rgba(52, 34, 10, 0.16);
+}
+
+.compareEmptyTitle {
+    margin: 0 0 10px;
+    font-size: 1.35rem;
+}
+
+.compareEmptyText {
+    margin: 0;
+    max-width: 560px;
+    color: rgba(215, 224, 239, 0.78);
+    line-height: 1.7;
+}
+
+.compareBuiltView {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.compareHeroWrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 26px;
+    margin-top: 6px;
+    margin-bottom: 10px;
+}
+
+.compareHeroCard {
+    position: relative;
+    min-height: 172px;
+    border: 1px solid rgba(136, 160, 204, 0.14);
+    border-radius: 30px;
+    background: #081120;
+    overflow: hidden;
+}
+
+.compareHeroAccent {
+    position: absolute;
+    top: 20px;
+    bottom: 20px;
+    width: 8px;
+    border-radius: 999px;
+}
+
+.compareHeroAccentLeft {
+    left: 0;
+}
+
+.compareHeroAccentRight {
+    right: 0;
+}
+
+.compareHeroCardInner {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    padding: 26px 30px;
+}
+
+.compareHeroCardRight .compareHeroCardInner {
+    flex-direction: row-reverse;
+}
+
+.compareHeroLogoShell {
+    width: 108px;
+    height: 108px;
+    border-radius: 28px;
+    border: 1px solid rgba(145, 167, 208, 0.14);
+    background: #0d1728;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    flex: 0 0 108px;
+}
+
+.compareHeroLogo {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    display: block;
+}
+
+.compareHeroLogoFallback {
+    display: none;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    color: rgba(240, 245, 255, 0.9);
+    font-size: 1.12rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.compareHeroContent {
+    min-width: 0;
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.compareHeroCardRight .compareHeroContent {
+    text-align: center;
+}
+
+.compareHeroName {
+    margin: 0;
+    width: 100%;
+    font-size: clamp(1.8rem, 2.7vw, 2.35rem);
+    line-height: 1.02;
+    letter-spacing: -0.045em;
+    text-wrap: balance;
+}
+
+.compareHeroVsWrap {
+    display: grid;
+    place-items: center;
+}
+
+.compareHeroVs {
+    display: grid;
+    place-items: center;
+    width: 78px;
+    height: 78px;
+    border-radius: 50%;
+    border: 1px solid rgba(145, 167, 208, 0.16);
+    background: #0d1728;
+    color: rgba(245, 248, 255, 0.95);
+    font-size: 1rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+}
+
+@media (max-width: 980px) {
+    .compareHeroWrap {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .compareHeroVsWrap {
+        order: 2;
+    }
+
+    .compareHeroCardRight .compareHeroCardInner {
+        flex-direction: row;
+    }
+
+    .compareHeroCardRight .compareHeroContent {
+        text-align: center;
+    }
+}
+
+@media (max-width: 640px) {
+    .compareHeroCardInner {
+        padding: 20px;
+        gap: 16px;
+    }
+
+    .compareHeroLogoShell {
+        width: 84px;
+        height: 84px;
+        flex-basis: 84px;
+    }
+
+    .compareHeroLogo {
+        width: 62px;
+        height: 62px;
+    }
+
+    .compareHeroName {
+        font-size: 1.55rem;
+    }
+}
+
+.compareSectionBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.compareSectionHeader {
+    width: min(1080px, 100%);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.compareSectionHeaderSecondary {
+    margin-top: 8px;
+}
+
+.compareSectionTitle {
+    margin: 0;
+    font-size: 1.08rem;
+    line-height: 1.2;
+}
+
+.compareSectionText {
+    margin: 0;
+    color: rgba(208, 219, 237, 0.72);
+    font-size: 0.94rem;
+    line-height: 1.5;
+}
+
+.compareRows {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.compareGoalieHeadToHead {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.compareGoalieHead {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
+}
+
+.compareGoalieHeadSide {
+    padding: 18px 20px;
+    border: 1px solid rgba(145, 167, 208, 0.14);
+    border-radius: 20px;
+    background: #0b1423;
+}
+
+.compareGoalieSectionHeader {
+    width: min(1080px, 100%);
+    margin: 0 auto;
+}
+
+.compareGoalieHeadToHead {
+    width: min(1080px, 100%);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.compareGoalieHead {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
+}
+
+.compareGoalieProfileCard {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 14px 18px;
+    border: 1px solid rgba(145, 167, 208, 0.14);
+    border-radius: 22px;
+    background: #0b1423;
+}
+
+.compareGoalieProfileBadge {
+    display: none;
+}
+
+.compareGoalieProfileMain {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 96px;
+}
+
+.compareGoalieProfileCardRight {
+    text-align: right;
+}
+
+.compareGoalieProfileCardRight .compareGoalieProfileBadge {
+    margin-left: auto;
+}
+
+.compareGoalieProfileCardRight .compareGoalieProfileMain {
+    flex-direction: row-reverse;
+}
+
+.compareGoaliePortraitShell {
+    width: 82px;
+    height: 82px;
+    flex: 0 0 82px;
+    border-radius: 22px;
+    border: 1px solid rgba(145, 167, 208, 0.14);
+    background: #0d1728;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+}
+
+.compareGoaliePortrait {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.compareGoaliePortraitFallback {
+    color: rgba(240, 245, 255, 0.9);
+    font-size: 1rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.compareGoalieProfileText {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+}
+
+.compareGoalieProfileName {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+}
+
+.compareGoalieHeadVs {
+    display: grid;
+    place-items: center;
+    width: 54px;
+    height: 54px;
+    margin: auto 0;
+    border-radius: 50%;
+    border: 1px solid rgba(145, 167, 208, 0.16);
+    background: #0d1728;
+    color: rgba(245, 248, 255, 0.94);
+    font-size: 0.8rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+}
+
+.compareGoalieRows {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.goalieCompareRow {
+    position: relative;
+    width: 100%;
+    min-height: 58px;
+    overflow: hidden;
+    border: 1px solid rgba(145, 167, 208, 0.12);
+    border-radius: 18px;
+    background: #0b1423;
+}
+
+.goalieCompareRowFillWrap {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.goalieCompareRowFill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    opacity: 0.28;
+}
+
+.goalieCompareRowFillLeft {
+    left: 0;
+    border-radius: 0;
+    clip-path: none;
+}
+
+.goalieCompareRowFillRight {
+    right: 0;
+    border-radius: 0;
+    clip-path: none;
+}
+
+.goalieCompareRowContent {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(120px, 1fr) minmax(220px, 1.4fr) minmax(120px, 1fr);
+    gap: 16px;
+    align-items: center;
+    min-height: 58px;
+    padding: 0 20px;
+}
+
+.goalieCompareRowValue {
+    color: rgba(245, 248, 255, 0.94);
+    font-size: 1.04rem;
+    font-weight: 800;
+}
+
+.goalieCompareRowValueLeft {
+    text-align: left;
+}
+
+.goalieCompareRowValueRight {
+    text-align: right;
+}
+
+.goalieCompareRowLabel {
+    color: rgba(218, 227, 241, 0.84);
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.compareMatchupMeta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.compareMetaPill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 14px;
+    border: 1px solid rgba(145, 167, 208, 0.16);
+    border-radius: 999px;
+    background: #0b1423;
+    color: rgba(240, 245, 255, 0.88);
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.StatRow {
+    position: relative;
+    width: min(1080px, 100%);
+    margin: 0 auto;
+    overflow: hidden;
+    border: 1px solid rgba(145, 167, 208, 0.12);
+    border-radius: 18px;
+    background: #0b1423;
+}
+.StatRowFill {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    opacity: 0.26;
+    pointer-events: none;
+}
+
+.StatRowContent {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(90px, 1fr) minmax(220px, 1.35fr) minmax(90px, 1fr);
+    gap: 16px;
+    align-items: center;
+    padding: 17px 20px;
+}
+
+.StatRowValue {
+    color: rgba(245, 248, 255, 0.94);
+    font-size: 1.04rem;
+    font-weight: 800;
+}
+
+.StatRowValue.left {
+    text-align: left;
+}
+
+.StatRowValue.right {
+    text-align: right;
+}
+
+.StatRowLabel {
+    color: rgba(218, 227, 241, 0.84);
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.compareSectionHeaderSplit {
+    width: min(1080px, 100%);
+    margin: 0 auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+.compareMatchupMetaCompact {
+    justify-content: flex-end;
+    margin-left: auto;
+}
+
+.compareLoadingPanel {
+    min-height: 320px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(145, 167, 208, 0.12);
+    border-radius: 24px;
+    background: rgba(10, 15, 27, 0.42);
+}
+
+.compareLoadingSpinner {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 3px solid rgba(170, 189, 226, 0.2);
+    border-top-color: rgba(236, 242, 255, 0.92);
+    animation: compareSpin 0.9s linear infinite;
+}
+
+@keyframes compareSpin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 980px) {
+    .compareControlsGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .compareGoalieHead {
+        grid-template-columns: 1fr;
+    }
+
+    .compareGoalieHeadVs {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto;
+    }
+    
+    .compareHeroWrap {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .compareHeroVsWrap {
+        order: 2;
+    }
+
+    .compareHeroCardRight .compareHeroCardInner {
+        flex-direction: row;
+    }
+
+    .compareHeroCardRight .compareHeroContent {
+        text-align: center;
+    }
+
+
+    .compareGoalieHeadSideRight {
+        text-align: left;
+    }
+
+    .compareGoalieHeadSideRight .compareGoalieHeadBadge {
+        margin-left: 0;
+    }
+
+    .compareSectionHeaderSplit {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .compareMatchupMetaCompact {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 640px) {
+    .compareWorkspace {
+        padding: 22px 16px 64px;
+    }
+
+    .compareShellTop,
+    .compareShellBottom {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .compareShellTop {
+        padding-top: 20px;
+        padding-bottom: 18px;
+    }
+
+    .compareShellBottom {
+        padding-top: 20px;
+        padding-bottom: 24px;
+    }
+
+    .compareShellDivider {
+        margin: 0 18px;
+    }
+
+    .compareControlsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .compareResultsPanelHeader {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .compareHeroCardInner {
+        padding: 20px;
+        gap: 16px;
+    }
+
+    .compareHeroLogoShell {
+        width: 76px;
+        height: 76px;
+        flex-basis: 76px;
+    }
+
+    .compareHeroLogo {
+        width: 56px;
+        height: 56px;
+    }
+
+    .compareHeroName {
+        font-size: 1.55rem;
+    }
+
+    .StatRowContent {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .StatRowValue.left,
+    .StatRowValue.right {
+        text-align: center;
+    }
+
+    .compareGoalieProfileMain {
+    gap: 12px;
+    min-height: 78px;
+}
+
+.compareGoaliePortraitShell {
+    width: 68px;
+    height: 68px;
+    flex-basis: 68px;
+}
+
+.compareGoalieProfileName {
+    font-size: 1.05rem;
+}
+
+.goalieCompareRowContent {
+    grid-template-columns: minmax(72px, 1fr) minmax(130px, 1.1fr) minmax(72px, 1fr);
+    gap: 10px;
+    padding: 0 14px;
+}
+
+.goalieCompareRowValue {
+    font-size: 0.92rem;
+}
+
+.goalieCompareRowLabel {
+    font-size: 0.82rem;
+}
+
+}
+
+.compareMatchupGroup {
+    width: min(1080px, 100%);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}

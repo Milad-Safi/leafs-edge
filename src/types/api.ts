@@ -4,14 +4,12 @@
 // Used in components so they know what fields exist
 // Used in hooks when data is fetched
 
-
-// Home/Away record splits 
+// Home/Away record splits
 export type RecordSplit = { w: number; l: number };
-
 
 // Current season summary for a team
 export type TeamSummary = {
-  teamAbbrev: string; // TOR or OTT , etc
+  teamAbbrev: string;
   teamFullName: string | null;
   gamesPlayed: number | null;
 
@@ -29,11 +27,15 @@ export type TeamSummary = {
   otLosses: number | null;
   points: number | null;
 
+  leagueSequence: number | null;
+  streakCode: string | null;
+  streakCount: number | null;
+
   homeRecord: RecordSplit;
   awayRecord: RecordSplit;
 };
 
-// Helper type for ranks, stores ranks and team oppreviation
+// Helper type for ranks, stores ranks and team abbreviation
 type RanksForMetric = Record<string, number | null>;
 
 // Rank payload for the matchup comparison
@@ -52,10 +54,11 @@ export type TeamRanks = {
   };
 };
 
-// last 5 stats for a team
-export type TeamLast5 = {
+export type TeamSplit = {
   team: string;
   games: number;
+  window: number | null;
+  venue?: "home" | "away" | null;
   record: { w: number; l: number; otl: number };
 
   goalsFor: number;
@@ -71,27 +74,7 @@ export type TeamLast5 = {
   skippedPPGames?: number[];
 };
 
-// Single leader stats, used by hot players and history leaders
-export type HotLeader = {
-  playerId: number;
-  name: string;
-  goals: number;
-  assists: number;
-  points: number;
-  shots: number;
-};
-
-// Hot leader payload for one team, each leader grouped by stat
-export type HotL5Payload = {
-  team: string;
-  leaders: {
-    goals: HotLeader | null;
-    points: HotLeader | null;
-    shots: HotLeader | null;
-  };
-};
-
-// Machine learning trend endpoint response, next n games.
+// Machine learning trend endpoint response, next n games
 export type TeamTrendResponse = {
   team: string;
   as_of: string;
@@ -110,7 +93,6 @@ export type TeamTrendResponse = {
   };
 };
 
-// A single matchup history leader
 export type HistoryLeader = {
   playerId: number;
   name: string;
@@ -119,18 +101,50 @@ export type HistoryLeader = {
   sog: number;
 };
 
-// Matchup history payload, similar to last 5
+export type MatchupRecord = {
+  w: number;
+  l: number;
+  otl: number;
+};
+
+export type MatchupSeasonGames = {
+  season: number;
+  gameIds: number[];
+};
+
+export type MatchupValueLeader = {
+  playerId: number;
+  name: string;
+  value: number;
+};
+
 export type MatchupHistoryPayload = {
   team: string;
   opp: string;
+  filterBy: string;
   seasons: number[];
+  perSeason: MatchupSeasonGames[];
+  perSeasonPlayed: MatchupSeasonGames[];
   gamesFound: number;
+  lastPlayedDate: string | null;
+
+  records: Record<string, MatchupRecord>;
+  avgGoalsFor: Record<string, number | null>;
+  avgGoalsAgainst: Record<string, number | null>;
+  avgShotsOnGoal: Record<string, number | null>;
+
   leaders: Record<
     string,
     {
       topGoals: HistoryLeader | null;
       topPoints: HistoryLeader | null;
       topSog: HistoryLeader | null;
+      goalsLeaders: MatchupValueLeader[];
+      assistLeaders: MatchupValueLeader[];
+      sogLeaders: MatchupValueLeader[];
+      shotAttemptLeaders: MatchupValueLeader[];
+      blockLeaders: MatchupValueLeader[];
+      savePctLeaders: MatchupValueLeader[];
     }
   >;
 };
@@ -157,7 +171,6 @@ export type ProjectedStarter = {
   savePct: number | null;
   gaa: number | null;
 
-  // add this:
   last5Starts?: number;
 
   last5Splits: Last5GoalieSplits;
@@ -219,11 +232,4 @@ export type TeamShotLocationResponse = {
   team: string;
   season: string | null;
   areas: EdgeAreaRow[];
-};
-
-// Bundle so that a hook can fetch all three edge datasets at the same time
-export type TeamEdgeBundle = {
-  skating: TeamSkatingSpeedResponse;
-  shotSpeed: TeamShotSpeedResponse;
-  shotLocation: TeamShotLocationResponse;
 };

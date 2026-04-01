@@ -1,0 +1,117 @@
+.compareHeroWrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 26px;
+    margin-top: 6px;
+    margin-bottom: 10px;
+}
+
+.compareHeroCard {
+    position: relative;
+    min-height: 172px;
+    border: 1px solid rgba(136, 160, 204, 0.14);
+    border-radius: 30px;
+    background: #081120;
+    overflow: hidden;
+}
+
+.compareHeroAccent {
+    position: absolute;
+    top: 20px;
+    bottom: 20px;
+    width: 8px;
+    border-radius: 999px;
+}
+
+.compareHeroAccentLeft {
+    left: 0;
+}
+
+.compareHeroAccentRight {
+    right: 0;
+}
+
+.compareHeroCardInner {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    padding: 26px 30px;
+}
+
+.compareHeroCardRight .compareHeroCardInner {
+    flex-direction: row-reverse;
+}
+
+.compareHeroLogoShell {
+    width: 108px;
+    height: 108px;
+    border-radius: 28px;
+    border: 1px solid rgba(145, 167, 208, 0.14);
+    background: #0d1728;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    flex: 0 0 108px;
+}
+
+.compareHeroLogo {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    display: block;
+}
+
+.compareHeroLogoFallback {
+    display: none;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    color: rgba(240, 245, 255, 0.9);
+    font-size: 1.12rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.compareHeroContent {
+    min-width: 0;
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.compareHeroCardRight .compareHeroContent {
+    text-align: center;
+}
+
+.compareHeroName {
+    margin: 0;
+    width: 100%;
+    font-size: clamp(1.8rem, 2.7vw, 2.35rem);
+    line-height: 1.02;
+    letter-spacing: -0.045em;
+    text-wrap: balance;
+}
+
+.compareHeroVsWrap {
+    display: grid;
+    place-items: center;
+}
+
+.compareHeroVs {
+    display: grid;
+    place-items: center;
+    width: 78px;
+    height: 78px;
+    border-radius: 50%;
+    border: 1px solid rgba(145, 167, 208, 0.16);
+    background: #0d1728;
+    color: rgba(245, 248, 255, 0.95);
+    font-size: 1rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+}

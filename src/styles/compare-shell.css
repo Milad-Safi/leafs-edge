@@ -1,0 +1,176 @@
+.comparePage {
+    min-height: 100vh;
+    background: #060b14;
+    color: #f5f7fb;
+}
+
+.compareWorkspace {
+    padding: 34px 24px 88px;
+}
+
+.compareWorkspaceInner {
+    width: min(1220px, 100%);
+    margin: 0 auto;
+}
+
+.compareShellCard {
+    border: 1px solid rgba(109, 138, 191, 0.14);
+    border-radius: 32px;
+    background: #07101d;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+    overflow: hidden;
+}
+
+.compareShellTop {
+    padding: 28px 28px 22px;
+}
+
+.compareShellHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.compareShellEyebrow {
+    margin: 0 0 8px;
+    color: rgba(184, 198, 223, 0.72);
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.compareShellTitle {
+    margin: 0;
+    font-size: 1.6rem;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+}
+
+.compareShellDivider {
+    height: 1px;
+    margin: 0 28px;
+    background: rgba(115, 144, 199, 0.16);
+}
+
+.compareShellBottom {
+    padding: 26px 28px 30px;
+}
+
+.compareControlsCard {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+}
+
+.compareControlsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.compareControl {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.compareControlLabel {
+    color: rgba(201, 213, 233, 0.84);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.compareSelect {
+    width: 100%;
+    min-height: 54px;
+    padding: 0 16px;
+    border: 1px solid rgba(133, 159, 207, 0.18);
+    border-radius: 18px;
+    background: #0b1423;
+    color: #f5f7fb;
+    font: inherit;
+    outline: none;
+    transition:
+        border-color 0.22s ease,
+        box-shadow 0.22s ease,
+        transform 0.22s ease;
+}
+
+.compareSelect:hover {
+    border-color: rgba(165, 188, 233, 0.3);
+}
+
+.compareSelect:focus {
+    border-color: rgba(104, 154, 255, 0.78);
+    box-shadow: 0 0 0 4px rgba(70, 123, 224, 0.14);
+    transform: translateY(-1px);
+}
+
+.compareResultsPanel {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    min-height: 540px;
+}
+
+.compareResultsPanelHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.compareResultsEyebrow {
+    margin: 0 0 8px;
+    color: rgba(185, 199, 224, 0.74);
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.compareResultsTitle {
+    margin: 0;
+    font-size: 2rem;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+}
+
+.compareResultsBadges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.compareResultsBadge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 16px;
+    border: 1px solid rgba(145, 167, 208, 0.14);
+    border-radius: 999px;
+    background: #0b1423;
+    color: rgba(240, 245, 255, 0.88);
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.compareBuiltView {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}

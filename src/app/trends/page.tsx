@@ -1,12 +1,8 @@
 import Link from "next/link";
-import SiteHeader from "@/components/SiteHeader";
-import { SITE_HEADER_LINKS } from "@/lib/siteNav";
 
 export default function TrendsPage() {
     return (
         <main className="homePage">
-            <SiteHeader navLinks={SITE_HEADER_LINKS} />
-
             <section className="contentSection">
                 <div className="sectionGrid sectionGridReverse">
                     <div className="sectionVisual">

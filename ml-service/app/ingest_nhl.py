@@ -459,14 +459,14 @@ def upsert_rows(rows: list[dict]) -> int:
           goals_for = EXCLUDED.goals_for,
           goals_against = EXCLUDED.goals_against,
           win = EXCLUDED.win,
-
-          shots_for = COALESCE(team_games.shots_for, EXCLUDED.shots_for),
-          shots_against = COALESCE(team_games.shots_against, EXCLUDED.shots_against),
-          pp_goals = COALESCE(team_games.pp_goals, EXCLUDED.pp_goals),
-          pp_opps = COALESCE(team_games.pp_opps, EXCLUDED.pp_opps),
-          pk_goals_against = COALESCE(team_games.pk_goals_against, EXCLUDED.pk_goals_against),
-          pk_opps = COALESCE(team_games.pk_opps, EXCLUDED.pk_opps),
-          goalie_sv_pct = COALESCE(team_games.goalie_sv_pct, EXCLUDED.goalie_sv_pct);
+          
+          shots_for = EXCLUDED.shots_for,
+          shots_against = EXCLUDED.shots_against,
+          pp_goals = EXCLUDED.pp_goals,
+          pp_opps = EXCLUDED.pp_opps,
+          pk_goals_against = EXCLUDED.pk_goals_against,
+          pk_opps = EXCLUDED.pk_opps,
+          goalie_sv_pct = EXCLUDED.goalie_sv_pct;
     """)
 
     with engine.begin() as conn:
