@@ -233,3 +233,48 @@ export type TeamShotLocationResponse = {
   season: string | null;
   areas: EdgeAreaRow[];
 };
+
+export type TeamEdgeBundle = {
+    team: string;
+    season: string | null;
+    skating: TeamSkatingSpeedResponse;
+    shotSpeed: TeamShotSpeedResponse;
+    shotLocation: TeamShotLocationResponse;
+};
+
+
+export type VisualizerMetricId =
+    | "ppOpportunities"
+    | "overallPowerPlayPct"
+    | "opportunities5v4"
+    | "powerPlayPct5v4"
+    | "opportunities5v3"
+    | "powerPlayPct5v3"
+    | "timesShorthanded"
+    | "penaltyKillPct"
+    | "penaltyKillNetPct"
+    | "powerPlayGoalsFor"
+    | "ppGoalsAgainstPerGame"
+    | "shotsAgainstPerGame"
+    | "shotsForPerGame"
+    | "goalsAgainstPerGame"
+    | "goalsForPerGame"
+    | "points"
+    | "pointsPct";
+
+export type TeamScatterMetricMap = Record<VisualizerMetricId, number | null>;
+
+export type TeamScatterTeam = {
+    teamAbbrev: string;
+    teamFullName: string;
+    logoSrc: string;
+    gamesPlayed: number | null;
+    metrics: TeamScatterMetricMap;
+};
+
+export type TeamScatterApiResponse = {
+    seasonId: number;
+    gameTypeId: number;
+    generatedAt: string;
+    teams: TeamScatterTeam[];
+};

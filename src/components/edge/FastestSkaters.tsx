@@ -1,104 +1,130 @@
 "use client";
 
 import React from "react";
-import type { EdgeFastestSkater } from "@/hooks/useTeamEdge";
+import type { EdgeFastestSkater } from "@/types/api";
 import useRosterHeadshots from "@/hooks/useRosterHeadshots";
 
-// Renders the top skating-speed leaders as small cards with optional headshots
-// Uses roster headshots by playerId and falls back cleanly if images fail to load
-
-// Format a speed value with a stable placeholder for missing data
-function fmt(n: number) {
-  return Number.isFinite(n) ? n.toFixed(2) : "–";
+function formatMph(value: number) {
+    return Number.isFinite(value) ? value.toFixed(2) : "--";
 }
 
-// Coerce unknown playerId values into a usable numeric id
-function toNumId(v: unknown): number | null {
-  if (typeof v === "number" && Number.isFinite(v)) return v;
-  if (typeof v === "string") {
-    const n = Number(v);
-    return Number.isFinite(n) ? n : null;
-  }
-  return null;
+function formatDate(value: string) {
+    if (!value) {
+        return "";
+    }
+
+    const parsed = new Date(value);
+
+    if (Number.isNaN(parsed.getTime())) {
+        return value;
+    }
+
+    return parsed.toLocaleDateString("en-CA", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+    });
+}
+
+function toNumericId(value: unknown): number | null {
+    if (typeof value === "number" && Number.isFinite(value)) {
+        return value;
+    }
+
+    if (typeof value === "string") {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
+}
+
+function getInitials(name: string) {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    return parts.slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "").join("");
 }
 
 export default function FastestSkaters({
-  rows,
-  team,
-  season,
+    rows,
+    team,
+    season,
 }: {
-  rows: EdgeFastestSkater[];
-  team: string;
-  season: string;
+    rows: EdgeFastestSkater[];
+    team: string;
+    season: string;
 }) {
-  // Headshot lookup map keyed by numeric player id
-  const { headshotById } = useRosterHeadshots(team, season);
+    const { headshotById } = useRosterHeadshots(team, season);
+    const [failedImageIds, setFailedImageIds] = React.useState<Set<number>>(
+        () => new Set()
+    );
 
-  // Track image load failures per player id to avoid repeated broken fetches
-  const [imgFailed, setImgFailed] = React.useState<Set<number>>(() => new Set());
+    React.useEffect(() => {
+        setFailedImageIds(new Set());
+    }, [team, season]);
 
-  // Reset failure cache when the team or season context changes
-  React.useEffect(() => {
-    setImgFailed(new Set());
-  }, [team, season]);
+    if (!rows.length) {
+        return <p className="edgeListEmpty">No skating-speed data returned</p>;
+    }
 
-  // Empty state when we have no EDGE speed rows to show
-  if (!rows?.length) {
-    return <div style={{ opacity: 0.75 }}>No skating-speed data.</div>;
-  }
+    return (
+        <ol className="edgeRankList" aria-label="Fastest skaters ranked one to five">
+            {rows.slice(0, 5).map((row, index) => {
+                const playerId = toNumericId(row.playerId);
+                const headshot = playerId != null ? headshotById.get(playerId) : undefined;
+                const showHeadshot =
+                    !!headshot && playerId != null && !failedImageIds.has(playerId);
 
-  return (
-    // Card list container with list semantics for accessibility
-    <div className="EdgeCards" role="list" aria-label="Fastest skaters">
-      {/* Show only the top 3 entries for this section */}
-      {rows.slice(0, 3).map((r, idx) => {
-        // Resolve a stable numeric player id for headshot lookup
-        const pid = toNumId((r as any).playerId);
+                return (
+                    <li
+                        key={`${row.playerId}-${row.name}-${index}`}
+                        className="edgeRankRow"
+                    >
+                        <div className="edgeRankLeft">
+                            {showHeadshot ? (
+                                <img
+                                    src={headshot}
+                                    alt={row.name}
+                                    className="edgeRankAvatar"
+                                    loading="lazy"
+                                    onError={() => {
+                                        if (playerId == null) {
+                                            return;
+                                        }
 
-        // Pull headshot url if available in the roster map
-        const headshot = pid != null ? headshotById.get(pid) : undefined;
+                                        setFailedImageIds((current) => {
+                                            const next = new Set(current);
+                                            next.add(playerId);
+                                            return next;
+                                        });
+                                    }}
+                                />
+                            ) : (
+                                <div
+                                    className="edgeRankAvatarFallback"
+                                    aria-hidden="true"
+                                >
+                                    {getInitials(row.name)}
+                                </div>
+                            )}
 
-        // Only show the image if we have a url and it has not failed before
-        const showImg = !!headshot && pid != null && !imgFailed.has(pid);
+                            <div className="edgeRankPlayerBlock">
+                                <span className="edgeRankPlayerName">{row.name}</span>
 
-        return (
-          <div
-            key={`${(r as any).playerId ?? r.name}-${idx}`}
-            className="EdgeCard"
-            role="listitem"
-          >
-            {/* Headshot when available, otherwise a consistent placeholder block */}
-            {showImg ? (
-              <img
-                className="EdgeCardImg"
-                src={headshot}
-                alt={r.name}
-                loading="lazy"
-                onError={() => {
-                  // Cache failures to prevent rerender loops of broken images
-                  if (pid == null) return;
-                  setImgFailed((prev) => {
-                    const next = new Set(prev);
-                    next.add(pid);
-                    return next;
-                  });
-                }}
-              />
-            ) : (
-              <div className="EdgeCardImgFallback" aria-hidden="true" />
-            )}
+                                {row.gameDate ? (
+                                    <span className="edgeRankMeta">
+                                        {formatDate(row.gameDate)}
+                                    </span>
+                                ) : null}
+                            </div>
+                        </div>
 
-            {/* Player name */}
-            <div className="EdgeCardName">{r.name}</div>
-
-            {/* Numeric speed value formatted to 2 decimals */}
-            <div className="EdgeCardValue">{fmt(r.mph)}</div>
-
-            {/* Static label describing the metric */}
-            <div className="EdgeCardLabel">Fastest Skating Speed · MPH</div>
-          </div>
-        );
-      })}
-    </div>
-  );
+                        <div className="edgeRankValueBlock">
+                            <span className="edgeRankValue">{formatMph(row.mph)}</span>
+                            <span className="edgeRankUnit">mph</span>
+                        </div>
+                    </li>
+                );
+            })}
+        </ol>
+    );
 }
