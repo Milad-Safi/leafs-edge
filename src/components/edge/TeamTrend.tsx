@@ -1,217 +1,233 @@
 "use client";
 
-/**
- * Team trend prediction card
- *
- * Purpose:
- * - Render the ML trend output as a single card with a confidence bar
- * - Map raw model fields into human text like "improve" and a color-coded bar
- * - Handle loading, error, and empty states without breaking layout
- */
+import type { TeamTrendResponse } from "@/types/api";
 
-import React, { useMemo } from "react";
-
-export type TeamTrendPayload = {
-  team: string;
-  as_of: string;
-  n_requested: number;
-  n_used: number;
-  range?: { newest?: string; oldest?: string };
-  trend: "UP" | "FLAT" | "DOWN" | string;
-  confidence: number; // 0..1
+type TeamTrendProps = {
+    data: TeamTrendResponse;
+    teamLabel: string;
+    teamLogoSrc: string;
 };
 
-// Clamp any number into [0, 1] for safe percent math
-function clamp01(x: number) {
-  if (!Number.isFinite(x)) return 0;
-  return Math.max(0, Math.min(1, x));
+type TrendDisplay = {
+    label: string;
+    verb: string;
+    pillClass: string;
+    wordClass: string;
+};
+
+function clamp01(value: number) {
+    if (!Number.isFinite(value)) {
+        return 0;
+    }
+
+    return Math.max(0, Math.min(1, value));
 }
 
-// Convert 0..1 confidence into a 0..100 percent integer
-function pct(conf: number) {
-  return Math.round(clamp01(conf) * 100);
+function toPercent(value: number) {
+    return Math.round(clamp01(value) * 100);
 }
 
-// Convert model trend class into readable verb for the sentence
-function trendText(t: string) {
-  const key = String(t || "").toUpperCase();
-  if (key === "UP") return "improve";
-  if (key === "DOWN") return "regress";
-  if (key === "FLAT") return "hold steady";
-  return "perform unpredictably";
+function getTrendDisplay(trend: string): TrendDisplay {
+    const key = String(trend || "").toUpperCase();
+
+    if (key === "UP") {
+        return {
+            label: "Improvement",
+            verb: "improve",
+            pillClass: "trendOutcomePillUp",
+            wordClass: "trendHeadlineWordUp",
+        };
+    }
+
+    if (key === "DOWN") {
+        return {
+            label: "Regression",
+            verb: "regress",
+            pillClass: "trendOutcomePillDown",
+            wordClass: "trendHeadlineWordDown",
+        };
+    }
+
+    return {
+        label: "Stagnation",
+        verb: "hold steady",
+        pillClass: "trendOutcomePillFlat",
+        wordClass: "trendHeadlineWordFlat",
+    };
 }
 
-// Normalize trend string into a stable uppercase key for styling logic
-function trendKey(t: string) {
-  return String(t || "").toUpperCase();
+function formatDateLabel(value: string | null | undefined) {
+    if (!value) {
+        return "—";
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return date.toLocaleDateString("en-CA", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+    });
+}
+
+function formatDateTimeLabel(value: string | null | undefined) {
+    if (!value) {
+        return "—";
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return date.toLocaleString("en-CA", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+    });
 }
 
 export default function TeamTrend({
-  data,
-  loading,
-  error,
-  title,
-}: {
-  data: TeamTrendPayload | null;
-  loading?: boolean;
-  error?: string | null;
-  title?: string;
-}) {
-  // Derived values for display text and styling
-  const c = useMemo(() => (data ? pct(data.confidence) : 0), [data]);
-  const t = useMemo(() => (data ? trendText(data.trend) : "Unknown"), [data]);
-  const team = useMemo(() => (data?.team || "TEAM").toUpperCase(), [data]);
-  const k = useMemo(() => trendKey(data?.trend ?? ""), [data?.trend]);
+    data,
+    teamLabel,
+    teamLogoSrc,
+}: TeamTrendProps) {
+    const trendDisplay = getTrendDisplay(data.trend);
+    const confidence = toPercent(data.confidence);
 
-  // Optional date range text for the last-N window
-  const rangeText = useMemo(() => {
-    const oldest = data?.range?.oldest;
-    const newest = data?.range?.newest;
-    if (!oldest || !newest) return null;
-    return `${oldest} → ${newest}`;
-  }, [data]);
+    const probabilityRows = [
+        {
+            key: "UP",
+            label: "Improvement",
+            percent: toPercent(data.probs.UP),
+            fillClass: "trendProbabilityFillUp",
+        },
+        {
+            key: "FLAT",
+            label: "Stagnation",
+            percent: toPercent(data.probs.FLAT),
+            fillClass: "trendProbabilityFillFlat",
+        },
+        {
+            key: "DOWN",
+            label: "Regression",
+            percent: toPercent(data.probs.DOWN),
+            fillClass: "trendProbabilityFillDown",
+        },
+    ];
 
-  // Pick bar fill color based on predicted direction
-  const barFillColor = useMemo(() => {
-    if (k === "UP") return "rgba(34, 197, 94, 0.9)";
-    if (k === "DOWN") return "rgba(239, 68, 68, 0.9)";
-    return "rgba(255,255,255,0.75)";
-  }, [k]);
+    return (
+        <section className="trendCard">
+            <div className="trendCardHeader">
+                <div className="trendCardTeam">
+                    {teamLogoSrc ? (
+                        <img
+                            src={teamLogoSrc}
+                            alt={`${teamLabel} logo`}
+                            className="trendCardLogo"
+                        />
+                    ) : null}
 
-  // Pick the verb color in the sentence so the direction pops
-  const trendWordColor = useMemo(() => {
-    if (k === "UP") return "rgba(134, 239, 172, 1)";
-    if (k === "DOWN") return "rgba(253, 164, 175, 1)";
-    return "rgba(255,255,255,0.9)";
-  }, [k]);
+                    <div className="trendCardInfo">
+                        <p className="trendCardEyebrow">Current model call</p>
+                        <h2 className="trendCardTitle">{teamLabel}</h2>
+                    </div>
+                </div>
 
-  // Card container styles
-  const card: React.CSSProperties = {
-    position: "relative",
-    overflow: "hidden",
-    borderRadius: 18,
-    border: "1px solid rgba(255,255,255,0.10)",
-    background:
-      "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)",
-    boxShadow: "0 12px 40px rgba(0,0,0,0.35)",
-    padding: 18,
-  };
+                <div className="trendCardHeaderRight">
+                    <span className={`trendOutcomePill ${trendDisplay.pillClass}`}>
+                        {trendDisplay.label}
+                    </span>
 
-  // Small uppercase label at the top
-  const label: React.CSSProperties = {
-    fontSize: 11,
-    fontWeight: 700,
-    letterSpacing: 0.6,
-    color: "rgba(255,255,255,0.6)",
-    textTransform: "uppercase",
-  };
-
-  // Main sentence that explains the prediction
-  const headline: React.CSSProperties = {
-    marginTop: 12,
-    fontSize: 18,
-    fontWeight: 700,
-    color: "rgba(255,255,255,0.92)",
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "6px",
-    lineHeight: 1.2,
-  };
-
-  // Confidence bar wrapper
-  const barWrap: React.CSSProperties = {
-    marginTop: 10,
-    height: 10,
-    width: "100%",
-    borderRadius: 9999,
-    background: "rgba(255,255,255,0.1)",
-    overflow: "hidden",
-  };
-
-  // Confidence bar fill sized by c percent
-  const barFill: React.CSSProperties = {
-    height: "100%",
-    width: `${c}%`,
-    borderRadius: 9999,
-    background: barFillColor,
-  };
-
-  // Row that labels the confidence number
-  const metaRow: React.CSSProperties = {
-    marginTop: 6,
-    display: "flex",
-    justifyContent: "space-between",
-    fontSize: 12,
-    color: "rgba(255,255,255,0.55)",
-  };
-
-  // Footnote block explaining the window and model reasoning
-  const foot: React.CSSProperties = {
-    marginTop: 10,
-    fontSize: 12,
-    color: "rgba(255,255,255,0.45)",
-    lineHeight: 1.35,
-  };
-
-  return (
-    <div style={{ width: "100%" }}>
-      <div style={card}>
-        <div style={label}>{title ?? `${team} Performance Trend`}</div>
-
-        {/* Loading state */}
-        {loading ? (
-          <div style={{ marginTop: 10, fontSize: 13, color: "rgba(255,255,255,0.7)" }}>
-            Loading…
-          </div>
-        ) : error ? (
-          /* Error state */
-          <div style={{ marginTop: 10, fontSize: 13, color: "rgba(255,255,255,0.7)" }}>
-            Error: {error}
-          </div>
-        ) : !data ? (
-          /* Empty state */
-          <div style={{ marginTop: 10, fontSize: 13, color: "rgba(255,255,255,0.7)" }}>
-            No data.
-          </div>
-        ) : (
-          <>
-            {/* Main prediction sentence */}
-            <div style={headline}>
-              <span>We are</span>
-              <span>{c}%</span>
-              <span>confident that</span>
-              <span style={{ fontWeight: 800, color: "white" }}>{team}</span>
-              <span>will</span>
-              <span style={{ fontWeight: 800, color: trendWordColor }}>{t}</span>
-              <span>over their next 5 games</span>
+                    <span className="trendConfidencePill">
+                        {confidence}% confidence
+                    </span>
+                </div>
             </div>
 
-            {/* Confidence label row */}
-            <div style={metaRow}>
-              <span>Confidence</span>
-              <span style={{ fontWeight: 700 }}>{c}%</span>
+            <div className="trendHeadline">
+                <span>We are</span>
+                <span className="trendHeadlineStrong">{confidence}%</span>
+                <span>confident that</span>
+                <span className="trendHeadlineStrong">{teamLabel}</span>
+                <span>will</span>
+                <span className={`trendHeadlineWord ${trendDisplay.wordClass}`}>
+                    {trendDisplay.verb}
+                </span>
+                <span>over their next {data.n_requested} games</span>
             </div>
 
-            {/* Confidence bar */}
-            <div style={barWrap}>
-              <div style={barFill} />
+            <div className="trendProbabilitySection">
+                <div className="trendProbabilityHeader">
+                    <h3 className="trendProbabilityTitle">Model belief split</h3>
+                    <p className="trendProbabilityCopy">
+                        This is the current probability distribution across all three
+                        trend outcomes
+                    </p>
+                </div>
+
+                <div className="trendProbabilityGrid">
+                    {probabilityRows.map((row) => {
+                        const isActive = row.key === data.trend;
+
+                        return (
+                            <div
+                                key={row.key}
+                                className={`trendProbabilityRow${
+                                    isActive ? " trendProbabilityRowActive" : ""
+                                }`}
+                            >
+                                <div className="trendProbabilityLabelRow">
+                                    <span className="trendProbabilityLabel">
+                                        {row.label}
+                                    </span>
+                                    <span className="trendProbabilityPercent">
+                                        {row.percent}%
+                                    </span>
+                                </div>
+
+                                <div className="trendProbabilityTrack">
+                                    <div
+                                        className={`trendProbabilityFill ${row.fillClass}`}
+                                        style={{ width: `${row.percent}%` }}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
 
-            {/* Model context and data window explanation */}
-            <div style={foot}>
-              <div>
-                Based on the last <strong>{data.n_used}</strong> games
-                {rangeText ? ` (${rangeText})` : ""}
-              </div>
-              <div>
-                Machine-learning model trained on historical NHL games. It compares recent performance
-                patterns (goals, shots, special teams, venue effects, opponent strength) against
-                similar past situations to estimate short-term performance direction (Improve/Regress)
-              </div>
+            <div className="trendMetaGrid">
+                <div className="trendMetaCard">
+                    <span className="trendMetaLabel">Window used</span>
+                    <strong className="trendMetaValue">
+                        Last {data.n_used} games
+                    </strong>
+                </div>
+
+                <div className="trendMetaCard">
+                    <span className="trendMetaLabel">Game range</span>
+                    <strong className="trendMetaValue">
+                        {formatDateLabel(data.range?.oldest)} to{" "}
+                        {formatDateLabel(data.range?.newest)}
+                    </strong>
+                </div>
+
+                <div className="trendMetaCard">
+                    <span className="trendMetaLabel">Model updated</span>
+                    <strong className="trendMetaValue">
+                        {formatDateTimeLabel(data.as_of)}
+                    </strong>
+                </div>
             </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
+        </section>
+    );
 }

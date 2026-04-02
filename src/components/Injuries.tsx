@@ -1,222 +1,358 @@
 "use client";
 
-// Injuries comparison UI section.
-
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { fetchJson } from "@/lib/fetchJson";
+import { NHL_TEAM_OPTIONS } from "@/lib/compare";
+import { getTeamLogoSrc } from "@/lib/teamAssets";
 
 type ApiInjury = {
-  playerId: number | null;
-  player: string;
-  pos: string | null;
-  status: string | null;
-  date: string | null;
-  description: string | null;
-  headshot: string | null;
+    playerId: number | null;
+    player: string;
+    pos: string | null;
+    status: string | null;
+    date: string | null;
+    description: string | null;
+    headshot: string | null;
 };
 
 type ApiPayload = {
-  team: string;
-  teamName: string | null;
-  teamSeo: string | null;
-  source: string;
-  lastUpdated: string;
-  injuries: ApiInjury[];
+    team: string;
+    teamName: string | null;
+    teamSeo: string | null;
+    source: string;
+    lastUpdated: string;
+    injuries: ApiInjury[];
+    error?: string;
 };
 
-// Normalize raw status strings into short codes + readable labels.
-function normalizeStatus(s: string | null): { code: string; label: string } {
-  if (!s) return { code: "UNK", label: "Unknown" };
-  const t = s.trim().toUpperCase();
+type StatusInfo = {
+    code: string;
+    label: string;
+    tone: "danger" | "warning" | "muted";
+};
 
-  if (t === "IR" || t.includes("INJURED")) return { code: "IR", label: "IR" };
-  if (t === "OUT") return { code: "OUT", label: "OUT" };
-  if (t.includes("DAY")) return { code: "DTD", label: "DTD" };
-  if (t.includes("QUESTION")) return { code: "GTD", label: "GTD" };
+function normalizeStatus(status: string | null): StatusInfo {
+    const raw = status?.trim();
 
-  return { code: t.slice(0, 4), label: t };
-}
-
-// Generate initials from a player name (used as a fallback avatar).
-function initials(name: string) {
-  const parts = name.trim().split(/\s+/);
-  const a = parts[0]?.[0] ?? "";
-  const b = parts[parts.length - 1]?.[0] ?? "";
-  return (a + b).toUpperCase();
-}
-
-// Small pill UI that displays a normalized injury status code.
-function StatusPill({ status }: { status: string | null }) {
-  const st = normalizeStatus(status);
-
-  return (
-    <span className="InjPill" title={st.label}>
-      {st.code}
-    </span>
-  );
-}
-
-// Single injury row showing player info, description, and status.
-function InjuryRow({
-  name,
-  status,
-  subtitle,
-  headshotUrl,
-}: {
-  name: string;
-  status: string | null;
-  subtitle?: string | null;
-  headshotUrl?: string | null;
-}) {
-  return (
-    <div className="InjRow">
-      <div className="InjHeadshot">
-        {headshotUrl ? (
-          <img
-            src={headshotUrl}
-            alt={name}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            loading="lazy"
-            onError={(e) => {
-              // If image fails, hide it so initials can be shown instead.
-              (e.currentTarget as HTMLImageElement).src = "";
-            }}
-          />
-        ) : (
-          <div className="InjInitials">{initials(name)}</div>
-        )}
-      </div>
-
-      <div className="InjRowRight">
-        <div className="InjText">
-          <div className="InjName">{name}</div>
-
-          {subtitle ? (
-            <div className="InjSub" title={subtitle}>
-              {subtitle}
-            </div>
-          ) : null}
-        </div>
-
-        <div className="InjPillWrap">
-          <StatusPill status={status} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Column wrapper for one team’s injury list.
-function Column({
-  title,
-  loading,
-  items,
-  lastUpdated,
-}: {
-  title: string;
-  loading: boolean;
-  items: ApiInjury[];
-  lastUpdated?: string | null;
-}) {
-  return (
-    <div className="InjCol">
-      <div className="InjHeader">
-        <div className="InjTitle">{title}</div>
-        {lastUpdated ? (
-          <div className="InjUpdated">
-            Last updated: {new Date(lastUpdated).toLocaleString()}
-          </div>
-        ) : null}
-      </div>
-
-      <div className="InjList">
-        {loading ? (
-          <div className="InjEmpty">Loading injuries…</div>
-        ) : items.length === 0 ? (
-          <div className="InjEmpty">No reported injuries.</div>
-        ) : (
-          items.slice(0, 6).map((x, idx) => (
-            <InjuryRow
-              key={`${x.playerId ?? x.player}-${idx}`}
-              name={x.player}
-              status={x.status}
-              subtitle={x.description}
-              headshotUrl={x.headshot}
-            />
-          ))
-        )}
-      </div>
-    </div>
-  );
-}
-
-// Main injuries section that fetches and displays injuries for both teams.
-export default function InjuriesSection({
-  leftTeam,
-  rightTeam,
-}: {
-  leftTeam: string | null;
-  rightTeam: string | null;
-}) {
-  const [left, setLeft] = useState<ApiPayload | null>(null);
-  const [right, setRight] = useState<ApiPayload | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  // Memoize injury arrays to avoid unnecessary re-renders.
-  const leftItems = useMemo(() => left?.injuries ?? [], [left]);
-  const rightItems = useMemo(() => right?.injuries ?? [], [right]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function run() {
-      if (!leftTeam || !rightTeam) return;
-      setLoading(true);
-
-      try {
-        const [a, b] = await Promise.all([
-          fetch(`/api/team/injuries?team=${encodeURIComponent(leftTeam)}`).then(
-            (r) => r.json()
-          ),
-          fetch(`/api/team/injuries?team=${encodeURIComponent(rightTeam)}`).then(
-            (r) => r.json()
-          ),
-        ]);
-        if (cancelled) return;
-        setLeft(a);
-        setRight(b);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+    if (!raw) {
+        return {
+            code: "UNK",
+            label: "Unknown",
+            tone: "muted",
+        };
     }
 
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, [leftTeam, rightTeam]);
+    const upper = raw.toUpperCase();
 
-  return (
-    <section style={{ width: "100%", marginTop: 34, paddingBottom: 15 }}>
-      <div
-        className="injuriesGrid"
-        style={{
-          gap: 28,
-          paddingInline: 18,
-        }}
-      >
-        <Column
-          title="Injuries:"
-          loading={loading}
-          items={leftItems}
-          lastUpdated={left?.lastUpdated ?? null}
-        />
-        <Column
-          title="Injuries:"
-          loading={loading}
-          items={rightItems}
-          lastUpdated={right?.lastUpdated ?? null}
-        />
-      </div>
-    </section>
-  );
+    if (upper === "IR" || upper.includes("INJURED")) {
+        return {
+            code: "IR",
+            label: raw,
+            tone: "danger",
+        };
+    }
+
+    if (upper === "OUT") {
+        return {
+            code: "OUT",
+            label: raw,
+            tone: "danger",
+        };
+    }
+
+    if (upper.includes("DAY") || upper === "DTD") {
+        return {
+            code: "DTD",
+            label: raw,
+            tone: "warning",
+        };
+    }
+
+    if (upper.includes("QUESTION") || upper === "GTD") {
+        return {
+            code: "GTD",
+            label: raw,
+            tone: "warning",
+        };
+    }
+
+    return {
+        code: upper.slice(0, 4),
+        label: raw,
+        tone: "muted",
+    };
+}
+
+function getInitials(name: string) {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    const first = parts[0]?.[0] ?? "";
+    const last = parts[parts.length - 1]?.[0] ?? "";
+
+    return (first + last).toUpperCase() || "--";
+}
+
+function formatUpdatedAt(value: string | null | undefined) {
+    if (!value) {
+        return "";
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return "";
+    }
+
+    return date.toLocaleString();
+}
+
+function buildSubtitle(injury: ApiInjury) {
+    const pieces = [injury.description, injury.pos].filter(Boolean);
+    return pieces.join(" • ");
+}
+
+function Headshot({ name, src }: { name: string; src: string | null }) {
+    const [imageFailed, setImageFailed] = useState(false);
+
+    useEffect(() => {
+        setImageFailed(false);
+    }, [src]);
+
+    return (
+        <div className="injuriesAvatar" aria-hidden="true">
+            {src && !imageFailed ? (
+                <img
+                    className="injuriesAvatarImage"
+                    src={src}
+                    alt={name}
+                    loading="lazy"
+                    onError={() => setImageFailed(true)}
+                />
+            ) : (
+                <span className="injuriesAvatarFallback">{getInitials(name)}</span>
+            )}
+        </div>
+    );
+}
+
+function StatusBadge({ status }: { status: string | null }) {
+    const info = normalizeStatus(status);
+
+    return (
+        <span
+            className={`injuriesStatusBadge injuriesStatusBadge${info.tone[0].toUpperCase()}${info.tone.slice(1)}`}
+            title={info.label}
+        >
+            {info.code}
+        </span>
+    );
+}
+
+function InjuryRow({ injury }: { injury: ApiInjury }) {
+    const subtitle = buildSubtitle(injury);
+
+    return (
+        <article className="injuriesRow">
+            <div className="injuriesRowLeft">
+                <Headshot name={injury.player} src={injury.headshot} />
+
+                <div className="injuriesRowText">
+                    <h3 className="injuriesPlayerName">{injury.player}</h3>
+
+                    {subtitle ? (
+                        <p className="injuriesPlayerMeta">{subtitle}</p>
+                    ) : (
+                        <p className="injuriesPlayerMeta injuriesPlayerMetaMuted">
+                            No additional injury details listed
+                        </p>
+                    )}
+                </div>
+            </div>
+
+            <div className="injuriesRowRight">
+                <StatusBadge status={injury.status} />
+            </div>
+        </article>
+    );
+}
+
+export default function Injuries() {
+    const [selectedTeam, setSelectedTeam] = useState("");
+    const [report, setReport] = useState<ApiPayload | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const selectedTeamLabel = useMemo(() => {
+        return NHL_TEAM_OPTIONS.find((team) => team.value === selectedTeam)?.label ?? "";
+    }, [selectedTeam]);
+
+    const teamLogoSrc = useMemo(() => {
+        if (!selectedTeam || !selectedTeamLabel) {
+            return "";
+        }
+
+        return getTeamLogoSrc(selectedTeamLabel, selectedTeam);
+    }, [selectedTeam, selectedTeamLabel]);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function load() {
+            if (!selectedTeam) {
+                setReport(null);
+                setError(null);
+                setLoading(false);
+                return;
+            }
+
+            setLoading(true);
+            setError(null);
+
+            try {
+                const nextReport = await fetchJson<ApiPayload>(
+                    `/api/team/injuries?team=${encodeURIComponent(selectedTeam)}`,
+                    { cache: "no-store" }
+                );
+
+                if (cancelled) {
+                    return;
+                }
+
+                setReport(nextReport);
+                setError(nextReport.error ?? null);
+            } catch (err: any) {
+                if (cancelled) {
+                    return;
+                }
+
+                setReport(null);
+                setError(err?.message ?? "Could not load injury report");
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
+        }
+
+        load();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [selectedTeam]);
+
+    const injuryCount = report?.injuries.length ?? 0;
+    const reportTeamName = report?.teamName ?? selectedTeamLabel;
+    const updatedLabel = formatUpdatedAt(report?.lastUpdated);
+
+    return (
+        <section className="injuriesWorkspace">
+            <div className="injuriesWorkspaceInner">
+                <div className="injuriesHero">
+                    <div className="injuriesHeroText">
+                        <p className="injuriesEyebrow">Reports</p>
+                        <h1 className="injuriesTitle">Injury reports</h1>
+                        <p className="injuriesIntro">
+                            Select a team to view the current injury list, player headshots,
+                            and latest availability notes from the injury feed.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="injuriesControlsCard">
+                    <label className="injuriesControl" htmlFor="injuries-team-select">
+                        <span className="injuriesControlLabel">Team</span>
+                        <select
+                            id="injuries-team-select"
+                            className="injuriesSelect"
+                            value={selectedTeam}
+                            onChange={(event) => setSelectedTeam(event.target.value)}
+                        >
+                            <option value="">Select a team</option>
+                            {NHL_TEAM_OPTIONS.map((team) => (
+                                <option key={team.value} value={team.value}>
+                                    {team.label}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                </div>
+
+                {!selectedTeam ? (
+                    <div className="injuriesEmptyState">
+                        <h2 className="injuriesEmptyTitle">Choose a team to begin</h2>
+                        <p className="injuriesEmptyText">
+                            Once a team is selected, the injury page will load that club’s
+                            current report and player cards.
+                        </p>
+                    </div>
+                ) : loading ? (
+                    <div className="injuriesEmptyState">
+                        <div className="injuriesSpinner" aria-hidden="true" />
+                        <h2 className="injuriesEmptyTitle">Loading injury report</h2>
+                        <p className="injuriesEmptyText">
+                            Pulling the latest injuries for {selectedTeamLabel}.
+                        </p>
+                    </div>
+                ) : error ? (
+                    <div className="injuriesEmptyState injuriesEmptyStateWarning">
+                        <h2 className="injuriesEmptyTitle">Could not load injuries</h2>
+                        <p className="injuriesEmptyText">{error}</p>
+                    </div>
+                ) : (
+                    <section className="injuriesCard" aria-label="Team injury report">
+                        <div className="injuriesCardHeader">
+                            <div className="injuriesCardHeaderLeft">
+                                {teamLogoSrc ? (
+                                    <img
+                                        className="injuriesTeamLogo"
+                                        src={teamLogoSrc}
+                                        alt={reportTeamName}
+                                    />
+                                ) : null}
+
+                                <div>
+                                    <p className="injuriesCardEyebrow">Current report</p>
+                                    <h2 className="injuriesCardTitle">{reportTeamName}</h2>
+                                </div>
+                            </div>
+
+                            <div className="injuriesCardMeta">
+                                <span className="injuriesMetaPill">
+                                    {injuryCount} {injuryCount === 1 ? "injury" : "injuries"}
+                                </span>
+                                {updatedLabel ? (
+                                    <span className="injuriesMetaText">
+                                        Updated {updatedLabel}
+                                    </span>
+                                ) : null}
+                            </div>
+                        </div>
+
+                        <div className="injuriesCardDivider" />
+
+                        {injuryCount === 0 ? (
+                            <div className="injuriesCardEmpty">
+                                <h3 className="injuriesCardEmptyTitle">
+                                    No reported injuries right now
+                                </h3>
+                                <p className="injuriesCardEmptyText">
+                                    The feed did not return any active injury entries for this
+                                    team.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="injuriesList">
+                                {report?.injuries.map((injury, index) => (
+                                    <InjuryRow
+                                        key={`${injury.playerId ?? injury.player}-${index}`}
+                                        injury={injury}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </section>
+                )}
+            </div>
+        </section>
+    );
 }

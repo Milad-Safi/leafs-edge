@@ -1,0 +1,513 @@
+.trendsPage {
+    min-height: 100vh;
+    background: #05070b;
+    color: #ffffff;
+}
+
+.trendsWorkspace {
+    width: min(1180px, 92%);
+    margin: 0 auto;
+    padding: 36px 0 90px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.trendsSelectionCard,
+.trendsStateCard,
+.trendCard {
+    border: 1px solid rgba(120, 150, 200, 0.14);
+    border-radius: 28px;
+    background: #09111d;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.24);
+}
+
+.trendsSectionEyebrow,
+.trendCardEyebrow,
+.trendMetaLabel {
+    margin: 0;
+    color: rgba(205, 217, 238, 0.68);
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.trendsSelectionCard {
+    padding: 26px 28px 30px;
+}
+
+.trendsSelectionHeader {
+    margin-bottom: 20px;
+}
+
+.trendsSelectionTitle {
+    margin: 10px 0 10px;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+}
+
+.trendsSelectionHint {
+    margin: 0;
+    color: rgba(214, 223, 239, 0.7);
+    line-height: 1.65;
+}
+
+.trendsLogoGrid {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.trendsLogoButton {
+    appearance: none;
+    border: 1px solid rgba(126, 151, 198, 0.12);
+    border-radius: 22px;
+    background: #0d1625;
+    color: #ffffff;
+    padding: 16px 10px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition:
+        transform 0.18s ease,
+        border-color 0.18s ease,
+        background 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.trendsLogoButton:hover {
+    transform: translateY(-2px);
+    border-color: rgba(146, 176, 230, 0.28);
+    background: #101b2c;
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
+}
+
+.trendsLogoButtonSelected {
+    border-color: rgba(89, 145, 255, 0.72);
+    background: #11203a;
+    box-shadow: 0 0 0 1px rgba(89, 145, 255, 0.32) inset;
+}
+
+.trendsLogoMark {
+    width: 58px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.trendsLogoImage {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.trendsLogoName {
+    display: block;
+    min-height: 2.6em;
+    color: rgba(231, 237, 247, 0.84);
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1.3;
+    text-align: center;
+}
+
+.trendsResultsRegion {
+    width: 100%;
+    scroll-margin-top: 96px;
+}
+
+.trendsStateCard {
+    padding: 34px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 300px;
+    justify-content: center;
+}
+
+.trendsStateCardLoading {
+    align-items: center;
+    text-align: center;
+}
+
+.trendsStateCardError {
+    border-color: rgba(241, 112, 112, 0.2);
+}
+
+.trendsStateTop {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.trendsStateCardLoading .trendsStateTop {
+    justify-content: center;
+}
+
+.trendsStateLogo {
+    width: 66px;
+    height: 66px;
+    object-fit: contain;
+    flex: 0 0 auto;
+}
+
+.trendsStateSpinnerWrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 6px;
+}
+
+.trendsStateSpinner {
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    border: 3px solid rgba(255, 255, 255, 0.12);
+    border-top-color: #6ea8ff;
+    animation: trendsSpin 0.85s linear infinite;
+}
+
+@keyframes trendsSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.trendsStateTitle {
+    margin: 0;
+    font-size: clamp(1.45rem, 2.7vw, 2rem);
+    letter-spacing: -0.03em;
+}
+
+.trendsStateText {
+    margin: 0;
+    color: rgba(219, 227, 241, 0.78);
+    font-size: 1rem;
+    line-height: 1.65;
+}
+
+.trendsStateNote {
+    margin: 0;
+    color: rgba(200, 211, 230, 0.56);
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+
+.trendsRetryButton {
+    align-self: flex-start;
+    min-height: 44px;
+    padding: 0 18px;
+    border: 1px solid rgba(126, 169, 255, 0.22);
+    border-radius: 12px;
+    background: #1d4ed8;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        transform 0.18s ease,
+        background 0.18s ease;
+}
+
+.trendsRetryButton:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.trendCard {
+    padding: 28px 30px 30px;
+}
+
+.trendCardHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.trendCardTeam {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.trendCardLogo {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    flex: 0 0 auto;
+}
+
+.trendCardInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.trendCardTitle {
+    margin: 0;
+    font-size: clamp(1.5rem, 2.8vw, 2.15rem);
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+}
+
+.trendCardHeaderRight {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.trendOutcomePill,
+.trendConfidencePill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 999px;
+    font-size: 0.84rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+.trendOutcomePillUp {
+    background: rgba(34, 197, 94, 0.16);
+    color: #86efac;
+    border: 1px solid rgba(34, 197, 94, 0.26);
+}
+
+.trendOutcomePillFlat {
+    background: rgba(148, 163, 184, 0.16);
+    color: #dbe4ee;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.trendOutcomePillDown {
+    background: rgba(239, 68, 68, 0.16);
+    color: #fda4af;
+    border: 1px solid rgba(239, 68, 68, 0.24);
+}
+
+.trendConfidencePill {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(238, 243, 251, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.trendHeadline {
+    margin-top: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    font-size: clamp(1.15rem, 2vw, 1.75rem);
+    font-weight: 700;
+    line-height: 1.3;
+    color: rgba(244, 247, 252, 0.94);
+}
+
+.trendHeadlineStrong {
+    font-weight: 900;
+    color: #ffffff;
+}
+
+.trendHeadlineWord {
+    font-weight: 900;
+}
+
+.trendHeadlineWordUp {
+    color: #86efac;
+}
+
+.trendHeadlineWordFlat {
+    color: #e2e8f0;
+}
+
+.trendHeadlineWordDown {
+    color: #fda4af;
+}
+
+.trendProbabilitySection {
+    margin-top: 28px;
+    padding: 22px;
+    border: 1px solid rgba(122, 148, 193, 0.12);
+    border-radius: 22px;
+    background: #0d1625;
+}
+
+.trendProbabilityHeader {
+    margin-bottom: 18px;
+}
+
+.trendProbabilityTitle {
+    margin: 0 0 6px;
+    font-size: 1.06rem;
+    letter-spacing: -0.02em;
+}
+
+.trendProbabilityCopy {
+    margin: 0;
+    color: rgba(217, 225, 239, 0.66);
+    line-height: 1.55;
+}
+
+.trendProbabilityGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.trendProbabilityRow {
+    padding: 12px 14px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid transparent;
+}
+
+.trendProbabilityRowActive {
+    border-color: rgba(120, 161, 235, 0.24);
+    background: rgba(17, 29, 49, 0.84);
+}
+
+.trendProbabilityLabelRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.trendProbabilityLabel {
+    color: rgba(241, 245, 252, 0.92);
+    font-weight: 700;
+}
+
+.trendProbabilityPercent {
+    color: rgba(231, 237, 247, 0.74);
+    font-weight: 800;
+}
+
+.trendProbabilityTrack {
+    width: 100%;
+    height: 12px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.trendProbabilityFill {
+    height: 100%;
+    border-radius: 999px;
+}
+
+.trendProbabilityFillUp {
+    background: #22c55e;
+}
+
+.trendProbabilityFillFlat {
+    background: #94a3b8;
+}
+
+.trendProbabilityFillDown {
+    background: #ef4444;
+}
+
+.trendMetaGrid {
+    margin-top: 22px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.trendMetaCard {
+    padding: 18px;
+    border: 1px solid rgba(122, 148, 193, 0.12);
+    border-radius: 20px;
+    background: #0d1625;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.trendMetaValue {
+    color: #ffffff;
+    font-size: 1rem;
+    line-height: 1.45;
+}
+
+@media (max-width: 1180px) {
+    .trendsLogoGrid {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 960px) {
+    .trendCardHeader {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .trendCardHeaderRight {
+        justify-content: flex-start;
+    }
+
+    .trendMetaGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .trendsWorkspace {
+        width: min(1180px, 94%);
+        padding: 26px 0 72px;
+    }
+
+    .trendsSelectionCard,
+    .trendsStateCard,
+    .trendCard {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .trendsLogoGrid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .trendsLogoName {
+        font-size: 0.74rem;
+    }
+
+    .trendProbabilitySection {
+        padding: 16px;
+    }
+
+    .trendsSelectionTitle {
+        font-size: clamp(1.65rem, 8vw, 2.25rem);
+    }
+}
+
+@media (max-width: 560px) {
+    .trendsLogoGrid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .trendsStateTop,
+    .trendCardTeam {
+        align-items: flex-start;
+    }
+
+    .trendCardLogo,
+    .trendsStateLogo {
+        width: 56px;
+        height: 56px;
+    }
+
+    .trendHeadline {
+        font-size: 1.05rem;
+    }
+}
