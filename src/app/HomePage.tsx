@@ -52,19 +52,26 @@ export default function HomePage() {
             <section className="heroSection">
                 <div className="heroStack">
                     <div className="heroCopy" data-reveal>
+                        {/* Text: hero eyebrow */}
                         <p className="sectionLabel">NHL analytics platform</p>
+
+                        {/* Text: main homepage headline */}
                         <h1 className="heroTitle">Go beyond the box score</h1>
+
+                        {/* Text: hero description */}
                         <p className="heroText">
-                            Interactive NHL comparison tools, trend views, and
-                            visual analytics built to make raw data easier to
+                            Team comparisons, forecasts, game breakdowns, and
+                            league-wide visuals built to make NHL data easier to
                             read.
                         </p>
+
                         <div className="heroActions">
                             <button
                                 type="button"
                                 className="primaryButton"
                                 onClick={handleExploreFeaturesClick}
                             >
+                                {/* Text: hero button label */}
                                 Explore features
                             </button>
                         </div>
@@ -75,100 +82,139 @@ export default function HomePage() {
             <section id="features-container" className="featuresBlackout">
                 <div className="featuresContent">
                     <div className="featuresIntro" data-reveal>
-                        <h2 className="featuresIntroTitle">Core features</h2>
+                        {/* Text: features section title */}
+                        <h2 className="featuresIntroTitle">
+                            Explore the platform
+                        </h2>
+
+                        {/* Text: features section description */}
                         <p className="featuresIntroText">
-                            These are the core tools currently available.
-                            Glossary contains information about specific
-                            terminology and metric definitions used across the
-                            platform.
+                            Each page focuses on a different part of the game,
+                            from team comparisons to game breakdowns,
+                            league metrics, injuries, and advanced NHL EDGE tracking
+                            data.
                         </p>
                     </div>
 
                     <div className="bentoGrid" data-reveal>
                         <div className="bentoCard">
                             <div className="cardBody">
-                                <span className="cardTag">Compare</span>
+                                {/* Text: compare card tag */}
+                                <span className="cardTag">Matchups</span>
+
+                                {/* Text: compare card title */}
                                 <h3 className="cardTitle">Compare Teams</h3>
+
+                                {/* Text: compare card description */}
                                 <p className="cardText">
-                                    Compare two teams side by side using
-                                    record, scoring, special teams, shooting,
-                                    and recent form.
+                                    Put any two teams side-by-side and see exactly how they stack up across the board
                                 </p>
+
                                 <Link href="/compare" className="cardButton">
-                                    Open Matchups
+                                    {/* Text: compare card button */}
+                                    View Matchups
                                 </Link>
                             </div>
                         </div>
 
                         <div className="bentoCard">
                             <div className="cardBody">
-                                <span className="cardTag">Team Trajectory</span>
-                                <h3 className="cardTitle">Team Trends</h3>
+                                {/* Text: games card tag */}
+                                <span className="cardTag">Previous Games</span>
+
+                                {/* Text: games card title */}
+                                <h3 className="cardTitle">Past Game Results</h3>
+
+                                {/* Text: games card description */}
                                 <p className="cardText">
-                                    Uses a machine learning model to estimate a
-                                    team&apos;s short term trend direction.
+                                    Browse past games and search previous games since 2023 and view detailed boxscores for each game, including a custom Expected Goals model
                                 </p>
-                                <Link href="/trends" className="cardButton">
-                                    View Trends
+
+                                <Link href="/games" className="cardButton">
+                                    {/* Text: games card button */}
+                                    Open Boxscores
                                 </Link>
                             </div>
                         </div>
 
                         <div className="bentoCard">
                             <div className="cardBody">
-                                <span className="cardTag">Data</span>
-                                <h3 className="cardTitle">Visualizer</h3>
+                                {/* Text: metrics card tag */}
+                                <span className="cardTag">League Metrics</span>
+
+                                {/* Text: metrics card title */}
+                                <h3 className="cardTitle">Teams Visualized</h3>
+
+                                {/* Text: metrics card description */}
                                 <p className="cardText">
-                                    Interactive charts and scatter plots for
-                                    exploring team level metrics across the
-                                    league.
+                                    Build custom visualizations. Plot any two metrics to see exactly where every team stands
                                 </p>
+
                                 <Link href="/visualizer" className="cardButton">
-                                    Open Visualizer
+                                    {/* Text: metrics card button */}
+                                    View Visuals
                                 </Link>
                             </div>
                         </div>
 
                         <div className="bentoCard">
                             <div className="cardBody">
-                                <span className="cardTag">Tracking</span>
-                                <h3 className="cardTitle">Advanced Stats</h3>
-                                <p className="cardText">
-                                    Explore advanced stats like shot strength
-                                    and location visualized with heat maps.
-                                </p>
-                                <Link href="/edge" className="cardButton">
-                                    View Advanced Stats
-                                </Link>
-                            </div>
-                        </div>
+                                {/* Text: injuries card tag */}
+                                <span className="cardTag">Injuries</span>
 
-                        <div className="bentoCard">
-                            <div className="cardBody">
-                                <span className="cardTag">Reports</span>
-                                <h3 className="cardTitle">Injury Reports</h3>
+                                {/* Text: injuries card title */}
+                                <h3 className="cardTitle">Team Injury Reports</h3>
+
+                                {/* Text: injuries card description */}
                                 <p className="cardText">
-                                    View current injury information and
-                                    availability updates that affect team
-                                    context.
+                                    Check current injury reports and
+                                    availability updates for every NHL team, updated automatically based on the latest news and transactions.
                                 </p>
+
                                 <Link href="/injuries" className="cardButton">
-                                    View Injury Reports
+                                    {/* Text: injuries card button */}
+                                    Open Injuries
                                 </Link>
                             </div>
                         </div>
 
                         <div className="bentoCard">
                             <div className="cardBody">
-                                <span className="cardTag">Coming Soon</span>
-                                <h3 className="cardTitle">More Features</h3>
+                                {/* Text: momentum card tag */}
+                                <span className="cardTag">Model</span>
+
+                                {/* Text: momentum card title */}
+                                <h3 className="cardTitle">Team Forecasts</h3>
+
+                                {/* Text: momentum card description */}
                                 <p className="cardText">
-                                    Additional comparison views, data tools, and
-                                    project features still in progress.
+                                    Track team momentum. Get AI-powered predictions on any teams short-term trajectory
                                 </p>
-                                <span className="cardButton cardButtonMuted">
-                                    In Progress
-                                </span>
+
+                                <Link href="/trends" className="cardButton">
+                                    {/* Text: momentum card button */}
+                                    View Forecasts
+                                </Link>
+                            </div>
+                        </div>
+
+                        <div className="bentoCard">
+                            <div className="cardBody">
+                                {/* Text: EDGE card tag */}
+                                <span className="cardTag">Stats</span>
+
+                                {/* Text: EDGE card title */}
+                                <h3 className="cardTitle">Advanced Stats</h3>
+
+                                {/* Text: EDGE card description */}
+                                <p className="cardText">
+                                    Explore miscellaneous statistics and data insights, including advanced NHL EDGE tracking data, player usage stats, and more.
+                                </p>
+
+                                <Link href="/edge" className="cardButton">
+                                    {/* Text: EDGE card button */}
+                                    Open Stats
+                                </Link>
                             </div>
                         </div>
                     </div>

@@ -220,12 +220,6 @@ export default function EdgePage() {
                                         </p>
                                     </div>
                                 </div>
-
-                                {data.season ? (
-                                    <div className="edgeHeroBadge">
-                                        Season {data.season}
-                                    </div>
-                                ) : null}
                             </section>
 
                             <section className="edgeLeadersGrid">

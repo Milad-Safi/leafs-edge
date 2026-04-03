@@ -161,8 +161,6 @@ export default function VisualizerChartCard({
                                 {VISUALIZER_METRICS[yMetric].label}
                             </h2>
                             <div className="visualizerChartMeta">
-                                <span>{points.length} teams</span>
-                                <span>League averages</span>
                                 <span>Preset: {activePresetLabel}</span>
                             </div>
                         </div>

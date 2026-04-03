@@ -58,7 +58,7 @@ export const NHL_TEAM_OPTIONS: TeamOption[] = [
     { value: "STL", label: "St. Louis Blues" },
     { value: "TBL", label: "Tampa Bay Lightning" },
     { value: "TOR", label: "Toronto Maple Leafs" },
-    { value: "UTA", label: "Utah Hockey Club" },
+    { value: "UTA", label: "Utah Mammoth" },
     { value: "VAN", label: "Vancouver Canucks" },
     { value: "VGK", label: "Vegas Golden Knights" },
     { value: "WPG", label: "Winnipeg Jets" },

@@ -1,6 +1,6 @@
 .edgePage {
     min-height: 100vh;
-    background: #05070b;
+    background: #060b14;
     color: #ffffff;
 }
 
@@ -44,8 +44,8 @@
 
 .edgeSelectionTitle {
     margin: 10px 0 10px;
-    font-size: clamp(2rem, 4vw, 3rem);
-    line-height: 1.02;
+    font-size: clamp(1.55rem, 3vw, 2.15rem);
+    line-height: 1.04;
     letter-spacing: -0.04em;
 }
 

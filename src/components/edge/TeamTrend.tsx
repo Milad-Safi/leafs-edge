@@ -56,44 +56,6 @@ function getTrendDisplay(trend: string): TrendDisplay {
     };
 }
 
-function formatDateLabel(value: string | null | undefined) {
-    if (!value) {
-        return "—";
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-
-    return date.toLocaleDateString("en-CA", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-    });
-}
-
-function formatDateTimeLabel(value: string | null | undefined) {
-    if (!value) {
-        return "—";
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-
-    return date.toLocaleString("en-CA", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-    });
-}
-
 export default function TeamTrend({
     data,
     teamLabel,
@@ -205,28 +167,13 @@ export default function TeamTrend({
                 </div>
             </div>
 
-            <div className="trendMetaGrid">
-                <div className="trendMetaCard">
-                    <span className="trendMetaLabel">Window used</span>
-                    <strong className="trendMetaValue">
-                        Last {data.n_used} games
-                    </strong>
-                </div>
-
-                <div className="trendMetaCard">
-                    <span className="trendMetaLabel">Game range</span>
-                    <strong className="trendMetaValue">
-                        {formatDateLabel(data.range?.oldest)} to{" "}
-                        {formatDateLabel(data.range?.newest)}
-                    </strong>
-                </div>
-
-                <div className="trendMetaCard">
-                    <span className="trendMetaLabel">Model updated</span>
-                    <strong className="trendMetaValue">
-                        {formatDateTimeLabel(data.as_of)}
-                    </strong>
-                </div>
+            <div className="trendExplainer">
+                <p className="trendExplainerText">
+                    Machine-learning model trained on 1k+ NHL games, comparing
+                    recent performance patterns (goals, shots, special teams,
+                    venue effects, opponent strength) against similar past
+                    situations to estimate short-term performance direction.
+                </p>
             </div>
         </section>
     );

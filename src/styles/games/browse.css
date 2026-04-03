@@ -1,0 +1,358 @@
+.historicalGamesIntro {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 14px;
+}
+
+.historicalGamesIntroNote {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    text-align: right;
+}
+
+.historicalGamesFilterPanel {
+    padding: 18px 18px 20px;
+}
+
+.historicalGamesFilterHint {
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.historicalGamesFilterForm {
+    margin-top: 14px;
+}
+
+.historicalGamesFilterGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.historicalGamesField {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.historicalGamesOptionalRow {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.historicalGamesOptionalLabel {
+    padding-bottom: 12px;
+    white-space: nowrap;
+}
+
+.historicalGamesFieldOptional {
+    min-width: min(320px, 100%);
+}
+
+.historicalGamesActionRow {
+    display: flex;
+    justify-content: center;
+    margin-top: 18px;
+}
+
+.historicalGamesSearchButton {
+    min-width: 148px;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 12px;
+    font-weight: 700;
+}
+
+.historicalGamesResultsRegion {
+    margin-top: 18px;
+}
+
+.historicalGamesResultsWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.historicalGamesResultsHeader {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.historicalGamesResultsTitle {
+    font-size: clamp(1.25rem, 2vw, 1.6rem);
+}
+
+.historicalGamesResultsMeta {
+    font-size: 0.92rem;
+}
+
+.historicalGamesCardList {
+    display: grid;
+    gap: 12px;
+}
+
+.historicalGameCard {
+    position: relative;
+    display: block;
+    padding: 14px 15px 16px;
+    color: inherit;
+    text-decoration: none;
+    overflow: hidden;
+}
+
+.historicalGameCard::before,
+.historicalGameCard::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    opacity: 0.94;
+}
+
+.historicalGameCard::before {
+    left: 0;
+    border-radius: 18px 0 0 18px;
+}
+
+.historicalGameCard::after {
+    right: 0;
+    border-radius: 0 18px 18px 0;
+}
+
+.historicalGameCardWin::before,
+.historicalGameCardWin::after {
+    background: #2a9d57;
+}
+
+.historicalGameCardLoss::before,
+.historicalGameCardLoss::after {
+    background: #ba4a56;
+}
+
+.historicalGameCard:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+.historicalGameCardTop,
+.historicalGameMetaRow,
+.historicalGameScoreRow,
+.historicalGamesPagination {
+    display: flex;
+    align-items: center;
+}
+
+.historicalGameCardTop {
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.historicalGameDate {
+    font-size: 0.88rem;
+}
+
+.historicalGameDecisionBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #151b23;
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.historicalGameScoreRow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 10px;
+}
+
+.historicalGameTeamPane {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 12px;
+    border-radius: 16px;
+    background: #10161d;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.historicalGameTeamPaneRight {
+    justify-content: flex-end;
+}
+
+.historicalGameTeamPaneWinner {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: #171e27;
+}
+
+.historicalGameLogoWrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.historicalGameLogo {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+
+.historicalGameTeamText {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.historicalGameTeamTextRight {
+    align-items: flex-end;
+    text-align: right;
+}
+
+.historicalGameTeamName {
+    font-size: 0.92rem;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.historicalGameScorePanel {
+    min-width: 156px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+    justify-content: center;
+}
+
+.historicalGameScoreline {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.historicalGameScoreValue {
+    margin: 0;
+    font-size: 2rem;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.historicalGameScoreDash {
+    font-size: 1rem;
+    font-weight: 700;
+    color: rgba(176, 191, 216, 0.54);
+}
+
+.historicalGameScorelineWin .historicalGameScoreValue,
+.historicalGameScorelineWin .historicalGameScoreDash {
+    color: #ffffff;
+    font-weight: 800;
+}
+
+.historicalGameMatchupNote {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.historicalGameMatchupNoteWin {
+    color: #74d394;
+}
+
+.historicalGameMatchupNoteLoss {
+    color: #e07b84;
+}
+
+.historicalGamesPagination {
+    justify-content: center;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.historicalGamesPageButton {
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 12px;
+}
+
+.historicalGamesPageText {
+    margin: 0;
+    color: rgba(220, 228, 240, 0.72);
+}
+
+@media (max-width: 900px) {
+    .historicalGamesIntro,
+    .historicalGamesResultsHeader,
+    .historicalGamesOptionalRow {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .historicalGamesIntroNote {
+        text-align: left;
+    }
+
+    .historicalGameScoreRow {
+        grid-template-columns: 1fr;
+    }
+
+    .historicalGameScorePanel {
+        order: -1;
+        width: 100%;
+        padding: 4px 0 2px;
+    }
+}
+
+@media (max-width: 760px) {
+    .historicalGamesFilterGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .historicalGamesOptionalRow {
+        align-items: stretch;
+    }
+
+    .historicalGamesFieldOptional {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .historicalGameCard {
+        padding: 13px 13px 14px;
+    }
+
+    .historicalGameCard::before,
+    .historicalGameCard::after {
+        width: 3px;
+    }
+
+    .historicalGameTeamPane {
+        padding: 11px 12px;
+    }
+}

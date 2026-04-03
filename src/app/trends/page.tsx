@@ -7,7 +7,6 @@ import { NHL_TEAM_OPTIONS } from "@/lib/compare";
 import { getTeamLogoSrc } from "@/lib/teamAssets";
 
 const LOADING_MESSAGES = [
-    "Bob is building the trend call",
     "Waking up the Render worker",
     "Crunching the last few games",
     "Still cooking the model output",

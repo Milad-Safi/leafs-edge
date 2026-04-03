@@ -65,8 +65,8 @@ export const VISUALIZER_METRICS: Record<
     },
     timesShorthanded: {
         id: "timesShorthanded",
-        label: "PK Opportunities",
-        shortLabel: "PK Opps",
+        label: "Times Shorthanded",
+        shortLabel: "TSH",
         kind: "count",
     },
     penaltyKillPct: {

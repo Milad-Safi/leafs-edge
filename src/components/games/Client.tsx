@@ -1,0 +1,326 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+
+import HistoricalGameDetailBoxscorePanel from "@/components/games/BoxscorePanel";
+import HistoricalGameDetailHero from "@/components/games/Hero";
+import HistoricalGameDetailShotMapPanel from "@/components/games/ShotMapPanel";
+import {
+    buildDetailThemeStyle,
+    compareGoalies,
+    compareSkaters,
+    PERIOD_OPTIONS,
+    teamSideKey,
+    type GoalieSortKey,
+    type SkaterSortKey,
+    type SortDirection,
+} from "@/components/games/Shared";
+import { fetchJson } from "@/lib/fetchJson";
+import type {
+    GameDetailPeriodKey,
+    HistoricalGameDetailResponse,
+    HistoricalGamePositionFilter,
+} from "@/types/games";
+
+type HistoricalGameDetailClientProps = {
+    gameId: string;
+    focusTeamAbbrev?: string | null;
+};
+
+export default function HistoricalGameDetailClient({
+    gameId,
+    focusTeamAbbrev,
+}: HistoricalGameDetailClientProps) {
+    const [data, setData] = useState<HistoricalGameDetailResponse | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const [chartTeam, setChartTeam] = useState<string>(
+        focusTeamAbbrev?.toUpperCase() ?? ""
+    );
+    const [chartMode, setChartMode] = useState<"shots" | "goals">("shots");
+    const [selectedPlayer, setSelectedPlayer] = useState<string>("ALL");
+    const [chartPeriod, setChartPeriod] = useState<GameDetailPeriodKey>("ALL");
+
+    const [boxscoreTeam, setBoxscoreTeam] = useState<string>(
+        focusTeamAbbrev?.toUpperCase() ?? ""
+    );
+    const [positionFilter, setPositionFilter] =
+        useState<HistoricalGamePositionFilter>("skaters");
+
+    const [skaterSortKey, setSkaterSortKey] = useState<SkaterSortKey>("points");
+    const [goalieSortKey, setGoalieSortKey] = useState<GoalieSortKey>("savePct");
+    const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function load() {
+            setLoading(true);
+            setError(null);
+
+            try {
+                const payload = await fetchJson<HistoricalGameDetailResponse>(
+                    `/api/games/${gameId}/detail`,
+                    { cache: "no-store" }
+                );
+
+                if (cancelled) return;
+
+                setData(payload);
+
+                const defaultTeam =
+                    focusTeamAbbrev?.toUpperCase() === payload.homeTeam.abbrev ||
+                    focusTeamAbbrev?.toUpperCase() === payload.awayTeam.abbrev
+                        ? focusTeamAbbrev?.toUpperCase() ?? payload.homeTeam.abbrev
+                        : payload.homeTeam.abbrev;
+
+                setChartTeam(defaultTeam);
+                setBoxscoreTeam(defaultTeam);
+            } catch (err) {
+                if (cancelled) return;
+
+                setError(
+                    err instanceof Error ? err.message : "Could not load game detail"
+                );
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
+        }
+
+        void load();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [focusTeamAbbrev, gameId]);
+
+    const teamOptions = useMemo(() => {
+        if (!data) return [];
+
+        return [
+            { value: data.awayTeam.abbrev, label: data.awayTeam.label },
+            { value: data.homeTeam.abbrev, label: data.homeTeam.label },
+        ];
+    }, [data]);
+
+    const chartPlayers = useMemo(() => {
+        if (!data) return [];
+
+        const side = teamSideKey(data, chartTeam);
+        const rows = data.playerStats[side].skaters;
+
+        return rows.map((player) => ({
+            value: String(player.playerId),
+            label: player.name,
+        }));
+    }, [chartTeam, data]);
+
+    const filteredChartEvents = useMemo(() => {
+        if (!data) return [];
+
+        return data.chartEvents.filter((event) => {
+            if (event.teamAbbrev !== chartTeam) return false;
+            if (event.mode !== chartMode) return false;
+            if (chartPeriod !== "ALL" && event.period !== chartPeriod) return false;
+
+            if (
+                selectedPlayer !== "ALL" &&
+                String(event.playerId ?? "") !== selectedPlayer
+            ) {
+                return false;
+            }
+
+            return true;
+        });
+    }, [chartMode, chartPeriod, chartTeam, data, selectedPlayer]);
+
+    const activeSkaterRows = useMemo(() => {
+        if (!data) return [];
+
+        const side = teamSideKey(data, boxscoreTeam);
+
+        if (positionFilter === "forwards") {
+            return data.playerStats[side].forwards;
+        }
+
+        if (positionFilter === "defencemen") {
+            return data.playerStats[side].defencemen;
+        }
+
+        if (positionFilter === "skaters") {
+            return data.playerStats[side].skaters;
+        }
+
+        return [];
+    }, [boxscoreTeam, data, positionFilter]);
+
+    const activeGoalieRows = useMemo(() => {
+        if (!data || positionFilter !== "goalies") return [];
+
+        const side = teamSideKey(data, boxscoreTeam);
+        return data.playerStats[side].goalies;
+    }, [boxscoreTeam, data, positionFilter]);
+
+    const sortedSkaterRows = useMemo(() => {
+        return [...activeSkaterRows].sort((left, right) =>
+            compareSkaters(left, right, skaterSortKey, sortDirection)
+        );
+    }, [activeSkaterRows, skaterSortKey, sortDirection]);
+
+    const sortedGoalieRows = useMemo(() => {
+        return [...activeGoalieRows].sort((left, right) =>
+            compareGoalies(left, right, goalieSortKey, sortDirection)
+        );
+    }, [activeGoalieRows, goalieSortKey, sortDirection]);
+
+    const detailThemeStyle = useMemo(() => {
+        if (!data) return undefined;
+        return buildDetailThemeStyle(data);
+    }, [data]);
+
+    const availablePeriodOptions = useMemo(() => {
+        if (!data) {
+            return PERIOD_OPTIONS.filter((period) => period.value !== "OT");
+        }
+
+        if (data.decision === "reg") {
+            return PERIOD_OPTIONS.filter((period) => period.value !== "OT");
+        }
+
+        return PERIOD_OPTIONS;
+    }, [data]);
+
+    useEffect(() => {
+        if (!data || data.decision !== "reg") return;
+
+        if (chartPeriod === "OT") {
+            setChartPeriod("ALL");
+        }
+    }, [chartPeriod, data]);
+
+    function handleSkaterSort(nextKey: SkaterSortKey) {
+        if (nextKey === skaterSortKey) {
+            setSortDirection((current) =>
+                current === "desc" ? "asc" : "desc"
+            );
+            return;
+        }
+
+        setSkaterSortKey(nextKey);
+        setSortDirection(nextKey === "name" ? "asc" : "desc");
+    }
+
+    function handleGoalieSort(nextKey: GoalieSortKey) {
+        if (nextKey === goalieSortKey) {
+            setSortDirection((current) =>
+                current === "desc" ? "asc" : "desc"
+            );
+            return;
+        }
+
+        setGoalieSortKey(nextKey);
+        setSortDirection(nextKey === "name" ? "asc" : "desc");
+    }
+
+    function handleChartTeamChange(team: string) {
+        setChartTeam(team);
+        setSelectedPlayer("ALL");
+    }
+
+    if (loading) {
+        return (
+            <main className="historicalGameDetailPage">
+                <section className="historicalGameDetailShell">
+                    <Link href="/games" className="historicalGameDetailBackLink">
+                        ← Back to Games
+                    </Link>
+
+                    <div
+                        className="historicalGamesStateCard historicalGamesStateCardLoading historicalGameDetailLoadingCard"
+                        role="status"
+                    >
+                        <div className="historicalGamesSpinner" aria-hidden="true" />
+                        <h1 className="historicalGamesStateTitle">Loading game detail</h1>
+                        <p className="historicalGamesStateText">
+                            Pulling the box score and play-by-play for this game
+                        </p>
+                    </div>
+                </section>
+            </main>
+        );
+    }
+
+    if (error || !data) {
+        return (
+            <main className="historicalGameDetailPage">
+                <section className="historicalGameDetailShell">
+                    <Link href="/games" className="historicalGameDetailBackLink">
+                        ← Back to Games
+                    </Link>
+
+                    <div className="historicalGamesStateCard historicalGamesStateCardError historicalGameDetailLoadingCard">
+                        <h1 className="historicalGamesStateTitle">
+                            Could not load game detail
+                        </h1>
+                        <p className="historicalGamesStateText">
+                            {error ?? "Unknown error"}
+                        </p>
+                    </div>
+                </section>
+            </main>
+        );
+    }
+
+    return (
+        <main className="historicalGameDetailPage">
+            <section
+                className="historicalGameDetailShell historicalGameDetailShellExpanded"
+                style={detailThemeStyle}
+            >
+                <Link href="/games" className="historicalGameDetailBackLink">
+                    ← Back to Games
+                </Link>
+
+                <HistoricalGameDetailHero data={data} />
+
+                <section className="historicalGameDetailTopGrid">
+                    <HistoricalGameDetailShotMapPanel
+                        data={data}
+                        chartTeam={chartTeam}
+                        chartMode={chartMode}
+                        selectedPlayer={selectedPlayer}
+                        chartPeriod={chartPeriod}
+                        teamOptions={teamOptions}
+                        chartPlayers={chartPlayers}
+                        availablePeriodOptions={availablePeriodOptions}
+                        filteredChartEvents={filteredChartEvents}
+                        onChartModeChange={setChartMode}
+                        onChartTeamChange={handleChartTeamChange}
+                        onSelectedPlayerChange={setSelectedPlayer}
+                        onChartPeriodChange={setChartPeriod}
+                    />
+
+                    <HistoricalGameDetailBoxscorePanel
+                        data={data}
+                        teamOptions={teamOptions}
+                        boxscoreTeam={boxscoreTeam}
+                        positionFilter={positionFilter}
+                        sortedSkaterRows={sortedSkaterRows}
+                        sortedGoalieRows={sortedGoalieRows}
+                        skaterSortKey={skaterSortKey}
+                        goalieSortKey={goalieSortKey}
+                        sortDirection={sortDirection}
+                        onBoxscoreTeamChange={setBoxscoreTeam}
+                        onPositionFilterChange={setPositionFilter}
+                        onSkaterSort={handleSkaterSort}
+                        onGoalieSort={handleGoalieSort}
+                    />
+                </section>
+            </section>
+        </main>
+    );
+}

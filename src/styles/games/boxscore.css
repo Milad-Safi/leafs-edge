@@ -1,0 +1,159 @@
+.historicalGameBoxscoreTableWrap {
+    margin-top: 12px;
+    overflow: visible;
+    overflow-x: hidden;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.02);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.historicalGameBoxscoreTable {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.historicalGameBoxscoreTable th,
+.historicalGameBoxscoreTable td {
+    padding: 9px 8px;
+    text-align: center;
+    font-size: 0.79rem;
+}
+
+.historicalGameBoxscoreTable thead th {
+    position: static;
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(235, 241, 252, 0.84);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.historicalGameBoxscoreTable th button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    cursor: pointer;
+}
+
+.historicalGameBoxscoreTable td:first-child,
+.historicalGameBoxscoreTable th:first-child {
+    text-align: left;
+    width: 42%;
+}
+
+.historicalGameBoxscoreTableSkaters td:nth-child(6),
+.historicalGameBoxscoreTableSkaters th:nth-child(6) {
+    width: 13%;
+}
+
+.historicalGameBoxscoreTableGoalies td:last-child,
+.historicalGameBoxscoreTableGoalies th:last-child {
+    width: 15%;
+}
+
+.historicalGamePlayerCell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.historicalGamePlayerNumber {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.065);
+    color: rgba(255, 255, 255, 0.86);
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+
+.historicalGamePlayerNameText {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.historicalGamePlayerNameWrap {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.historicalGamePlayerBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 18px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.07);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.historicalGameBoxscoreTable tbody tr {
+    border-top: 1px solid rgba(255, 255, 255, 0.025);
+}
+
+.historicalGameBoxscoreTable tbody tr:nth-child(odd) {
+    background: rgba(255, 255, 255, 0.012);
+}
+
+.historicalGameBoxscoreTable tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.006);
+}
+
+.historicalGameBoxscoreTable tbody tr:hover {
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.historicalGameBoxscoreTable tbody td {
+    transition: background-color 160ms ease;
+}
+
+@media (max-width: 760px) {
+    .historicalGameBoxscoreTableWrap {
+        border-radius: 20px;
+        overflow-x: auto;
+    }
+
+    .historicalGameBoxscoreTable th,
+    .historicalGameBoxscoreTable td {
+        padding: 9px 7px;
+        font-size: 0.76rem;
+    }
+
+    .historicalGameBoxscoreTable td:first-child,
+    .historicalGameBoxscoreTable th:first-child {
+        width: 38%;
+    }
+
+    .historicalGamePlayerNameWrap {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+}

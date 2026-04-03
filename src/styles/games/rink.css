@@ -1,0 +1,136 @@
+.historicalGameRinkWrap {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 500px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.02);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    padding: 10px 12px 10px;
+}
+
+.historicalGameRinkCanvas {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.historicalGameRinkSvg {
+    width: 85%;
+    max-width: 85%;
+    height: auto;
+    max-height: 85%;
+    display: block;
+    overflow: visible;
+}
+
+.historicalGameRinkDot {
+    stroke: #101722;
+    stroke-width: 1.45;
+    filter: drop-shadow(0 0 0.45px rgba(255, 255, 255, 0.62));
+    vector-effect: non-scaling-stroke;
+}
+
+.historicalGameRinkDotShot {
+    fill: #e7ecef;
+}
+
+.historicalGameRinkDotMissed {
+    fill: #efc56a;
+}
+
+.historicalGameRinkDotBlocked {
+    fill: #d77a75;
+}
+
+.historicalGameRinkDotGoal {
+    fill: #4ebd7b;
+}
+
+.historicalGameRinkFooter {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.historicalGameRinkLegend {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+}
+
+.historicalGameRinkLegendItem {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: rgba(235, 241, 252, 0.84);
+    font-size: 0.74rem;
+    line-height: 1;
+}
+
+.historicalGameRinkLegendDot {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    border: 1px solid rgba(16, 23, 34, 0.95);
+}
+
+.historicalGameRinkLegendDotShot {
+    background: #e7ecef;
+}
+
+.historicalGameRinkLegendDotMissed {
+    background: #efc56a;
+}
+
+.historicalGameRinkLegendDotBlocked {
+    background: #d77a75;
+}
+
+.historicalGameRinkLegendDotGoal {
+    background: #4ebd7b;
+}
+
+.historicalGameRinkMetaText {
+    margin: 0;
+    white-space: nowrap;
+    color: rgba(220, 228, 240, 0.56);
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+@media (max-width: 1120px) {
+    .historicalGameRinkWrap {
+        min-height: 520px;
+    }
+}
+
+@media (max-width: 760px) {
+    .historicalGameRinkWrap {
+        min-height: 440px;
+        padding: 10px 10px 8px;
+        border-radius: 20px;
+    }
+
+    .historicalGameRinkFooter {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .historicalGameRinkLegend {
+        gap: 8px;
+    }
+
+    .historicalGameRinkLegendItem {
+        font-size: 0.72rem;
+    }
+}

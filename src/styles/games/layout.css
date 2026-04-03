@@ -1,0 +1,202 @@
+.historicalGameDetailShellExpanded {
+    width: min(1320px, calc(100% - 28px));
+}
+
+.historicalGameDetailTopGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.94fr) minmax(430px, 1.06fr);
+    gap: 22px;
+    margin-top: 22px;
+    padding: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 30px;
+    align-items: start;
+    background: rgba(11, 17, 24, 0.82);
+    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.22);
+}
+
+.historicalGameTopCard {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: auto;
+    background: transparent;
+    box-shadow: none;
+}
+
+.historicalGameRinkCard {
+    padding-right: 0;
+    min-height: 0;
+}
+
+.historicalGameBoxscoreCard {
+    padding-left: 0;
+    min-height: 0;
+}
+
+.historicalGameDetailRightRail {
+    min-height: 0;
+}
+
+.historicalGameTeamStatsCardSide {
+    display: none;
+}
+
+.historicalGameRinkCard,
+.historicalGameBoxscoreCard {
+    position: relative;
+}
+
+.historicalGameFilterRow {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.historicalGameFilterRowCompact {
+    margin-top: 12px;
+}
+
+.historicalGameInlineControlGroup {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.historicalGameInlineField {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 146px;
+}
+
+.historicalGameInlineFieldBoxscore {
+    min-width: 176px;
+}
+
+.historicalGameInlineSelect {
+    min-height: 42px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.historicalGameTopRightControls {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.historicalGameSectionHeaderBoxscore {
+    align-items: flex-start;
+}
+
+.historicalGameSectionHeaderStatsSide {
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 2px;
+}
+
+.historicalGameToggleGroupPeriodsSide {
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.historicalGameSegmentButtonTeam.historicalGameSegmentButtonActive:nth-child(1) {
+    background: var(--historical-away-colour-soft);
+    color: #ffffff;
+}
+
+.historicalGameSegmentButtonTeam.historicalGameSegmentButtonActive:nth-child(2) {
+    background: var(--historical-home-colour-soft);
+    color: #ffffff;
+}
+
+.historicalGameDetailBottomSection {
+    display: none;
+}
+
+.historicalGameTeamStatsCardCentered {
+    padding: 0;
+    max-width: none;
+    margin: 0 auto;
+    background: transparent;
+    box-shadow: none;
+}
+
+.historicalGameSectionHeaderBottom {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    text-align: center;
+    padding-bottom: 8px;
+}
+
+.historicalGameToggleGroupPeriods {
+    justify-content: center;
+}
+
+@media (max-width: 1180px) {
+    .historicalGameDetailTopGrid {
+        grid-template-columns: minmax(0, 0.92fr) minmax(390px, 1.08fr);
+    }
+}
+
+@media (max-width: 1120px) {
+    .historicalGameDetailTopGrid {
+        grid-template-columns: 1fr;
+        gap: 22px;
+        padding: 20px;
+    }
+
+    .historicalGameRinkCard,
+    .historicalGameBoxscoreCard,
+    .historicalGameDetailRightRail {
+        grid-column: auto;
+        grid-row: auto;
+    }
+
+    .historicalGameSectionHeaderStatsSide {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .historicalGameToggleGroupPeriodsSide {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 760px) {
+    .historicalGameDetailTopGrid {
+        gap: 20px;
+        margin-top: 20px;
+        padding: 16px;
+        border-radius: 24px;
+    }
+
+    .historicalGameFilterRow,
+    .historicalGameTopRightControls,
+    .historicalGameInlineControlGroup {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .historicalGameInlineField,
+    .historicalGameInlineFieldBoxscore {
+        min-width: 0;
+    }
+
+    .historicalGameSegmentButtonTeam {
+        flex: 1 1 auto;
+    }
+
+    .historicalGameSectionHeaderStatsSide {
+        gap: 10px;
+    }
+}

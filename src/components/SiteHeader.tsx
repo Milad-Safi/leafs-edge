@@ -11,10 +11,12 @@ type SiteHeaderProps = {
 };
 
 const navLabelMap: Record<string, string> = {
-    "/compare": "Compare",
-    "/trends": "Momentum",
-    "/visualizer": "Metrics",
-    "/edge": "Edge",
+    "/compare": "Matchups",
+    "/trends": "Forecasts",
+    "/visualizer": "Visuals",
+    "/games": "Boxscores",
+    "/injuries": "Injuries",
+    "/edge": "Stats",
 };
 
 export default function SiteHeader({
@@ -47,7 +49,7 @@ export default function SiteHeader({
                     className="siteWordmark"
                     onClick={handleWordmarkClick}
                 >
-                    Leafs Edge
+                    Home
                 </Link>
 
                 <nav className="siteNav" aria-label="Primary">

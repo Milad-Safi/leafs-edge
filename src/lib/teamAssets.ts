@@ -27,7 +27,7 @@ export const TEAM_LOGO_BY_LABEL: Record<string, string> = {
     "St. Louis Blues": "/St. Louis.png",
     "Tampa Bay Lightning": "/Tampa Bay.png",
     "Toronto Maple Leafs": "/Toronto.png",
-    "Utah Hockey Club": "/UTA.png",
+    "Utah Mammoth": "/UTA.png",
     "Vancouver Canucks": "/Vancouver.png",
     "Vegas Golden Knights": "/Vegas.png",
     "Washington Capitals": "/Washington.png",
