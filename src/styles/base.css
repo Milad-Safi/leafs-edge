@@ -1,75 +1,89 @@
 html,
 body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  min-height: 100%;
-  background: #05070b;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    background: #05070b;
+    overflow-x: hidden;
+    overflow-x: clip;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
 }
 
 body {
-  overflow-x: hidden;
-  color: #ffffff;
+    color: #ffffff;
+}
+
+img,
+svg,
+canvas,
+video {
+    max-width: 100%;
 }
 
 html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 88px;
+    scroll-behavior: smooth;
+    scroll-padding-top: 88px;
 }
 
 .homePage {
-  min-height: 100vh;
-  background: #05070b;
-  color: #ffffff;
+    min-height: 100vh;
+    background: #05070b;
+    color: #ffffff;
 }
 
 .homePage section[id] {
-  scroll-margin-top: 88px;
+    scroll-margin-top: 88px;
 }
 
 [data-reveal] {
-  opacity: 0;
-  transform: translateY(-30px);
-  transition:
-    opacity 0.8s ease,
-    transform 0.9s ease;
-  will-change: opacity, transform;
+    opacity: 0;
+    transform: translateY(-30px);
+    transition:
+        opacity 0.8s ease,
+        transform 0.9s ease;
+    will-change: opacity, transform;
 }
 
 [data-reveal].isVisible {
-  opacity: 1;
-  transform: translateY(0);
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .revealDelayOne {
-  transition-delay: 0.12s;
+    transition-delay: 0.12s;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
+    html {
+        scroll-behavior: auto;
+    }
 
-  [data-reveal] {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
+    [data-reveal] {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
 
-  .primaryButton,
-  .secondaryButton,
-  .siteNavLink,
-  .headerPrimaryAction {
-    transition: none;
-  }
+    .primaryButton,
+    .secondaryButton,
+    .siteNavLink,
+    .headerPrimaryAction {
+        transition: none;
+    }
 }
 
 @media (max-width: 640px) {
-  html {
-    scroll-padding-top: 104px;
-  }
+    html {
+        scroll-padding-top: 98px;
+    }
 
-  .homePage section[id] {
-    scroll-margin-top: 104px;
-  }
+    .homePage section[id] {
+        scroll-margin-top: 98px;
+    }
 }

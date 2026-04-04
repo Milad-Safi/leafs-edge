@@ -11,7 +11,8 @@ type HistoricalGamesResultsProps = {
 
 function getTeamLabel(teamAbbrev: string) {
     return (
-        NHL_TEAM_OPTIONS.find((team) => team.value === teamAbbrev)?.label ?? teamAbbrev
+        NHL_TEAM_OPTIONS.find((team) => team.value === teamAbbrev)?.label ??
+        teamAbbrev
     );
 }
 
@@ -57,19 +58,13 @@ export default function HistoricalGamesResults({
     }
 
     const { page, totalPages, totalGames } = data.pagination;
-    const { team, season, opponent } = data.filters;
-    const teamLabel = getTeamLabel(team);
+    const { opponent } = data.filters;
     const opponentLabel = opponent ? getTeamLabel(opponent) : null;
 
     return (
         <section className="historicalGamesResultsWrap">
             <div className="historicalGamesResultsHeader">
-                <div>
-                    <p className="historicalGamesEyebrow">Results</p>
-                    <h2 className="historicalGamesResultsTitle">
-                        {teamLabel} · {season}
-                    </h2>
-                </div>
+                <h2 className="historicalGamesResultsTitle">Select a game</h2>
 
                 <p className="historicalGamesResultsMeta">
                     {totalGames} games

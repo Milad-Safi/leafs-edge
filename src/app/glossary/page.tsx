@@ -339,96 +339,24 @@ const glossaryItems = [
 
 export default function GlossaryPage() {
     return (
-        <main
-            style={{
-                minHeight: "100vh",
-                background: "#f5f7fa",
-                color: "#111827",
-                padding: "48px 0 88px",
-            }}
-        >
-            <section
-                style={{
-                    width: "min(1280px, 92%)",
-                    margin: "0 auto",
-                }}
-            >
-                <div
-                    style={{
-                        marginBottom: "34px",
-                    }}
-                >
-                    <p
-                        style={{
-                            margin: "0 0 10px",
-                            color: "#667085",
-                            fontSize: "0.8rem",
-                            fontWeight: 800,
-                            letterSpacing: "0.12em",
-                            textTransform: "uppercase",
-                        }}
-                    >
-                        Glossary
-                    </p>
+        <main className="glossaryPage">
+            <section className="glossarySection">
+                <div className="glossaryHeader">
+                    <p className="glossaryEyebrow">Glossary</p>
 
-                    <h1
-                        style={{
-                            margin: 0,
-                            color: "#111827",
-                            fontSize: "clamp(2.2rem, 4.8vw, 4.2rem)",
-                            lineHeight: 1.02,
-                            letterSpacing: "-0.05em",
-                        }}
-                    >
-                        Site stat definitions
-                    </h1>
+                    <h1 className="glossaryTitle">Site stat definitions</h1>
 
-                    <p
-                        style={{
-                            maxWidth: "820px",
-                            margin: "14px 0 0",
-                            color: "#475467",
-                            fontSize: "1.02rem",
-                            lineHeight: 1.65,
-                        }}
-                    >
+                    <p className="glossaryIntro">
                         A complete reference for the stat labels, abbreviations,
                         tracking terms, and model language used across this site.
                     </p>
                 </div>
 
-                <div
-                    style={{
-                        columns: "3 280px",
-                        columnGap: "34px",
-                    }}
-                >
+                <div className="glossaryList">
                     {glossaryItems.map((item) => (
-                        <div
-                            key={item.term}
-                            style={{
-                                breakInside: "avoid",
-                                marginBottom: "18px",
-                                color: "#475467",
-                                fontSize: "0.98rem",
-                                lineHeight: 1.7,
-                            }}
-                        >
-                            <span
-                                style={{
-                                    color: "#111827",
-                                    fontWeight: 800,
-                                    letterSpacing: "0.01em",
-                                }}
-                            >
-                                {item.term}:
-                            </span>{" "}
-                            <span
-                                style={{
-                                    color: "#475467",
-                                    fontWeight: 500,
-                                }}
-                            >
+                        <div key={item.term} className="glossaryItem">
+                            <span className="glossaryTerm">{item.term}:</span>{" "}
+                            <span className="glossaryDescription">
                                 {item.description}
                             </span>
                         </div>

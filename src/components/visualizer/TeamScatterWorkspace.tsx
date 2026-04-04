@@ -39,6 +39,17 @@ export default function TeamScatterWorkspace() {
 
     const chartShellRef = useRef<HTMLDivElement | null>(null);
 
+    function mobilePointPinningDisabled() {
+        if (typeof window === "undefined") {
+            return false;
+        }
+
+        return (
+            window.innerWidth <= 820 ||
+            window.matchMedia("(hover: none) and (pointer: coarse)").matches
+        );
+    }
+
     useEffect(() => {
         let isMounted = true;
         const controller = new AbortController();
@@ -76,6 +87,22 @@ export default function TeamScatterWorkspace() {
         return () => {
             isMounted = false;
             controller.abort();
+        };
+    }, []);
+
+    useEffect(() => {
+        function syncMobileState() {
+            if (mobilePointPinningDisabled()) {
+                setPinnedTeamAbbrev(null);
+                setTooltip(null);
+            }
+        }
+
+        syncMobileState();
+        window.addEventListener("resize", syncMobileState);
+
+        return () => {
+            window.removeEventListener("resize", syncMobileState);
         };
     }, []);
 
@@ -208,6 +235,12 @@ export default function TeamScatterWorkspace() {
     }
 
     function togglePinnedTeam(teamAbbrev: string) {
+        if (mobilePointPinningDisabled()) {
+            setPinnedTeamAbbrev(null);
+            setTooltip(null);
+            return;
+        }
+
         setPinnedTeamAbbrev((current) => {
             return current === teamAbbrev ? null : teamAbbrev;
         });
