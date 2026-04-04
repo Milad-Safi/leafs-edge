@@ -1,5 +1,5 @@
 .homePage {
-    background: #05070b;
+    background: #060b14;
     min-height: 100vh;
     color: #ffffff;
 }
@@ -21,14 +21,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 38px 24px 150px;
+    padding: 38px 24px 120px;
     background:
         linear-gradient(
             180deg,
-            rgba(5, 7, 11, 0.24) 0%,
-            rgba(5, 7, 11, 0.34) 42%,
-            rgba(5, 7, 11, 0.5) 74%,
-            rgba(5, 7, 11, 0.64) 100%
+            rgba(6, 11, 20, 0.22) 0%,
+            rgba(6, 11, 20, 0.32) 42%,
+            rgba(6, 11, 20, 0.48) 74%,
+            rgba(6, 11, 20, 0.62) 100%
         ),
         url("/aaa.png");
     background-repeat: no-repeat;
@@ -46,13 +46,13 @@
     height: 260px;
     background: linear-gradient(
         180deg,
-        rgba(5, 7, 11, 0) 0%,
-        rgba(5, 7, 11, 0.015) 14%,
-        rgba(5, 7, 11, 0.04) 30%,
-        rgba(5, 7, 11, 0.08) 48%,
-        rgba(5, 7, 11, 0.14) 66%,
-        rgba(5, 7, 11, 0.22) 82%,
-        #05070b 100%
+        rgba(6, 11, 20, 0) 0%,
+        rgba(6, 11, 20, 0.015) 14%,
+        rgba(6, 11, 20, 0.04) 30%,
+        rgba(6, 11, 20, 0.08) 48%,
+        rgba(6, 11, 20, 0.14) 66%,
+        rgba(6, 11, 20, 0.22) 82%,
+        #060b14 100%
     );
     pointer-events: none;
 }
@@ -129,7 +129,7 @@
 
 .featuresBlackout {
     position: relative;
-    background: #05070b;
+    background: #060b14;
     padding: 58px 0 70px;
     scroll-margin-top: 20px;
     z-index: 2;
@@ -195,38 +195,6 @@
     transform: translateY(-2px);
     border-color: rgba(147, 197, 253, 0.14);
     box-shadow: 0 14px 28px rgba(0, 0, 0, 0.16);
-}
-
-.homeShowcase {
-    width: 100%;
-    margin-top: 150px;
-}
-
-.homeShowcaseFrame {
-    width: 90%;
-    margin: 0 auto;
-    max-width: 100%;
-    min-height: 500px;
-    border-radius: 20px;
-    border: 1px solid rgba(110, 168, 255, 0.08);
-    background:
-        linear-gradient(
-            180deg,
-            rgba(11, 27, 57, 0.44) 0%,
-            rgba(7, 19, 43, 0.7) 100%
-        ),
-        radial-gradient(
-            circle at top left,
-            rgba(96, 165, 250, 0.12),
-            transparent 38%
-        ),
-        radial-gradient(
-            circle at bottom right,
-            rgba(59, 130, 246, 0.1),
-            transparent 34%
-        );
-    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.16);
-    overflow: hidden;
 }
 
 .cardBody {
@@ -320,7 +288,7 @@
 @media (max-width: 720px) {
     .heroSection {
         min-height: 62vh;
-        padding: 42px 18px 120px;
+        padding: 42px 18px 96px;
         background-size: cover;
         background-position: center;
     }
@@ -356,14 +324,5 @@
 
     .cardBody {
         padding: 18px 18px 18px;
-    }
-
-    .homeShowcase {
-        margin-top: 60px;
-    }
-
-    .homeShowcaseFrame {
-        min-height: 220px;
-        border-radius: 16px;
     }
 }

@@ -167,3 +167,137 @@
         font-size: 0.8rem;
     }
 }
+
+.historicalGameXgStateCard {
+    width: min(100%, 960px);
+    margin-inline: auto;
+    padding: 20px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    background: rgba(8, 14, 24, 0.52);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.historicalGameXgStateCardLoading {
+    align-items: center;
+    text-align: center;
+}
+
+.historicalGameXgStateCardError {
+    border-color: rgba(241, 112, 112, 0.22);
+}
+
+.historicalGameXgStateTop {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+
+.historicalGameXgStateTeam {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.historicalGameXgStateTeamHomeSide {
+    justify-content: flex-end;
+}
+
+.historicalGameXgStateDivider {
+    width: 42px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.historicalGameXgStateLogo {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+    flex: 0 0 auto;
+}
+
+.historicalGameXgStateTeamLabel {
+    font-size: 0.84rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(220, 228, 240, 0.68);
+}
+
+.historicalGameXgStateSpinnerWrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 2px;
+}
+
+.historicalGameXgStateSpinner {
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    border: 3px solid rgba(255, 255, 255, 0.12);
+    border-top-color: #6ea8ff;
+    animation: historicalGameXgSpin 0.85s linear infinite;
+}
+
+@keyframes historicalGameXgSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.historicalGameXgStateText {
+    margin: 0;
+    color: rgba(244, 247, 252, 0.92);
+    font-size: 0.98rem;
+    font-weight: 700;
+    line-height: 1.55;
+    text-align: center;
+}
+
+.historicalGameXgStateNote {
+    margin: 0;
+    color: rgba(200, 211, 230, 0.62);
+    font-size: 0.88rem;
+    line-height: 1.55;
+    text-align: center;
+}
+
+.historicalGameXgRetryButton {
+    align-self: center;
+    min-height: 44px;
+    padding: 0 18px;
+    border: 1px solid rgba(126, 169, 255, 0.22);
+    border-radius: 12px;
+    background: #1d4ed8;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        transform 0.18s ease,
+        background 0.18s ease;
+}
+
+.historicalGameXgRetryButton:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 760px) {
+    .historicalGameXgStateTop {
+        gap: 10px;
+    }
+
+    .historicalGameXgStateDivider {
+        width: 24px;
+    }
+
+    .historicalGameXgStateLogo {
+        width: 34px;
+        height: 34px;
+    }
+}

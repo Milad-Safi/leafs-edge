@@ -278,3 +278,10 @@ export type TeamScatterApiResponse = {
     generatedAt: string;
     teams: TeamScatterTeam[];
 };
+
+export type GameExpectedGoalsResponse = {
+    game_id: number;
+    team_xg: Record<string, number>;
+    total_xg: number;
+    total_shots_modelled: number;
+};
