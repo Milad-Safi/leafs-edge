@@ -18,3 +18,18 @@ node_modules/
 
 # Zips
 *.zip
+
+# Env
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# xG generated datasets
+data/xg/*.csv
+data/xg/*.parquet
+data/xg/*.summary.json
+
+# Optional training outputs
+mlruns/

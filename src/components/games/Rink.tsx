@@ -5,9 +5,14 @@ type GameEventRinkProps = {
     mode: GameDetailChartMode;
 };
 
-function dotClassForEvent(event: HistoricalGameShotEvent) {
-    if (event.mode === "goals") {
-        return "historicalGameRinkDot historicalGameRinkDotGoal";
+function dotClassForEvent(
+    event: HistoricalGameShotEvent,
+    mode: GameDetailChartMode
+) {
+    if (event.type === "goal") {
+        return mode === "goals"
+            ? "historicalGameRinkDot historicalGameRinkDotGoal"
+            : "historicalGameRinkDot historicalGameRinkDotShot";
     }
 
     if (event.type === "blocked-shot") {
@@ -19,6 +24,17 @@ function dotClassForEvent(event: HistoricalGameShotEvent) {
     }
 
     return "historicalGameRinkDot historicalGameRinkDotShot";
+}
+
+function radiusForEvent(
+    event: HistoricalGameShotEvent,
+    mode: GameDetailChartMode
+) {
+    if (event.type === "goal" && mode === "goals") {
+        return 2.25;
+    }
+
+    return 1.75;
 }
 
 export default function GameEventRink({ events, mode }: GameEventRinkProps) {
@@ -178,8 +194,8 @@ export default function GameEventRink({ events, mode }: GameEventRinkProps) {
                             key={event.eventId}
                             cx={event.rinkX}
                             cy={event.rinkY}
-                            r={event.mode === "goals" ? 2.25 : 1.75}
-                            className={dotClassForEvent(event)}
+                            r={radiusForEvent(event, mode)}
+                            className={dotClassForEvent(event, mode)}
                         >
                             <title>{event.description}</title>
                         </circle>

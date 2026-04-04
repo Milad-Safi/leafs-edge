@@ -18,15 +18,33 @@ import {
 } from "@/components/games/Shared";
 import { fetchJson } from "@/lib/fetchJson";
 import type {
+    GameDetailChartMode,
     GameDetailPeriodKey,
     HistoricalGameDetailResponse,
     HistoricalGamePositionFilter,
+    HistoricalGameShotEvent,
 } from "@/types/games";
 
 type HistoricalGameDetailClientProps = {
     gameId: string;
     focusTeamAbbrev?: string | null;
 };
+
+function chartEventMatchesMode(
+    event: HistoricalGameShotEvent,
+    chartMode: GameDetailChartMode
+) {
+    if (chartMode === "goals") {
+        return event.type === "goal";
+    }
+
+    return (
+        event.type === "shot-on-goal" ||
+        event.type === "missed-shot" ||
+        event.type === "blocked-shot" ||
+        event.type === "goal"
+    );
+}
 
 export default function HistoricalGameDetailClient({
     gameId,
@@ -124,7 +142,7 @@ export default function HistoricalGameDetailClient({
 
         return data.chartEvents.filter((event) => {
             if (event.teamAbbrev !== chartTeam) return false;
-            if (event.mode !== chartMode) return false;
+            if (!chartEventMatchesMode(event, chartMode)) return false;
             if (chartPeriod !== "ALL" && event.period !== chartPeriod) return false;
 
             if (
@@ -244,7 +262,9 @@ export default function HistoricalGameDetailClient({
                         role="status"
                     >
                         <div className="historicalGamesSpinner" aria-hidden="true" />
-                        <h1 className="historicalGamesStateTitle">Loading game detail</h1>
+                        <h1 className="historicalGamesStateTitle">
+                            Loading game detail
+                        </h1>
                         <p className="historicalGamesStateText">
                             Pulling the box score and play-by-play for this game
                         </p>
