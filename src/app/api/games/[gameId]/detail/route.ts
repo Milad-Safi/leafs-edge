@@ -19,6 +19,8 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const REVALIDATE_SECONDS = 60 * 60 * 24;
+const XG_BACKEND_URL =
+    process.env.NHL_BACKEND_URL?.trim() || "https://leafs-edge-api.onrender.com";
 const RETRY_COUNT = 4;
 const RETRY_BASE_MS = 800;
 const OFFENSIVE_ZONE_BLUE_LINE_X = 25;
@@ -136,6 +138,13 @@ type ApiPlay = {
 
 type ApiPlayByPlay = {
     plays?: ApiPlay[];
+};
+
+type ApiGameXgResponse = {
+    game_id?: number | string;
+    team_xg?: Record<string, number | string | null | undefined>;
+    total_xg?: number | string | null;
+    total_shots_modelled?: number | string | null;
 };
 
 type ShotEventType = "shot-on-goal" | "missed-shot" | "blocked-shot" | "goal";
@@ -590,39 +599,6 @@ function formatScoreAfter(
     return `${awayTeam.abbrev} ${awayScore} · ${homeTeam.abbrev} ${homeScore}`;
 }
 
-function estimateShotXg(play: ApiPlay, isHomeTeamEvent: boolean) {
-    const type = asString(play.typeDescKey).toLowerCase();
-    if (type === "blocked-shot") return 0;
-
-    const rawX = asNullableNumber(play.details?.xCoord);
-    const rawY = asNullableNumber(play.details?.yCoord);
-    if (rawX == null || rawY == null) return 0;
-
-    const offensiveX = Math.abs(rawX);
-    const offensiveY = Math.abs(rawY);
-
-    const distance = Math.sqrt((89 - offensiveX) ** 2 + offensiveY ** 2);
-    const angle =
-        Math.atan2(offensiveY, Math.max(1, 89 - offensiveX)) * (180 / Math.PI);
-
-    let xg = 0.34 * Math.exp(-0.11 * distance) + 0.05 * Math.exp(-0.018 * angle);
-
-    const shotType = asString(play.details?.shotType).toLowerCase();
-    if (shotType.includes("tip")) xg += 0.08;
-    if (shotType.includes("deflec")) xg += 0.07;
-    if (shotType.includes("backhand")) xg += 0.03;
-    if (shotType.includes("snap")) xg += 0.02;
-    if (shotType.includes("wrap")) xg += 0.04;
-
-    if (
-        isPowerPlayForTeam(asString(play.details?.situationCode), isHomeTeamEvent)
-    ) {
-        xg += 0.02;
-    }
-
-    return Math.max(0.01, Math.min(0.65, xg));
-}
-
 function addStat(
     stats: TeamStatsMap,
     period: GameDetailPeriodKey,
@@ -758,12 +734,6 @@ function buildChartAndStats(
             }
         }
 
-        const estimatedXGoals = estimateShotXg(play, isHomeTeamEvent);
-
-        if (playType !== "blocked-shot") {
-            addStat(teamStats, period, teamAbbrev, "estimatedXGoals", estimatedXGoals);
-        }
-
         if (rawX != null && rawY != null) {
             const eventId = String(
                 play.eventId ?? `${period}-${play.timeInPeriod}-${chartEvents.length}`
@@ -812,19 +782,61 @@ function buildChartAndStats(
         }
     }
 
-    for (const period of Object.keys(teamStats) as GameDetailPeriodKey[]) {
-        for (const teamAbbrev of Object.keys(teamStats[period])) {
-            teamStats[period][teamAbbrev].estimatedXGoals = Number(
-                teamStats[period][teamAbbrev].estimatedXGoals.toFixed(2)
-            );
-        }
-    }
-
     return {
         chartEvents,
         scoringEvents,
         teamStats,
     };
+}
+
+async function fetchGameXg(gameId: string) {
+    const url = new URL("/v1/xg/game", XG_BACKEND_URL);
+    url.searchParams.set("game_id", gameId);
+
+    try {
+        const response = await fetch(url.toString(), {
+            cache: "no-store",
+            headers: { "User-Agent": "leafs-edge" },
+        });
+
+        if (response.status === 404) {
+            return null;
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                `xG backend ${response.status} ${response.statusText}`
+            );
+        }
+
+        return (await response.json()) as ApiGameXgResponse;
+    } catch (error) {
+        console.error("Game xG fetch failed", {
+            gameId,
+            backendUrl: XG_BACKEND_URL,
+            error,
+        });
+        return null;
+    }
+}
+
+function applyGameXgToTeamStats(
+    teamStats: TeamStatsMap,
+    xgPayload: ApiGameXgResponse | null,
+    homeTeam: HistoricalGameDetailTeam,
+    awayTeam: HistoricalGameDetailTeam
+) {
+    if (!xgPayload?.team_xg) {
+        return teamStats;
+    }
+
+    const homeXg = asNumber(xgPayload.team_xg[homeTeam.abbrev], 0);
+    const awayXg = asNumber(xgPayload.team_xg[awayTeam.abbrev], 0);
+
+    teamStats.ALL[homeTeam.abbrev].estimatedXGoals = homeXg;
+    teamStats.ALL[awayTeam.abbrev].estimatedXGoals = awayXg;
+
+    return teamStats;
 }
 
 export async function GET(
@@ -840,13 +852,14 @@ export async function GET(
             return NextResponse.json({ error: "Invalid game id" }, { status: 400 });
         }
 
-        const [box, pbp] = await Promise.all([
+        const [box, pbp, xgPayload] = await Promise.all([
             fetchJsonWithRetry<ApiBoxscore>(
                 `https://api-web.nhle.com/v1/gamecenter/${numericGameId}/boxscore`
             ),
             fetchJsonWithRetry<ApiPlayByPlay>(
                 `https://api-web.nhle.com/v1/gamecenter/${numericGameId}/play-by-play`
             ),
+            fetchGameXg(gameId),
         ]);
 
         const homeTeam = toTeamPayload(box.homeTeam);
@@ -906,12 +919,19 @@ export async function GET(
             awayTeam
         );
 
-        const { chartEvents, scoringEvents, teamStats } = buildChartAndStats(
+        const { chartEvents, scoringEvents, teamStats: baseTeamStats } = buildChartAndStats(
             pbp.plays ?? [],
             homeTeam,
             awayTeam,
             playerNameById,
             playerTeamById
+        );
+
+        const teamStats = applyGameXgToTeamStats(
+            baseTeamStats,
+            xgPayload,
+            homeTeam,
+            awayTeam
         );
 
         const payload: HistoricalGameDetailResponse = {
