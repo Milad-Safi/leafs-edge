@@ -1,5 +1,5 @@
 import GameEventRink from "@/components/games/Rink";
-import type { GameDetailPeriodKey, HistoricalGameDetailResponse } from "@/types/games";
+import type { HistoricalGameDetailResponse } from "@/types/games";
 
 type TeamOption = {
     value: string;
@@ -16,18 +16,12 @@ type HistoricalGameDetailShotMapPanelProps = {
     chartTeam: string;
     chartMode: "shots" | "goals";
     selectedPlayer: string;
-    chartPeriod: GameDetailPeriodKey;
     teamOptions: TeamOption[];
     chartPlayers: PlayerOption[];
-    availablePeriodOptions: Array<{
-        value: GameDetailPeriodKey;
-        label: string;
-    }>;
     filteredChartEvents: HistoricalGameDetailResponse["chartEvents"];
     onChartModeChange: (mode: "shots" | "goals") => void;
     onChartTeamChange: (team: string) => void;
     onSelectedPlayerChange: (playerId: string) => void;
-    onChartPeriodChange: (period: GameDetailPeriodKey) => void;
 };
 
 export default function HistoricalGameDetailShotMapPanel({
@@ -35,15 +29,12 @@ export default function HistoricalGameDetailShotMapPanel({
     chartTeam,
     chartMode,
     selectedPlayer,
-    chartPeriod,
     teamOptions,
     chartPlayers,
-    availablePeriodOptions,
     filteredChartEvents,
     onChartModeChange,
     onChartTeamChange,
     onSelectedPlayerChange,
-    onChartPeriodChange,
 }: HistoricalGameDetailShotMapPanelProps) {
     const activeTeamLabel =
         chartTeam === data.homeTeam.abbrev
@@ -118,25 +109,6 @@ export default function HistoricalGameDetailShotMapPanel({
                             {chartPlayers.map((player) => (
                                 <option key={player.value} value={player.value}>
                                     {player.label}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-
-                    <label className="historicalGameInlineField">
-                        <span className="historicalGamesFieldLabel">Period</span>
-                        <select
-                            className="historicalGamesSelect historicalGameInlineSelect"
-                            value={chartPeriod}
-                            onChange={(event) =>
-                                onChartPeriodChange(
-                                    event.target.value as GameDetailPeriodKey
-                                )
-                            }
-                        >
-                            {availablePeriodOptions.map((period) => (
-                                <option key={period.value} value={period.value}>
-                                    {period.label}
                                 </option>
                             ))}
                         </select>

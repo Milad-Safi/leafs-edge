@@ -94,11 +94,11 @@ export default function HistoricalGamesShell() {
             <section className="historicalGamesIntro">
                 <div>
                     <p className="historicalGamesEyebrow">Games</p>
-                    <h1 className="historicalGamesTitle">Browse historical games</h1>
+                    <h1 className="historicalGamesTitle">Search for a completed game</h1>
                 </div>
 
                 <p className="historicalGamesIntroNote">
-                    Regular season only · 2025-2026 and 2024-2025
+                    Regular season only
                 </p>
             </section>
 

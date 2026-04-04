@@ -109,7 +109,7 @@ export default function HomePage() {
                         <div className="bentoCard">
                             <div className="cardBody">
                                 <span className="cardTag">Previous Games</span>
-                                <h3 className="cardTitle">Past Game Results</h3>
+                                <h3 className="cardTitle">Past Boxscores</h3>
                                 <p className="cardText">
                                     Browse past games and search previous games
                                     since 2023 and view detailed boxscores for
@@ -159,11 +159,9 @@ export default function HomePage() {
                         <div className="bentoCard">
                             <div className="cardBody">
                                 <span className="cardTag">Model</span>
-                                <h3 className="cardTitle">Team Forecasts</h3>
+                                <h3 className="cardTitle">Team Trends</h3>
                                 <p className="cardText">
-                                    Track team momentum. Get AI-powered
-                                    predictions on any teams short-term
-                                    trajectory
+                                    Get AI-powered predictions on teams short-term direction
                                 </p>
 
                                 <Link href="/trends" className="cardButton">

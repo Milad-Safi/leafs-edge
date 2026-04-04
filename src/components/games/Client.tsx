@@ -8,11 +8,8 @@ import HistoricalGameDetailHero from "@/components/games/Hero";
 import HistoricalGameDetailShotMapPanel from "@/components/games/ShotMapPanel";
 import {
     buildDetailThemeStyle,
-    compareGoalies,
     compareSkaters,
-    PERIOD_OPTIONS,
     teamSideKey,
-    type GoalieSortKey,
     type SkaterSortKey,
     type SortDirection,
 } from "@/components/games/Shared";
@@ -20,9 +17,7 @@ import useGameExpectedGoals from "@/hooks/useGameExpectedGoals";
 import { fetchJson } from "@/lib/fetchJson";
 import type {
     GameDetailChartMode,
-    GameDetailPeriodKey,
     HistoricalGameDetailResponse,
-    HistoricalGamePositionFilter,
     HistoricalGameShotEvent,
 } from "@/types/games";
 
@@ -69,23 +64,19 @@ export default function HistoricalGameDetailClient({
     );
     const [chartMode, setChartMode] = useState<GameDetailChartMode>("shots");
     const [selectedPlayer, setSelectedPlayer] = useState<string>("ALL");
-    const [chartPeriod, setChartPeriod] = useState<GameDetailPeriodKey>("ALL");
 
     const [boxscoreTeam, setBoxscoreTeam] = useState<string>(
         focusTeamAbbrev?.toUpperCase() ?? ""
     );
-    const [positionFilter, setPositionFilter] =
-        useState<HistoricalGamePositionFilter>("skaters");
 
     const [skaterSortKey, setSkaterSortKey] = useState<SkaterSortKey>("points");
-    const [goalieSortKey, setGoalieSortKey] = useState<GoalieSortKey>("savePct");
     const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
     const {
         data: expectedGoalsData,
         loading: expectedGoalsLoading,
         error: expectedGoalsError,
-    } = useGameExpectedGoals(gameId, xgRequestKey);
+    } = useGameExpectedGoals(data ? gameId : null, xgRequestKey);
 
     useEffect(() => {
         let cancelled = false;
@@ -174,7 +165,6 @@ export default function HistoricalGameDetailClient({
         return data.chartEvents.filter((event) => {
             if (event.teamAbbrev !== chartTeam) return false;
             if (!chartEventMatchesMode(event, chartMode)) return false;
-            if (chartPeriod !== "ALL" && event.period !== chartPeriod) return false;
 
             if (
                 selectedPlayer !== "ALL" &&
@@ -185,34 +175,29 @@ export default function HistoricalGameDetailClient({
 
             return true;
         });
-    }, [chartMode, chartPeriod, chartTeam, data, selectedPlayer]);
+    }, [chartMode, chartTeam, data, selectedPlayer]);
 
     const activeSkaterRows = useMemo(() => {
         if (!data) return [];
 
         const side = teamSideKey(data, boxscoreTeam);
+        return data.playerStats[side].skaters;
+    }, [boxscoreTeam, data]);
 
-        if (positionFilter === "forwards") {
-            return data.playerStats[side].forwards;
-        }
-
-        if (positionFilter === "defencemen") {
-            return data.playerStats[side].defencemen;
-        }
-
-        if (positionFilter === "skaters") {
-            return data.playerStats[side].skaters;
-        }
-
-        return [];
-    }, [boxscoreTeam, data, positionFilter]);
-
-    const activeGoalieRows = useMemo(() => {
-        if (!data || positionFilter !== "goalies") return [];
+    const goalieRows = useMemo(() => {
+        if (!data) return [];
 
         const side = teamSideKey(data, boxscoreTeam);
-        return data.playerStats[side].goalies;
-    }, [boxscoreTeam, data, positionFilter]);
+
+        return [...data.playerStats[side].goalies].sort((left, right) => {
+            return (
+                Number(right.starter) - Number(left.starter) ||
+                right.toiSeconds - left.toiSeconds ||
+                right.saves - left.saves ||
+                left.name.localeCompare(right.name)
+            );
+        });
+    }, [boxscoreTeam, data]);
 
     const sortedSkaterRows = useMemo(() => {
         return [...activeSkaterRows].sort((left, right) =>
@@ -220,36 +205,10 @@ export default function HistoricalGameDetailClient({
         );
     }, [activeSkaterRows, skaterSortKey, sortDirection]);
 
-    const sortedGoalieRows = useMemo(() => {
-        return [...activeGoalieRows].sort((left, right) =>
-            compareGoalies(left, right, goalieSortKey, sortDirection)
-        );
-    }, [activeGoalieRows, goalieSortKey, sortDirection]);
-
     const detailThemeStyle = useMemo(() => {
         if (!data) return undefined;
         return buildDetailThemeStyle(data);
     }, [data]);
-
-    const availablePeriodOptions = useMemo(() => {
-        if (!data) {
-            return PERIOD_OPTIONS.filter((period) => period.value !== "OT");
-        }
-
-        if (data.decision === "reg") {
-            return PERIOD_OPTIONS.filter((period) => period.value !== "OT");
-        }
-
-        return PERIOD_OPTIONS;
-    }, [data]);
-
-    useEffect(() => {
-        if (!data || data.decision !== "reg") return;
-
-        if (chartPeriod === "OT") {
-            setChartPeriod("ALL");
-        }
-    }, [chartPeriod, data]);
 
     function handleSkaterSort(nextKey: SkaterSortKey) {
         if (nextKey === skaterSortKey) {
@@ -260,18 +219,6 @@ export default function HistoricalGameDetailClient({
         }
 
         setSkaterSortKey(nextKey);
-        setSortDirection(nextKey === "name" ? "asc" : "desc");
-    }
-
-    function handleGoalieSort(nextKey: GoalieSortKey) {
-        if (nextKey === goalieSortKey) {
-            setSortDirection((current) =>
-                current === "desc" ? "asc" : "desc"
-            );
-            return;
-        }
-
-        setGoalieSortKey(nextKey);
         setSortDirection(nextKey === "name" ? "asc" : "desc");
     }
 
@@ -356,31 +303,24 @@ export default function HistoricalGameDetailClient({
                         chartTeam={chartTeam}
                         chartMode={chartMode}
                         selectedPlayer={selectedPlayer}
-                        chartPeriod={chartPeriod}
                         teamOptions={teamOptions}
                         chartPlayers={chartPlayers}
-                        availablePeriodOptions={availablePeriodOptions}
                         filteredChartEvents={filteredChartEvents}
                         onChartModeChange={setChartMode}
                         onChartTeamChange={handleChartTeamChange}
                         onSelectedPlayerChange={setSelectedPlayer}
-                        onChartPeriodChange={setChartPeriod}
                     />
 
                     <HistoricalGameDetailBoxscorePanel
                         data={data}
                         teamOptions={teamOptions}
                         boxscoreTeam={boxscoreTeam}
-                        positionFilter={positionFilter}
                         sortedSkaterRows={sortedSkaterRows}
-                        sortedGoalieRows={sortedGoalieRows}
+                        goalieRows={goalieRows}
                         skaterSortKey={skaterSortKey}
-                        goalieSortKey={goalieSortKey}
                         sortDirection={sortDirection}
                         onBoxscoreTeamChange={setBoxscoreTeam}
-                        onPositionFilterChange={setPositionFilter}
                         onSkaterSort={handleSkaterSort}
-                        onGoalieSort={handleGoalieSort}
                     />
                 </section>
             </section>

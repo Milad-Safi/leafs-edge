@@ -19,8 +19,6 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const REVALIDATE_SECONDS = 60 * 60 * 24;
-const XG_BACKEND_URL =
-    process.env.NHL_BACKEND_URL?.trim() || "https://leafs-edge-api.onrender.com";
 const RETRY_COUNT = 4;
 const RETRY_BASE_MS = 800;
 const OFFENSIVE_ZONE_BLUE_LINE_X = 25;
@@ -140,12 +138,6 @@ type ApiPlayByPlay = {
     plays?: ApiPlay[];
 };
 
-type ApiGameXgResponse = {
-    game_id?: number | string;
-    team_xg?: Record<string, number | string | null | undefined>;
-    total_xg?: number | string | null;
-    total_shots_modelled?: number | string | null;
-};
 
 type ShotEventType = "shot-on-goal" | "missed-shot" | "blocked-shot" | "goal";
 
@@ -789,56 +781,6 @@ function buildChartAndStats(
     };
 }
 
-async function fetchGameXg(gameId: string) {
-    const url = new URL("/v1/xg/game", XG_BACKEND_URL);
-    url.searchParams.set("game_id", gameId);
-
-    try {
-        const response = await fetch(url.toString(), {
-            cache: "no-store",
-            headers: { "User-Agent": "leafs-edge" },
-        });
-
-        if (response.status === 404) {
-            return null;
-        }
-
-        if (!response.ok) {
-            throw new Error(
-                `xG backend ${response.status} ${response.statusText}`
-            );
-        }
-
-        return (await response.json()) as ApiGameXgResponse;
-    } catch (error) {
-        console.error("Game xG fetch failed", {
-            gameId,
-            backendUrl: XG_BACKEND_URL,
-            error,
-        });
-        return null;
-    }
-}
-
-function applyGameXgToTeamStats(
-    teamStats: TeamStatsMap,
-    xgPayload: ApiGameXgResponse | null,
-    homeTeam: HistoricalGameDetailTeam,
-    awayTeam: HistoricalGameDetailTeam
-) {
-    if (!xgPayload?.team_xg) {
-        return teamStats;
-    }
-
-    const homeXg = asNumber(xgPayload.team_xg[homeTeam.abbrev], 0);
-    const awayXg = asNumber(xgPayload.team_xg[awayTeam.abbrev], 0);
-
-    teamStats.ALL[homeTeam.abbrev].estimatedXGoals = homeXg;
-    teamStats.ALL[awayTeam.abbrev].estimatedXGoals = awayXg;
-
-    return teamStats;
-}
-
 export async function GET(
     _request: Request,
     { params }: { params: Promise<{ gameId: string }> }
@@ -852,14 +794,13 @@ export async function GET(
             return NextResponse.json({ error: "Invalid game id" }, { status: 400 });
         }
 
-        const [box, pbp, xgPayload] = await Promise.all([
+        const [box, pbp] = await Promise.all([
             fetchJsonWithRetry<ApiBoxscore>(
                 `https://api-web.nhle.com/v1/gamecenter/${numericGameId}/boxscore`
             ),
             fetchJsonWithRetry<ApiPlayByPlay>(
                 `https://api-web.nhle.com/v1/gamecenter/${numericGameId}/play-by-play`
             ),
-            fetchGameXg(gameId),
         ]);
 
         const homeTeam = toTeamPayload(box.homeTeam);
@@ -927,12 +868,7 @@ export async function GET(
             playerTeamById
         );
 
-        const teamStats = applyGameXgToTeamStats(
-            baseTeamStats,
-            xgPayload,
-            homeTeam,
-            awayTeam
-        );
+        const teamStats = baseTeamStats;
 
         const payload: HistoricalGameDetailResponse = {
             gameId,

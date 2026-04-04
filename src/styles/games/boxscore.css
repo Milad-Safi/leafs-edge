@@ -1,10 +1,41 @@
+.historicalGameBoxscoreCard {
+    --historical-boxscore-height: 690px;
+}
+
 .historicalGameBoxscoreTableWrap {
     margin-top: 12px;
-    overflow: visible;
+    height: var(--historical-boxscore-height);
+    max-height: var(--historical-boxscore-height);
+    overflow-y: auto;
     overflow-x: hidden;
+    overscroll-behavior: contain;
     border-radius: 22px;
     background: rgba(255, 255, 255, 0.02);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.24) transparent;
+}
+
+.historicalGameBoxscoreTableWrap::-webkit-scrollbar {
+    width: 10px;
+}
+
+.historicalGameBoxscoreTableWrap::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 999px;
+}
+
+.historicalGameBoxscoreTableWrap::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.historicalGameBoxscoreTableWrap::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border: 2px solid transparent;
+    background-clip: padding-box;
 }
 
 .historicalGameBoxscoreTable {
@@ -21,13 +52,16 @@
 }
 
 .historicalGameBoxscoreTable thead th {
-    position: static;
-    background: rgba(255, 255, 255, 0.03);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: rgba(14, 21, 32, 0.96);
     color: rgba(235, 241, 252, 0.84);
     font-size: 0.68rem;
     font-weight: 800;
     letter-spacing: 0.12em;
     text-transform: uppercase;
+    backdrop-filter: blur(8px);
 }
 
 .historicalGameBoxscoreTable th button {
@@ -134,9 +168,35 @@
     transition: background-color 160ms ease;
 }
 
+.historicalGameBoxscoreGoalies {
+    margin-top: 14px;
+    padding-top: 4px;
+}
+
+.historicalGameBoxscoreSectionLabel {
+    margin: 0 0 10px;
+    padding: 0 2px;
+    color: rgba(220, 228, 240, 0.62);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+@media (max-width: 1180px) {
+    .historicalGameBoxscoreCard {
+        --historical-boxscore-height: 650px;
+    }
+}
+
 @media (max-width: 760px) {
+    .historicalGameBoxscoreCard {
+        --historical-boxscore-height: 460px;
+    }
+
     .historicalGameBoxscoreTableWrap {
         border-radius: 20px;
+        overflow-y: auto;
         overflow-x: auto;
     }
 

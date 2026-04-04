@@ -1,13 +1,8 @@
-import type {
-    HistoricalGameDetailResponse,
-    HistoricalGamePositionFilter,
-} from "@/types/games";
+import type { HistoricalGameDetailResponse } from "@/types/games";
 
 import {
     formatSavePct,
-    POSITION_OPTIONS,
     sortLabel,
-    type GoalieSortKey,
     type SkaterSortKey,
     type SortDirection,
 } from "@/components/games/Shared";
@@ -21,32 +16,24 @@ type HistoricalGameDetailBoxscorePanelProps = {
     data: HistoricalGameDetailResponse;
     teamOptions: TeamOption[];
     boxscoreTeam: string;
-    positionFilter: HistoricalGamePositionFilter;
     sortedSkaterRows: HistoricalGameDetailResponse["playerStats"]["home"]["skaters"];
-    sortedGoalieRows: HistoricalGameDetailResponse["playerStats"]["home"]["goalies"];
+    goalieRows: HistoricalGameDetailResponse["playerStats"]["home"]["goalies"];
     skaterSortKey: SkaterSortKey;
-    goalieSortKey: GoalieSortKey;
     sortDirection: SortDirection;
     onBoxscoreTeamChange: (team: string) => void;
-    onPositionFilterChange: (filter: HistoricalGamePositionFilter) => void;
     onSkaterSort: (key: SkaterSortKey) => void;
-    onGoalieSort: (key: GoalieSortKey) => void;
 };
 
 export default function HistoricalGameDetailBoxscorePanel({
     data,
     teamOptions,
     boxscoreTeam,
-    positionFilter,
     sortedSkaterRows,
-    sortedGoalieRows,
+    goalieRows,
     skaterSortKey,
-    goalieSortKey,
     sortDirection,
     onBoxscoreTeamChange,
-    onPositionFilterChange,
     onSkaterSort,
-    onGoalieSort,
 }: HistoricalGameDetailBoxscorePanelProps) {
     const activeTeamLabel =
         boxscoreTeam === data.homeTeam.abbrev
@@ -80,285 +67,196 @@ export default function HistoricalGameDetailBoxscorePanel({
                             </button>
                         ))}
                     </div>
-
-                    <label className="historicalGameInlineField historicalGameInlineFieldBoxscore">
-                        <span className="historicalGamesFieldLabel">Position</span>
-                        <select
-                            className="historicalGamesSelect historicalGameInlineSelect"
-                            value={positionFilter}
-                            onChange={(event) =>
-                                onPositionFilterChange(
-                                    event.target.value as HistoricalGamePositionFilter
-                                )
-                            }
-                        >
-                            {POSITION_OPTIONS.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
                 </div>
             </div>
 
             <div className="historicalGameBoxscoreTableWrap">
-                {positionFilter === "goalies" ? (
-                    <table
-                        className={`historicalGameBoxscoreTable historicalGameBoxscoreTableGoalies historicalGameBoxscoreSort-${goalieSortKey}`}
-                    >
-                        <thead>
-                            <tr>
-                                <th>
-                                    <button
-                                        type="button"
-                                        onClick={() => onGoalieSort("name")}
-                                    >
-                                        Name
-                                        {sortLabel(
-                                            "name",
-                                            goalieSortKey,
-                                            sortDirection
-                                        )}
-                                    </button>
-                                </th>
-                                <th>
-                                    <button
-                                        type="button"
-                                        onClick={() => onGoalieSort("shotsAgainst")}
-                                    >
-                                        SA
-                                        {sortLabel(
-                                            "shotsAgainst",
-                                            goalieSortKey,
-                                            sortDirection
-                                        )}
-                                    </button>
-                                </th>
-                                <th>
-                                    <button
-                                        type="button"
-                                        onClick={() => onGoalieSort("saves")}
-                                    >
-                                        SV
-                                        {sortLabel(
-                                            "saves",
-                                            goalieSortKey,
-                                            sortDirection
-                                        )}
-                                    </button>
-                                </th>
-                                <th>
-                                    <button
-                                        type="button"
-                                        onClick={() => onGoalieSort("savePct")}
-                                    >
-                                        SV%
-                                        {sortLabel(
-                                            "savePct",
-                                            goalieSortKey,
-                                            sortDirection
-                                        )}
-                                    </button>
-                                </th>
-                                <th>
-                                    <button
-                                        type="button"
-                                        onClick={() => onGoalieSort("goalsAgainst")}
-                                    >
-                                        GA
-                                        {sortLabel(
-                                            "goalsAgainst",
-                                            goalieSortKey,
-                                            sortDirection
-                                        )}
-                                    </button>
-                                </th>
-                                <th>
-                                    <button
-                                        type="button"
-                                        onClick={() => onGoalieSort("toiSeconds")}
-                                    >
-                                        TOI
-                                        {sortLabel(
-                                            "toiSeconds",
-                                            goalieSortKey,
-                                            sortDirection
-                                        )}
-                                    </button>
-                                </th>
+                <table
+                    className={`historicalGameBoxscoreTable historicalGameBoxscoreTableSkaters historicalGameBoxscoreSort-${skaterSortKey}`}
+                >
+                    <thead>
+                        <tr>
+                            <th>
+                                <button
+                                    type="button"
+                                    onClick={() => onSkaterSort("name")}
+                                >
+                                    Name
+                                    {sortLabel(
+                                        "name",
+                                        skaterSortKey,
+                                        sortDirection
+                                    )}
+                                </button>
+                            </th>
+                            <th>
+                                <button
+                                    type="button"
+                                    onClick={() => onSkaterSort("goals")}
+                                >
+                                    G
+                                    {sortLabel(
+                                        "goals",
+                                        skaterSortKey,
+                                        sortDirection
+                                    )}
+                                </button>
+                            </th>
+                            <th>
+                                <button
+                                    type="button"
+                                    onClick={() => onSkaterSort("assists")}
+                                >
+                                    A
+                                    {sortLabel(
+                                        "assists",
+                                        skaterSortKey,
+                                        sortDirection
+                                    )}
+                                </button>
+                            </th>
+                            <th>
+                                <button
+                                    type="button"
+                                    onClick={() => onSkaterSort("points")}
+                                >
+                                    P
+                                    {sortLabel(
+                                        "points",
+                                        skaterSortKey,
+                                        sortDirection
+                                    )}
+                                </button>
+                            </th>
+                            <th>
+                                <button
+                                    type="button"
+                                    onClick={() => onSkaterSort("shots")}
+                                >
+                                    S
+                                    {sortLabel(
+                                        "shots",
+                                        skaterSortKey,
+                                        sortDirection
+                                    )}
+                                </button>
+                            </th>
+                            <th>
+                                <button
+                                    type="button"
+                                    onClick={() => onSkaterSort("toiSeconds")}
+                                >
+                                    TOI
+                                    {sortLabel(
+                                        "toiSeconds",
+                                        skaterSortKey,
+                                        sortDirection
+                                    )}
+                                </button>
+                            </th>
+                            <th>
+                                <button
+                                    type="button"
+                                    onClick={() => onSkaterSort("hits")}
+                                >
+                                    H
+                                    {sortLabel(
+                                        "hits",
+                                        skaterSortKey,
+                                        sortDirection
+                                    )}
+                                </button>
+                            </th>
+                            <th>
+                                <button
+                                    type="button"
+                                    onClick={() => onSkaterSort("blocks")}
+                                >
+                                    B
+                                    {sortLabel(
+                                        "blocks",
+                                        skaterSortKey,
+                                        sortDirection
+                                    )}
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {sortedSkaterRows.map((player) => (
+                            <tr key={`skater-${player.playerId}`}>
+                                <td>
+                                    <div className="historicalGamePlayerCell">
+                                        <span className="historicalGamePlayerNumber">
+                                            {player.sweaterNumber || "—"}
+                                        </span>
+                                        <span className="historicalGamePlayerNameText">
+                                            {player.name}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>{player.goals}</td>
+                                <td>{player.assists}</td>
+                                <td>{player.points}</td>
+                                <td>{player.shots}</td>
+                                <td>{player.toi || "—"}</td>
+                                <td>{player.hits}</td>
+                                <td>{player.blocks}</td>
                             </tr>
-                        </thead>
+                        ))}
+                    </tbody>
+                </table>
 
-                        <tbody>
-                            {sortedGoalieRows.map((player) => (
-                                <tr key={player.playerId}>
-                                    <td>
-                                        <div className="historicalGamePlayerCell">
-                                            <span className="historicalGamePlayerNumber">
-                                                {player.sweaterNumber || "—"}
-                                            </span>
+                {goalieRows.length > 0 ? (
+                    <div className="historicalGameBoxscoreGoalies">
+                        <p className="historicalGameBoxscoreSectionLabel">Goalies</p>
 
-                                            <span className="historicalGamePlayerNameWrap">
-                                                <span className="historicalGamePlayerNameText">
-                                                    {player.name}
+                        <table className="historicalGameBoxscoreTable historicalGameBoxscoreTableGoalies">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>SA</th>
+                                    <th>SV</th>
+                                    <th>SV%</th>
+                                    <th>GA</th>
+                                    <th>TOI</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {goalieRows.map((player) => (
+                                    <tr key={`goalie-${player.playerId}`}>
+                                        <td>
+                                            <div className="historicalGamePlayerCell">
+                                                <span className="historicalGamePlayerNumber">
+                                                    {player.sweaterNumber || "—"}
                                                 </span>
 
-                                                {player.starter ? (
-                                                    <span className="historicalGamePlayerBadge">
-                                                        Starter
+                                                <span className="historicalGamePlayerNameWrap">
+                                                    <span className="historicalGamePlayerNameText">
+                                                        {player.name}
                                                     </span>
-                                                ) : null}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td>{player.shotsAgainst}</td>
-                                    <td>{player.saves}</td>
-                                    <td>{formatSavePct(player.savePct)}</td>
-                                    <td>{player.goalsAgainst}</td>
-                                    <td>{player.toi || "—"}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                ) : (
-                    <table
-                        className={`historicalGameBoxscoreTable historicalGameBoxscoreTableSkaters historicalGameBoxscoreSort-${skaterSortKey}`}
-                    >
-                        <thead>
-                            <tr>
-                                <th>
-                                    <button
-                                        type="button"
-                                        onClick={() => onSkaterSort("name")}
-                                    >
-                                        Name
-                                        {sortLabel(
-                                            "name",
-                                            skaterSortKey,
-                                            sortDirection
-                                        )}
-                                    </button>
-                                </th>
-                                <th>
-                                    <button
-                                        type="button"
-                                        onClick={() => onSkaterSort("goals")}
-                                    >
-                                        G
-                                        {sortLabel(
-                                            "goals",
-                                            skaterSortKey,
-                                            sortDirection
-                                        )}
-                                    </button>
-                                </th>
-                                <th>
-                                    <button
-                                        type="button"
-                                        onClick={() => onSkaterSort("assists")}
-                                    >
-                                        A
-                                        {sortLabel(
-                                            "assists",
-                                            skaterSortKey,
-                                            sortDirection
-                                        )}
-                                    </button>
-                                </th>
-                                <th>
-                                    <button
-                                        type="button"
-                                        onClick={() => onSkaterSort("points")}
-                                    >
-                                        P
-                                        {sortLabel(
-                                            "points",
-                                            skaterSortKey,
-                                            sortDirection
-                                        )}
-                                    </button>
-                                </th>
-                                <th>
-                                    <button
-                                        type="button"
-                                        onClick={() => onSkaterSort("shots")}
-                                    >
-                                        S
-                                        {sortLabel(
-                                            "shots",
-                                            skaterSortKey,
-                                            sortDirection
-                                        )}
-                                    </button>
-                                </th>
-                                <th>
-                                    <button
-                                        type="button"
-                                        onClick={() => onSkaterSort("toiSeconds")}
-                                    >
-                                        TOI
-                                        {sortLabel(
-                                            "toiSeconds",
-                                            skaterSortKey,
-                                            sortDirection
-                                        )}
-                                    </button>
-                                </th>
-                                <th>
-                                    <button
-                                        type="button"
-                                        onClick={() => onSkaterSort("hits")}
-                                    >
-                                        H
-                                        {sortLabel(
-                                            "hits",
-                                            skaterSortKey,
-                                            sortDirection
-                                        )}
-                                    </button>
-                                </th>
-                                <th>
-                                    <button
-                                        type="button"
-                                        onClick={() => onSkaterSort("blocks")}
-                                    >
-                                        B
-                                        {sortLabel(
-                                            "blocks",
-                                            skaterSortKey,
-                                            sortDirection
-                                        )}
-                                    </button>
-                                </th>
-                            </tr>
-                        </thead>
 
-                        <tbody>
-                            {sortedSkaterRows.map((player) => (
-                                <tr key={player.playerId}>
-                                    <td>
-                                        <div className="historicalGamePlayerCell">
-                                            <span className="historicalGamePlayerNumber">
-                                                {player.sweaterNumber || "—"}
-                                            </span>
-                                            <span className="historicalGamePlayerNameText">
-                                                {player.name}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td>{player.goals}</td>
-                                    <td>{player.assists}</td>
-                                    <td>{player.points}</td>
-                                    <td>{player.shots}</td>
-                                    <td>{player.toi || "—"}</td>
-                                    <td>{player.hits}</td>
-                                    <td>{player.blocks}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
+                                                    {player.starter ? (
+                                                        <span className="historicalGamePlayerBadge">
+                                                            Starter
+                                                        </span>
+                                                    ) : null}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>{player.shotsAgainst}</td>
+                                        <td>{player.saves}</td>
+                                        <td>{formatSavePct(player.savePct)}</td>
+                                        <td>{player.goalsAgainst}</td>
+                                        <td>{player.toi || "—"}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : null}
             </div>
         </article>
     );
