@@ -17,11 +17,11 @@
 .heroSection {
     position: relative;
     width: 100%;
-    min-height: 84vh;
+    min-height: 68vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 52px 24px 150px;
+    padding: 38px 24px 120px;
     background:
         linear-gradient(
             180deg,
@@ -33,7 +33,7 @@
         url("/aaa.png");
     background-repeat: no-repeat;
     background-size: 100% auto;
-    background-position: center 30%;
+    background-position: center 32%;
     overflow: hidden;
 }
 
@@ -65,7 +65,7 @@
 
 .heroCopy {
     position: relative;
-    top: -18px;
+    top: -31px;
     width: min(680px, 100%);
     margin: 0 auto;
     display: flex;
@@ -287,141 +287,42 @@
 
 @media (max-width: 720px) {
     .heroSection {
-        min-height: 56svh;
-        padding: 28px 16px 64px;
+        min-height: 62vh;
+        padding: 42px 18px 96px;
         background-size: cover;
         background-position: center;
     }
 
     .heroSection::after {
-        height: 140px;
-    }
-
-    .heroStack {
-        padding: 0 16px;
+        height: 180px;
     }
 
     .heroCopy {
-        top: 0;
-        width: min(640px, 100%);
+        top: -16px;
+        width: min(620px, 100%);
     }
 
     .heroTitle {
-        max-width: 9ch;
-        font-size: clamp(2.05rem, 11vw, 3.35rem);
+        font-size: clamp(2.15rem, 9.5vw, 3.5rem);
     }
 
     .heroText {
-        max-width: 32ch;
-        font-size: 0.88rem;
-        line-height: 1.45;
-    }
-
-    .heroActions {
-        margin-top: 18px;
-    }
-
-    .primaryButton {
-        min-height: 40px;
-        padding: 0 18px;
-        font-size: 0.86rem;
+        font-size: 0.9rem;
     }
 
     .featuresBlackout {
-        padding: 24px 0 46px;
+        padding: 34px 0 56px;
     }
 
     .featuresContent {
-        width: min(1120px, 100%);
-        padding: 0 16px;
-    }
-
-    .featuresIntro {
-        margin: 0 auto 22px;
-    }
-
-    .featuresIntroTitle {
-        font-size: clamp(1.7rem, 8vw, 2.2rem);
-    }
-
-    .featuresIntroText {
-        font-size: 0.88rem;
-        line-height: 1.55;
+        padding: 0 14px;
     }
 
     .bentoGrid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-    }
-
-    .bentoCard {
-        min-height: 184px;
-        border-radius: 18px;
+        grid-template-columns: 1fr;
     }
 
     .cardBody {
-        padding: 14px;
-    }
-
-    .cardTag {
-        margin-bottom: 8px;
-        font-size: 0.58rem;
-    }
-
-    .cardTitle {
-        margin: 0 0 8px;
-        font-size: 1rem;
-        line-height: 1.1;
-    }
-
-    .cardText {
-        margin: 0 0 10px;
-        font-size: 0.78rem;
-        line-height: 1.38;
-        display: -webkit-box;
-        line-clamp: 3;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .cardButton {
-        width: 100%;
-        min-height: 34px;
-        padding: 0 10px;
-        justify-content: center;
-        font-size: 0.78rem;
-    }
-}
-
-@media (max-width: 420px) {
-    .heroTitle {
-        font-size: clamp(1.95rem, 11.5vw, 3rem);
-    }
-
-    .bentoGrid {
-        gap: 10px;
-    }
-
-    .bentoCard {
-        min-height: 172px;
-    }
-
-    .cardBody {
-        padding: 12px;
-    }
-
-    .cardTitle {
-        font-size: 0.94rem;
-    }
-
-    .cardText {
-        font-size: 0.74rem;
-        line-clamp: 2;
-        -webkit-line-clamp: 2;
-    }
-
-    .cardButton {
-        font-size: 0.74rem;
+        padding: 18px 18px 18px;
     }
 }

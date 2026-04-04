@@ -472,12 +472,14 @@
 
 @media (max-width: 900px) {
     .visualizerWorkspace {
-        width: min(100%, calc(100% - 24px));
-        padding-top: 16px;
+        width: min(100%, calc(100% - 20px));
+        padding-top: 14px;
+        padding-bottom: 32px;
     }
 
     .visualizerPresetStrip {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
     }
 
     .visualizerHeaderTop,
@@ -487,8 +489,25 @@
         flex-direction: column;
     }
 
+    .visualizerPresetButton {
+        min-height: 42px;
+        padding: 8px 10px;
+        border-radius: 14px;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .visualizerPresetLabel {
+        font-size: 0.56rem;
+        line-height: 1.1;
+        letter-spacing: 0.11em;
+    }
+
     .visualizerChartControls {
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        width: 100%;
     }
 
     .visualizerCompactSelectCard {
@@ -504,16 +523,97 @@
         border-radius: 20px;
     }
 
+    .visualizerPresetStrip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .visualizerPresetButton {
+        min-height: 38px;
+        padding: 6px 8px;
+        border-radius: 12px;
+    }
+
+    .visualizerPresetLabel {
+        font-size: 0.52rem;
+        letter-spacing: 0.1em;
+    }
+
+    .visualizerChartTitle {
+        font-size: 1.08rem;
+        line-height: 1.08;
+    }
+
+    .visualizerChartMeta {
+        font-size: 0.76rem;
+    }
+
+    .visualizerCompactSelect {
+        min-height: 38px;
+        padding: 8px 10px;
+        font-size: 0.92rem;
+    }
+
     .visualizerChartShell {
         border-radius: 16px;
     }
 
+    .visualizerTeamList {
+        max-height: none;
+    }
+
     .visualizerTeamRow {
-        flex-direction: column;
-        align-items: flex-start;
+        padding: 10px 12px;
+    }
+
+    .visualizerTeamRowLogo {
+        width: 24px;
+        height: 24px;
+    }
+
+    .visualizerTeamRowName {
+        font-size: 0.82rem;
+    }
+
+    .visualizerTeamRowAbbrev,
+    .visualizerTeamRowValues {
+        font-size: 0.68rem;
+    }
+}
+
+@media (max-width: 520px) {
+    .visualizerPresetStrip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+    }
+
+    .visualizerPresetButton {
+        min-height: 34px;
+        padding: 5px 6px;
+        border-radius: 10px;
+    }
+
+    .visualizerPresetLabel {
+        font-size: 0.48rem;
+        letter-spacing: 0.08em;
+    }
+
+    .visualizerChartControls {
+        grid-template-columns: 1fr;
+    }
+
+    .visualizerTeamRow {
+        flex-direction: row;
+        align-items: center;
     }
 
     .visualizerTeamRowValues {
-        text-align: left;
+        text-align: right;
+    }
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .visualizerTooltip {
+        display: none;
     }
 }

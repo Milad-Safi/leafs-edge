@@ -12,14 +12,15 @@
 .siteHeaderInner {
     width: min(1240px, 100%);
     margin: 0 auto;
-    min-height: 76px;
-    padding: 0 40px;
+    min-height: 76px; 
+    padding: 0 40px; 
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 40px;
+    justify-content: center; 
+    gap: 40px; 
 }
 
+/* The Boosted & Pushed Forward Home Button */
 .siteWordmark {
     flex: 0 0 auto;
     background: #ffffff;
@@ -45,11 +46,12 @@
     color: #000000;
 }
 
+/* Nav Groups - Fixes the mashed text */
 .siteNav {
     display: flex;
     align-items: center;
-    gap: 32px;
-    flex: 1;
+    gap: 32px; /* Adds space between links */
+    flex: 1; 
 }
 
 .siteNav:first-of-type {
@@ -99,12 +101,13 @@
     border-radius: 999px;
 }
 
+/* --- Responsive Media Queries --- */
+
 @media (max-width: 900px) {
     .siteHeaderInner {
         padding: 0 24px;
         gap: 24px;
     }
-
     .siteNav {
         gap: 20px;
     }
@@ -120,9 +123,9 @@
         width: 100%;
         min-height: 0;
         padding: 14px 16px;
-        justify-content: flex-start;
         align-items: center;
-        gap: 10px;
+        justify-content: center;
+        gap: 12px;
         flex-wrap: nowrap;
         overflow-x: auto;
         overflow-y: hidden;
@@ -137,40 +140,45 @@
     }
 
     .siteNav {
-        display: contents;
+        width: auto;
+        flex: 0 0 auto;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: nowrap;
     }
 
     .siteNav:first-of-type,
     .siteNav:last-of-type {
-        justify-content: initial;
+        justify-content: center;
     }
 
     .siteWordmark,
     .siteNavLink {
         flex: 0 0 auto;
-        min-height: 42px;
-        scroll-snap-align: start;
+        scroll-snap-align: center;
     }
 
     .siteWordmark {
-        margin: 0;
-        padding: 0 20px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 999px;
-        transform: none;
-        font-size: 0.9rem;
-        box-shadow: 0 4px 14px rgba(255, 255, 255, 0.2);
+        order: 0;
+        margin: 0 4px;
+        padding: 0 28px;
+        min-height: 52px;
+        border-radius: 20px;
+        box-shadow: 0 8px 24px rgba(255, 255, 255, 0.18);
+        position: sticky;
+        left: 50%;
+        z-index: 3;
+        transform: translateX(-50%);
     }
 
     .siteWordmark:hover {
-        transform: none;
-        box-shadow: 0 4px 14px rgba(255, 255, 255, 0.2);
+        transform: translateX(-50%);
+        box-shadow: 0 8px 24px rgba(255, 255, 255, 0.18);
     }
 
     .siteNavLink {
-        padding: 0 18px;
+        min-height: 46px;
+        padding: 0 22px;
         border-radius: 999px;
         border: 1px solid rgba(255, 255, 255, 0.08);
         background: rgba(255, 255, 255, 0.04);

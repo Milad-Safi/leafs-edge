@@ -4,16 +4,12 @@
     }
 
     .compareHeroWrap {
-        grid-template-columns: 1fr;
-        gap: 14px;
-    }
-
-    .compareHeroVsWrap {
-        order: 2;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        gap: 12px;
     }
 
     .compareHeroCardRight .compareHeroCardInner {
-        flex-direction: row;
+        flex-direction: row-reverse;
     }
 
     .compareHeroCardRight .compareHeroContent {
@@ -21,13 +17,13 @@
     }
 
     .compareGoalieHead {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     }
 
     .compareGoalieHeadVs {
         width: 48px;
         height: 48px;
-        margin: 0 auto;
+        margin: auto 0;
     }
 
     .compareSectionHeaderSplit {
@@ -73,10 +69,11 @@
         flex-direction: column;
         align-items: stretch;
         gap: 10px;
+        margin-bottom: 14px;
     }
 
     .compareResultsTitle {
-        font-size: 1.55rem;
+        font-size: 1.45rem;
     }
 
     .compareResultsBadges {
@@ -84,9 +81,9 @@
     }
 
     .compareResultsBadge {
-        min-height: 34px;
-        padding: 0 12px;
-        font-size: 0.76rem;
+        min-height: 32px;
+        padding: 0 10px;
+        font-size: 0.72rem;
     }
 
     .compareControlsGrid {
@@ -99,19 +96,20 @@
     }
 
     .compareSelect {
-        min-height: 46px;
+        min-height: 44px;
         padding: 0 12px;
         border-radius: 14px;
-        font-size: 0.92rem;
+        font-size: 0.9rem;
     }
 
     .compareHeroWrap {
-        gap: 10px;
+        grid-template-columns: minmax(0, 1fr) 52px minmax(0, 1fr);
+        gap: 8px;
         margin-bottom: 6px;
     }
 
     .compareHeroCard {
-        min-height: 0;
+        min-height: 116px;
         border-radius: 22px;
     }
 
@@ -122,13 +120,13 @@
     }
 
     .compareHeroCardInner {
-        padding: 14px 16px;
-        gap: 12px;
-        justify-content: flex-start;
+        padding: 14px 12px;
+        gap: 10px;
+        flex-direction: column;
     }
 
     .compareHeroCardRight .compareHeroCardInner {
-        flex-direction: row;
+        flex-direction: column;
     }
 
     .compareHeroLogoShell {
@@ -139,30 +137,35 @@
     }
 
     .compareHeroLogo {
-        width: 42px;
-        height: 42px;
+        width: 40px;
+        height: 40px;
     }
 
-    .compareHeroContent {
-        justify-content: flex-start;
-        text-align: left;
-    }
-
+    .compareHeroContent,
     .compareHeroCardRight .compareHeroContent {
-        text-align: left;
+        text-align: center;
     }
 
     .compareHeroName {
-        font-size: clamp(1.05rem, 5.8vw, 1.35rem);
+        font-size: 0.96rem;
         line-height: 1.02;
-        text-wrap: pretty;
+        text-wrap: balance;
     }
 
     .compareHeroVs {
-        width: 54px;
-        height: 54px;
-        font-size: 0.86rem;
+        width: 52px;
+        height: 52px;
+        font-size: 0.82rem;
         letter-spacing: 0.1em;
+    }
+
+    .compareRows,
+    .compareMatchupGroup,
+    .compareGoalieHeadToHead,
+    .compareGoalieSectionHeader,
+    .compareSectionHeader,
+    .compareSectionHeaderSplit {
+        width: 100%;
     }
 
     .StatRow {
@@ -170,15 +173,15 @@
     }
 
     .StatRowContent {
-        grid-template-columns: minmax(72px, 0.95fr) minmax(86px, 1.15fr) minmax(72px, 0.95fr);
+        grid-template-columns: minmax(64px, 0.9fr) minmax(88px, 1.15fr) minmax(64px, 0.9fr);
         gap: 8px;
-        padding: 12px 14px;
+        padding: 10px 12px;
         text-align: center;
     }
 
     .StatRowValue {
-        font-size: 0.9rem;
-        line-height: 1.12;
+        font-size: 0.84rem;
+        line-height: 1.08;
     }
 
     .StatRowValue.left {
@@ -190,52 +193,93 @@
     }
 
     .StatRowLabel {
-        font-size: 0.72rem;
-        line-height: 1.15;
+        font-size: 0.66rem;
+        line-height: 1.1;
         letter-spacing: 0.02em;
     }
 
     .compareSectionTitle {
-        font-size: 1rem;
-    }
-
-    .compareSectionText {
-        font-size: 0.84rem;
-    }
-
-    .compareMetaPill {
-        min-height: 32px;
-        padding: 0 11px;
-        font-size: 0.72rem;
-    }
-
-    .compareGoalieProfileMain {
-        gap: 10px;
-        min-height: 68px;
-    }
-
-    .compareGoaliePortraitShell {
-        width: 58px;
-        height: 58px;
-        flex-basis: 58px;
-    }
-
-    .compareGoalieProfileName {
         font-size: 0.98rem;
     }
 
-    .goalieCompareRowContent {
-        grid-template-columns: minmax(64px, 0.95fr) minmax(102px, 1.15fr) minmax(64px, 0.95fr);
+    .compareSectionText {
+        font-size: 0.82rem;
+    }
+
+    .compareMetaPill {
+        min-height: 30px;
+        padding: 0 10px;
+        font-size: 0.7rem;
+    }
+
+    .compareGoalieHead {
+        grid-template-columns: minmax(0, 1fr) 52px minmax(0, 1fr);
         gap: 8px;
-        padding: 0 12px;
+    }
+
+    .compareGoalieProfileCard {
+        padding: 12px 10px;
+        border-radius: 20px;
+    }
+
+    .compareGoalieProfileMain {
+        flex-direction: column;
+        justify-content: center;
+        gap: 8px;
+        min-height: 110px;
+    }
+
+    .compareGoalieProfileCardRight .compareGoalieProfileMain {
+        flex-direction: column;
+    }
+
+    .compareGoalieProfileText {
+        justify-content: center;
+        text-align: center;
+    }
+
+    .compareGoalieProfileCardRight {
+        text-align: center;
+    }
+
+    .compareGoaliePortraitShell {
+        width: 56px;
+        height: 56px;
+        flex-basis: 56px;
+        border-radius: 18px;
+    }
+
+    .compareGoalieProfileName {
+        font-size: 0.94rem;
+        line-height: 1.04;
+    }
+
+    .compareGoalieHeadVs {
+        width: 52px;
+        height: 52px;
+        font-size: 0.78rem;
+    }
+
+    .goalieCompareRow {
+        min-height: 50px;
+        border-radius: 16px;
+    }
+
+    .goalieCompareRowContent {
+        grid-template-columns: minmax(54px, 0.85fr) minmax(88px, 1.2fr) minmax(54px, 0.85fr);
+        gap: 8px;
+        min-height: 50px;
+        padding: 0 10px;
     }
 
     .goalieCompareRowValue {
-        font-size: 0.84rem;
+        font-size: 0.82rem;
+        line-height: 1.05;
     }
 
     .goalieCompareRowLabel {
-        font-size: 0.72rem;
+        font-size: 0.68rem;
+        line-height: 1.08;
     }
 }
 
@@ -244,19 +288,70 @@
         grid-template-columns: 1fr;
     }
 
+    .compareHeroWrap {
+        grid-template-columns: minmax(0, 1fr) 48px minmax(0, 1fr);
+        gap: 6px;
+    }
+
+    .compareHeroCard {
+        min-height: 110px;
+    }
+
+    .compareHeroCardInner {
+        padding: 12px 10px;
+    }
+
+    .compareHeroLogoShell {
+        width: 52px;
+        height: 52px;
+        flex-basis: 52px;
+    }
+
+    .compareHeroLogo {
+        width: 36px;
+        height: 36px;
+    }
+
     .compareHeroName {
-        font-size: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .compareHeroVs,
+    .compareGoalieHeadVs {
+        width: 48px;
+        height: 48px;
+        font-size: 0.74rem;
     }
 
     .StatRowContent {
-        grid-template-columns: minmax(60px, 0.9fr) minmax(82px, 1.2fr) minmax(60px, 0.9fr);
+        grid-template-columns: minmax(54px, 0.9fr) minmax(78px, 1.2fr) minmax(54px, 0.9fr);
+        gap: 6px;
+        padding: 9px 10px;
     }
 
     .StatRowValue {
-        font-size: 0.84rem;
+        font-size: 0.78rem;
     }
 
     .StatRowLabel {
-        font-size: 0.68rem;
+        font-size: 0.62rem;
+    }
+
+    .compareGoalieHead {
+        grid-template-columns: minmax(0, 1fr) 48px minmax(0, 1fr);
+    }
+
+    .goalieCompareRowContent {
+        grid-template-columns: minmax(48px, 0.85fr) minmax(82px, 1.2fr) minmax(48px, 0.85fr);
+        gap: 6px;
+        padding: 0 8px;
+    }
+
+    .goalieCompareRowValue {
+        font-size: 0.78rem;
+    }
+
+    .goalieCompareRowLabel {
+        font-size: 0.62rem;
     }
 }
