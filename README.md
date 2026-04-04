@@ -1,36 +1,151 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Leafs Edge
 
-## Getting Started
+**Live site:**  
+https://leafs-edge.vercel.app/
 
-First, run the development server:
+## Overview
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Leafs Edge is a full-stack NHL analytics web application focused on analyzing Toronto Maple Leafs matchups and team performance using both traditional hockey statistics and advanced NHL EDGE tracking data. The application stays continuously updated throughout the NHL season by pulling live schedules, game results, roster information, and tracking data from public NHL APIs and a custom backend pipeline.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The application centers around comparing the Maple Leafs against their next opponent, providing a clear matchup overview while also offering deeper team-specific analysis. In addition to standard metrics, Leafs Edge integrates a custom machine learning model to predict short-term team momentum. Users are also able to preview future matchups by clicking them on the schedule bar. 
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Features
 
-## Learn More
+- Machine learning–driven team trend predictions with probability breakdowns  
+- Interactive matchup dashboard for upcoming games  
+- Side-by-side team comparisons across core and advanced metrics  
+- Last-5-games performance splits for recent form analysis  
+- Previous matchup data between teams  
+- Projected starting goaltenders for upcoming games  
+- Current injury reports for both teams  
+- Team-specific advanced analytics pages using NHL EDGE tracking data  
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## System Architecture
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Leafs Edge is implemented as a two-tier architecture consisting of a modern frontend and a Python-based backend that communicate through a shared API layer.
 
-## Deploy on Vercel
+### Frontend
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The frontend is built using **Next.js (App Router)** and **TypeScript**.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Displays matchup dashboard, schedule bar, and team analytics pages  
+- Fetches live NHL data through public NHL APIs and Next.js API routes  
+- Communicates with a custom backend for NHL EDGE analytics and ML inference  
+- Normalizes inconsistent upstream data into predictable frontend payloads  
+- Predicts a team’s next starting goaltender using recent starts and back-to-back logic  
+
+### Backend
+
+The backend is a **FastAPI** service deployed on **Render**.
+
+- Exposes machine learning trend inference endpoints for NHL teams  
+- Provides normalized NHL EDGE analytics (shot locations, shot speed, skating speed)  
+- Handles ingestion and transformation of raw NHL data  
+- Interfaces with a PostgreSQL database hosted on Supabase  
+- Uses lightweight TTL caching to reduce repeated external requests  
+
+---
+
+## Data Pipeline and Storage
+
+Leafs Edge combines real-time NHL data with persisted backend data to balance freshness, performance, and analytical depth.
+
+- Live data includes NHL schedules, rosters, standings, and game information  
+- Persisted data includes historical games, derived team metrics, and machine learning training inputs  
+- Data is stored in a PostgreSQL database hosted on Supabase  
+- All database reads and writes are handled by the backend  
+- The frontend accesses data exclusively through API endpoints  
+
+---
+
+## Machine Learning
+
+Leafs Edge includes a custom team trend classification model that predicts short-term team momentum as one of three classes:
+
+- **DOWN**  
+- **FLAT**  
+- **UP**  
+
+The machine learning pipeline is fully implemented end-to-end within the backend. The frontend displays whether a team is expected to improve, regress, or remain stable.
+
+### Training Process
+
+- Rolling windows of past games are generated for each team  
+- Each window is paired with a future window to measure directional change  
+- Features include goal differential, quality of competition, shot metrics, special teams performance, trend slopes, and relative baselines  
+- Labels are generated by comparing past and future performance using an epsilon threshold  
+- A multiclass logistic regression model is trained using standardized features  
+- Model parameters are exported to a JSON artifact containing weights, scaling statistics, feature order, and metadata  
+
+### Inference Process
+
+- Recent games are loaded for the requested team  
+- Features are rebuilt using the same logic as training  
+- Stored standardization parameters are applied  
+- Class probabilities are computed using softmax  
+- The API response includes predicted trend, confidence score, probability distribution, feature values, and model metadata  
+
+This allows the frontend to display both predictions and their analytical context.
+
+---
+
+## NHL Data Sources
+
+- NHL schedule and game data from `api-web.nhle.com`  
+- NHL statistics endpoints from `api.nhle.com/stats/rest`  
+- Injury data from Sportsnet JSON feeds  
+- NHL EDGE tracking data fetched and normalized by backend services  
+
+---
+
+## Tech Stack
+
+### Frontend
+- Next.js (App Router)  
+- React  
+- TypeScript  
+
+### Backend
+- FastAPI  
+- Python  
+- scikit-learn  
+- SQLAlchemy  
+- PostgreSQL (Supabase)  
+
+---
+
+## Deployment
+
+- **Vercel** – frontend hosting  
+- **Render** – backend API hosting  
+- **Supabase** – PostgreSQL database hosting  
+
+---
+
+## Performance Notes
+
+The backend may cold-start after periods of inactivity on Render.  
+The first request to team analytics pages may take **1–2 minutes**.  
+Once the service is warm, subsequent requests load normally.
+
+---
+
+## Local Development
+
+### Frontend
+
+- Standard Next.js setup  
+- Configure the backend base URL via environment variables  
+
+### Backend
+
+- Create a Python virtual environment  
+- Install dependencies  
+- Run the FastAPI application  
+
+Example trend endpoint:  
+http://localhost:8000/v1/trend/team?team=TOR
