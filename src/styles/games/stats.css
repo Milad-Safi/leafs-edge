@@ -290,3 +290,30 @@
         border-radius: 18px;
     }
 }
+
+@media (max-width: 760px) {
+    .historicalGameHeroVenue {
+        margin-bottom: 14px;
+        font-size: 0.82rem;
+    }
+
+    .historicalGameHeroMiddle {
+        gap: 8px;
+        padding: 14px 12px;
+    }
+
+    .historicalGameHeroDate {
+        font-size: 0.82rem;
+    }
+
+    .historicalGameHeroFinal {
+        font-size: 0.92rem;
+    }
+
+    .historicalGameHeroSubline {
+        gap: 6px;
+        font-size: 0.64rem;
+        letter-spacing: 0.03em;
+        line-height: 1.05;
+    }
+}

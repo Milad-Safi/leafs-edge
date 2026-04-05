@@ -415,3 +415,135 @@
         padding-left: 0;
     }
 }
+
+@media (max-width: 680px) {
+    .injuriesWorkspace {
+        padding: 24px 14px 68px;
+    }
+
+    .injuriesControlsCard,
+    .injuriesCardHeader,
+    .injuriesCardEmpty,
+    .injuriesList {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .injuriesControlsCard {
+        padding-top: 16px;
+        padding-bottom: 16px;
+        border-radius: 22px;
+    }
+
+    .injuriesCard {
+        border-radius: 24px;
+    }
+
+    .injuriesCardHeader {
+        padding-top: 18px;
+        padding-bottom: 16px;
+        gap: 14px;
+    }
+
+    .injuriesCardDivider {
+        margin: 0 16px;
+    }
+
+    .injuriesCardHeaderLeft {
+        gap: 12px;
+    }
+
+    .injuriesCardEyebrow {
+        margin-bottom: 6px;
+        font-size: 0.64rem;
+        letter-spacing: 0.1em;
+    }
+
+    .injuriesCardTitle {
+        font-size: clamp(1.3rem, 7vw, 1.72rem);
+    }
+
+    .injuriesMetaPill {
+        min-height: 34px;
+        padding: 0 12px;
+        font-size: 0.74rem;
+    }
+
+    .injuriesMetaText {
+        font-size: 0.76rem;
+        line-height: 1.4;
+    }
+
+    .injuriesList {
+        gap: 12px;
+        padding-top: 18px;
+        padding-bottom: 20px;
+    }
+
+    .injuriesRow {
+        gap: 12px;
+        padding: 14px;
+        border-radius: 20px;
+    }
+
+    .injuriesRowLeft {
+        gap: 12px;
+    }
+
+    .injuriesRowRight {
+        padding-left: 88px;
+    }
+
+    .injuriesAvatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+    }
+
+    .injuriesPlayerName {
+        margin-bottom: 4px;
+        font-size: 0.98rem;
+    }
+
+    .injuriesPlayerMeta {
+        font-size: 0.84rem;
+        line-height: 1.38;
+    }
+
+    .injuriesStatusBadge {
+        min-width: 48px;
+        height: 48px;
+        padding: 0 12px;
+        font-size: 0.74rem;
+    }
+}
+
+@media (max-width: 520px) {
+    .injuriesTeamLogo {
+        width: 52px;
+        height: 52px;
+    }
+
+    .injuriesMetaText {
+        font-size: 0.72rem;
+    }
+
+    .injuriesAvatar {
+        width: 60px;
+        height: 60px;
+    }
+
+    .injuriesPlayerName {
+        font-size: 0.92rem;
+    }
+
+    .injuriesPlayerMeta {
+        font-size: 0.8rem;
+    }
+
+    .injuriesStatusBadge {
+        min-width: 44px;
+        height: 44px;
+        font-size: 0.7rem;
+    }
+}

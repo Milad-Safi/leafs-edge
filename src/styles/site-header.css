@@ -122,103 +122,125 @@
     .siteHeaderInner {
         width: 100%;
         min-height: 0;
-        padding: 14px 10px;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        padding: 10px 12px;
         align-items: center;
-        gap: 10px;
-        overflow: hidden;
-    }
-
-    .siteNav {
-        min-width: 0;
-        width: 100%;
-        flex: 0 0 auto;
-        gap: 10px;
+        justify-content: flex-start;
+        gap: 8px;
         flex-wrap: nowrap;
         overflow-x: auto;
         overflow-y: hidden;
         scrollbar-width: none;
         -ms-overflow-style: none;
-        overscroll-behavior-x: contain;
         -webkit-overflow-scrolling: touch;
-        touch-action: pan-x;
-        scroll-snap-type: x proximity;
+        overscroll-behavior-x: contain;
     }
 
-    .siteNav::-webkit-scrollbar {
+    .siteHeaderInner::-webkit-scrollbar {
         display: none;
     }
 
-    .siteNav:first-of-type {
-        justify-content: flex-end;
-        flex-direction: row-reverse;
-        padding-right: 2px;
+    .siteNav {
+        width: auto;
+        flex: 0 0 auto;
+        justify-content: flex-start;
+        gap: 8px;
+        flex-wrap: nowrap;
     }
 
+    .siteNav:first-of-type,
     .siteNav:last-of-type {
         justify-content: flex-start;
-        padding-left: 2px;
     }
 
     .siteWordmark,
     .siteNavLink {
         flex: 0 0 auto;
+        scroll-snap-align: center;
     }
 
     .siteWordmark {
         order: 0;
-        margin: 0;
-        min-width: 168px;
-        min-height: 56px;
-        padding: 0 28px;
-        border-radius: 24px;
         position: relative;
-        left: auto;
-        z-index: 3;
+        left: -116px;
+        margin: 0 -116px 0 0;
+        min-width: 168px;
+        min-height: 48px;
+        padding: 0 22px;
+        border-radius: 22px;
+        font-size: 0.92rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
         transform: none;
         box-shadow:
-            0 10px 26px rgba(255, 255, 255, 0.18),
-            0 0 28px rgba(113, 154, 255, 0.16);
+            0 0 0 1px rgba(128, 170, 255, 0.22),
+            0 0 28px rgba(79, 131, 255, 0.24),
+            0 12px 28px rgba(255, 255, 255, 0.12);
     }
 
     .siteWordmark:hover {
         transform: none;
         box-shadow:
-            0 10px 26px rgba(255, 255, 255, 0.18),
-            0 0 28px rgba(113, 154, 255, 0.16);
+            0 0 0 1px rgba(128, 170, 255, 0.22),
+            0 0 28px rgba(79, 131, 255, 0.24),
+            0 12px 28px rgba(255, 255, 255, 0.12);
     }
 
     .siteNavLink {
-        min-height: 46px;
-        padding: 0 20px;
+        min-height: 42px;
+        padding: 0 18px;
         border-radius: 999px;
         border: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(255, 255, 255, 0.04);
-        font-size: 0.82rem;
-        font-weight: 700;
+        background: rgba(255, 255, 255, 0.03);
+        font-size: 0.78rem;
+        font-weight: 800;
         color: rgba(255, 255, 255, 0.82);
-        letter-spacing: normal;
+        letter-spacing: 0.01em;
         text-transform: none;
-        scroll-snap-align: center;
     }
 
     .siteNavLink:hover {
         color: #ffffff;
-        background: rgba(255, 255, 255, 0.07);
-        border-color: rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.13);
     }
 
     .siteNavLinkActive {
-        color: #eef5ff;
-        background: rgba(79, 132, 255, 0.28);
-        border-color: rgba(117, 166, 255, 0.52);
+        color: #eef4ff;
+        background: rgba(77, 123, 255, 0.34);
+        border-color: rgba(126, 169, 255, 0.52);
         box-shadow:
-            inset 0 0 0 1px rgba(176, 210, 255, 0.1),
-            0 0 20px rgba(67, 122, 255, 0.24);
+            inset 0 0 0 1px rgba(180, 210, 255, 0.14),
+            0 0 24px rgba(69, 117, 255, 0.22);
     }
 
     .siteNavLinkActive::after {
         display: none;
+    }
+}
+
+@media (max-width: 520px) {
+    .siteHeaderInner {
+        padding: 8px 10px;
+        gap: 7px;
+    }
+
+    .siteNav {
+        gap: 7px;
+    }
+
+    .siteWordmark {
+        left: -104px;
+        margin-right: -104px;
+        min-width: 156px;
+        min-height: 46px;
+        padding: 0 18px;
+        border-radius: 20px;
+        font-size: 0.88rem;
+    }
+
+    .siteNavLink {
+        min-height: 40px;
+        padding: 0 16px;
+        font-size: 0.74rem;
     }
 }

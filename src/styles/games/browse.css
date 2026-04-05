@@ -396,17 +396,60 @@
         height: 26px;
     }
 
-    .historicalGameScorePanel {
-        gap: 2px;
-    }
-
     .historicalGameScoreValue {
         font-size: 1.72rem;
     }
+}
+
+@media (max-width: 760px) {
+    .historicalGameCard {
+        padding: 11px 11px 12px;
+    }
+
+    .historicalGameCardTop {
+        margin-bottom: 8px;
+    }
+
+    .historicalGameDate {
+        font-size: 0.8rem;
+    }
+
+    .historicalGameDecisionBadge {
+        min-height: 24px;
+        padding: 0 9px;
+        font-size: 0.68rem;
+        letter-spacing: 0.06em;
+    }
+
+    .historicalGameTeamAbbrev {
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+    }
+
+    .historicalGameTeamName {
+        font-size: 0.82rem;
+    }
+
+    .historicalGameScorePanel {
+        gap: 2px;
+        padding: 2px 0 1px;
+    }
+
+    .historicalGameScoreline {
+        gap: 8px;
+    }
+
+    .historicalGameScoreValue {
+        font-size: 1.62rem;
+    }
+
+    .historicalGameScoreDash {
+        font-size: 0.84rem;
+    }
 
     .historicalGameMatchupNote {
-        font-size: 0.64rem;
-        letter-spacing: 0.05em;
-        line-height: 1;
+        font-size: 0.63rem;
+        letter-spacing: 0.04em;
+        line-height: 1.05;
     }
 }
