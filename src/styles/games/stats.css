@@ -314,3 +314,77 @@
         gap: 4px;
     }
 }
+
+@media (max-width: 760px) {
+    .historicalGameHeroMiddle {
+        padding: 14px 12px;
+    }
+
+    .historicalGameHeroScore {
+        font-size: clamp(2.35rem, 12vw, 3.25rem);
+    }
+
+    .historicalGameHeroMiddleMeta {
+        min-width: 56px;
+    }
+
+    .historicalGameHeroDate {
+        font-size: 0.8rem;
+    }
+
+    .historicalGameHeroFinal {
+        font-size: 0.9rem;
+    }
+
+    .historicalGameHeroSubline {
+        flex-wrap: nowrap;
+        gap: 4px;
+        font-size: 0.62rem;
+        letter-spacing: 0.02em;
+    }
+}
+
+@media (max-width: 520px) {
+    .historicalGameHeroVenue {
+        margin-bottom: 14px;
+        font-size: 0.84rem;
+    }
+
+    .historicalGameHeroMiddle {
+        padding: 12px 10px;
+        gap: 10px;
+    }
+
+    .historicalGameHeroScoreRow {
+        gap: 8px;
+    }
+
+    .historicalGameHeroScore {
+        font-size: 2.1rem;
+    }
+
+    .historicalGameHeroMiddleMeta {
+        min-width: 48px;
+    }
+
+    .historicalGameHeroDate {
+        font-size: 0.74rem;
+    }
+
+    .historicalGameHeroFinal {
+        font-size: 0.82rem;
+    }
+
+    .historicalGameHeroSubline {
+        font-size: 0.56rem;
+        gap: 3px;
+    }
+
+    .historicalGameHeroFeature {
+        padding: 14px 12px 12px;
+    }
+
+    .historicalGameHeroFeatureTitle {
+        font-size: 1.04rem;
+    }
+}
