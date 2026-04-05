@@ -292,28 +292,25 @@
 }
 
 @media (max-width: 760px) {
-    .historicalGameHeroVenue {
-        margin-bottom: 14px;
-        font-size: 0.82rem;
-    }
-
-    .historicalGameHeroMiddle {
-        gap: 8px;
-        padding: 14px 12px;
+    .historicalGameHeroSubline {
+        flex-wrap: nowrap;
+        gap: 5px;
+        font-size: 0.68rem;
+        letter-spacing: 0.035em;
     }
 
     .historicalGameHeroDate {
-        font-size: 0.82rem;
+        font-size: 0.84rem;
     }
 
     .historicalGameHeroFinal {
-        font-size: 0.92rem;
+        font-size: 0.94rem;
     }
+}
 
+@media (max-width: 520px) {
     .historicalGameHeroSubline {
-        gap: 6px;
-        font-size: 0.64rem;
-        letter-spacing: 0.03em;
-        line-height: 1.05;
+        font-size: 0.62rem;
+        gap: 4px;
     }
 }

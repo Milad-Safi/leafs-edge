@@ -165,6 +165,7 @@
     display: flex;
     align-items: center;
     gap: 18px;
+    min-width: 0;
 }
 
 .injuriesTeamLogo {
@@ -260,6 +261,7 @@
     align-items: center;
     gap: 16px;
     min-width: 0;
+    flex: 1;
 }
 
 .injuriesRowRight {
@@ -356,181 +358,146 @@
 
 @media (max-width: 680px) {
     .injuriesWorkspace {
-        padding: 28px 16px 72px;
+        padding: 24px 14px 64px;
     }
 
     .injuriesControlsCard,
     .injuriesCardHeader,
     .injuriesCardEmpty,
     .injuriesList {
-        padding-left: 18px;
-        padding-right: 18px;
+        padding-left: 14px;
+        padding-right: 14px;
     }
 
     .injuriesCardDivider {
-        margin: 0 18px;
+        margin: 0 14px;
+    }
+
+    .injuriesCardHeader {
+        gap: 12px;
+        padding-top: 18px;
+        padding-bottom: 16px;
+    }
+
+    .injuriesCardHeaderLeft {
+        gap: 12px;
+        width: 100%;
+    }
+
+    .injuriesTeamLogo {
+        width: 48px;
+        height: 48px;
+    }
+
+    .injuriesCardEyebrow {
+        margin-bottom: 6px;
+        font-size: 0.68rem;
+    }
+
+    .injuriesCardTitle {
+        font-size: clamp(1.28rem, 6.4vw, 1.72rem);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .injuriesMetaPill {
+        min-height: 34px;
+        padding: 0 12px;
+        font-size: 0.76rem;
+    }
+
+    .injuriesMetaText {
+        font-size: 0.82rem;
+    }
+
+    .injuriesList {
+        gap: 12px;
+        padding-top: 16px;
+        padding-bottom: 18px;
     }
 
     .injuriesRow {
-        align-items: flex-start;
-        flex-direction: column;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 20px;
     }
 
     .injuriesRowLeft {
-        width: 100%;
+        gap: 10px;
+        flex: 1;
     }
 
     .injuriesRowRight {
-        width: 100%;
+        width: auto;
         display: flex;
-        justify-content: flex-start;
-        padding-left: 102px;
+        justify-content: flex-end;
+        align-self: center;
+        padding-left: 0;
     }
 
     .injuriesAvatar {
-        width: 74px;
-        height: 74px;
+        width: 60px;
+        height: 60px;
+        border-radius: 14px;
+    }
+
+    .injuriesAvatarFallback {
+        font-size: 1.05rem;
     }
 
     .injuriesPlayerName {
-        font-size: 1.1rem;
+        margin-bottom: 4px;
+        font-size: 0.98rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .injuriesPlayerMeta {
+        font-size: 0.8rem;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .injuriesStatusBadge {
+        min-width: 44px;
+        height: 44px;
+        padding: 0 12px;
+        font-size: 0.76rem;
     }
 }
 
 @media (max-width: 520px) {
-    .injuriesCardHeaderLeft {
-        align-items: flex-start;
-    }
-
-    .injuriesTeamLogo {
-        width: 58px;
-        height: 58px;
-    }
-
-    .injuriesRowLeft {
-        align-items: flex-start;
-    }
-
-    .injuriesRowRight {
-        padding-left: 0;
-    }
-}
-
-@media (max-width: 680px) {
-    .injuriesWorkspace {
-        padding: 24px 14px 68px;
-    }
-
-    .injuriesControlsCard,
-    .injuriesCardHeader,
-    .injuriesCardEmpty,
-    .injuriesList {
-        padding-left: 16px;
-        padding-right: 16px;
-    }
-
     .injuriesControlsCard {
         padding-top: 16px;
         padding-bottom: 16px;
         border-radius: 22px;
     }
 
+    .injuriesSelect {
+        min-height: 46px;
+        border-radius: 14px;
+    }
+
     .injuriesCard {
         border-radius: 24px;
     }
 
-    .injuriesCardHeader {
-        padding-top: 18px;
-        padding-bottom: 16px;
-        gap: 14px;
-    }
-
-    .injuriesCardDivider {
-        margin: 0 16px;
-    }
-
     .injuriesCardHeaderLeft {
-        gap: 12px;
-    }
-
-    .injuriesCardEyebrow {
-        margin-bottom: 6px;
-        font-size: 0.64rem;
-        letter-spacing: 0.1em;
-    }
-
-    .injuriesCardTitle {
-        font-size: clamp(1.3rem, 7vw, 1.72rem);
-    }
-
-    .injuriesMetaPill {
-        min-height: 34px;
-        padding: 0 12px;
-        font-size: 0.74rem;
-    }
-
-    .injuriesMetaText {
-        font-size: 0.76rem;
-        line-height: 1.4;
-    }
-
-    .injuriesList {
-        gap: 12px;
-        padding-top: 18px;
-        padding-bottom: 20px;
+        align-items: center;
     }
 
     .injuriesRow {
-        gap: 12px;
-        padding: 14px;
-        border-radius: 20px;
-    }
-
-    .injuriesRowLeft {
-        gap: 12px;
-    }
-
-    .injuriesRowRight {
-        padding-left: 88px;
+        padding: 10px 12px;
     }
 
     .injuriesAvatar {
-        width: 64px;
-        height: 64px;
-        border-radius: 16px;
-    }
-
-    .injuriesPlayerName {
-        margin-bottom: 4px;
-        font-size: 0.98rem;
-    }
-
-    .injuriesPlayerMeta {
-        font-size: 0.84rem;
-        line-height: 1.38;
-    }
-
-    .injuriesStatusBadge {
-        min-width: 48px;
-        height: 48px;
-        padding: 0 12px;
-        font-size: 0.74rem;
-    }
-}
-
-@media (max-width: 520px) {
-    .injuriesTeamLogo {
-        width: 52px;
-        height: 52px;
-    }
-
-    .injuriesMetaText {
-        font-size: 0.72rem;
-    }
-
-    .injuriesAvatar {
-        width: 60px;
-        height: 60px;
+        width: 54px;
+        height: 54px;
+        border-radius: 12px;
     }
 
     .injuriesPlayerName {
@@ -538,12 +505,12 @@
     }
 
     .injuriesPlayerMeta {
-        font-size: 0.8rem;
+        font-size: 0.76rem;
     }
 
     .injuriesStatusBadge {
-        min-width: 44px;
-        height: 44px;
-        font-size: 0.7rem;
+        min-width: 40px;
+        height: 40px;
+        font-size: 0.72rem;
     }
 }
