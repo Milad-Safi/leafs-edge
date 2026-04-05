@@ -122,63 +122,76 @@
     .siteHeaderInner {
         width: 100%;
         min-height: 0;
-        padding: 14px 16px;
+        padding: 14px 10px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
         align-items: center;
-        justify-content: center;
-        gap: 12px;
+        gap: 10px;
+        overflow: hidden;
+    }
+
+    .siteNav {
+        min-width: 0;
+        width: 100%;
+        flex: 0 0 auto;
+        gap: 10px;
         flex-wrap: nowrap;
         overflow-x: auto;
         overflow-y: hidden;
         scrollbar-width: none;
         -ms-overflow-style: none;
         overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-x;
         scroll-snap-type: x proximity;
     }
 
-    .siteHeaderInner::-webkit-scrollbar {
+    .siteNav::-webkit-scrollbar {
         display: none;
     }
 
-    .siteNav {
-        width: auto;
-        flex: 0 0 auto;
-        justify-content: center;
-        gap: 12px;
-        flex-wrap: nowrap;
+    .siteNav:first-of-type {
+        justify-content: flex-end;
+        flex-direction: row-reverse;
+        padding-right: 2px;
     }
 
-    .siteNav:first-of-type,
     .siteNav:last-of-type {
-        justify-content: center;
+        justify-content: flex-start;
+        padding-left: 2px;
     }
 
     .siteWordmark,
     .siteNavLink {
         flex: 0 0 auto;
-        scroll-snap-align: center;
     }
 
     .siteWordmark {
         order: 0;
-        margin: 0 4px;
+        margin: 0;
+        min-width: 168px;
+        min-height: 56px;
         padding: 0 28px;
-        min-height: 52px;
-        border-radius: 20px;
-        box-shadow: 0 8px 24px rgba(255, 255, 255, 0.18);
-        position: sticky;
-        left: 50%;
+        border-radius: 24px;
+        position: relative;
+        left: auto;
         z-index: 3;
-        transform: translateX(-50%);
+        transform: none;
+        box-shadow:
+            0 10px 26px rgba(255, 255, 255, 0.18),
+            0 0 28px rgba(113, 154, 255, 0.16);
     }
 
     .siteWordmark:hover {
-        transform: translateX(-50%);
-        box-shadow: 0 8px 24px rgba(255, 255, 255, 0.18);
+        transform: none;
+        box-shadow:
+            0 10px 26px rgba(255, 255, 255, 0.18),
+            0 0 28px rgba(113, 154, 255, 0.16);
     }
 
     .siteNavLink {
         min-height: 46px;
-        padding: 0 22px;
+        padding: 0 20px;
         border-radius: 999px;
         border: 1px solid rgba(255, 255, 255, 0.08);
         background: rgba(255, 255, 255, 0.04);
@@ -187,6 +200,7 @@
         color: rgba(255, 255, 255, 0.82);
         letter-spacing: normal;
         text-transform: none;
+        scroll-snap-align: center;
     }
 
     .siteNavLink:hover {
@@ -196,9 +210,12 @@
     }
 
     .siteNavLinkActive {
-        color: #dceaff;
-        background: rgba(125, 176, 255, 0.16);
-        border-color: rgba(125, 176, 255, 0.28);
+        color: #eef5ff;
+        background: rgba(79, 132, 255, 0.28);
+        border-color: rgba(117, 166, 255, 0.52);
+        box-shadow:
+            inset 0 0 0 1px rgba(176, 210, 255, 0.1),
+            0 0 20px rgba(67, 122, 255, 0.24);
     }
 
     .siteNavLinkActive::after {

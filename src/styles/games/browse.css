@@ -396,7 +396,17 @@
         height: 26px;
     }
 
+    .historicalGameScorePanel {
+        gap: 2px;
+    }
+
     .historicalGameScoreValue {
         font-size: 1.72rem;
+    }
+
+    .historicalGameMatchupNote {
+        font-size: 0.64rem;
+        letter-spacing: 0.05em;
+        line-height: 1;
     }
 }

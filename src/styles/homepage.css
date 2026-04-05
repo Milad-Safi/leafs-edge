@@ -287,7 +287,7 @@
 
 @media (max-width: 720px) {
     .heroSection {
-        min-height: 76svh;
+        min-height: 96svh;
         padding: 28px 16px 64px;
         background-size: cover;
         background-position: center;
